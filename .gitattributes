@@ -1,0 +1,15 @@
+# LF everywhere (the iOS build runs on macOS CI); Windows-only files keep CRLF.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.rc text eol=crlf
+*.sln text eol=crlf
+*.vcxproj* text eol=crlf
+
+# Binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.jar binary

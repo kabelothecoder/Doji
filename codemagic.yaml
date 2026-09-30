@@ -1,0 +1,76 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# UNTESTED. A starting point for building iOS without a Mac. Nobody has run
+# this yet; expect to adjust instance type, Xcode version and signing.
+# Docs: https://docs.codemagic.io/yaml-quick-start/building-a-flutter-app/
+# ─────────────────────────────────────────────────────────────────────────────
+workflows:
+  # 1) Proves the iOS project compiles. No certificates needed.
+  ios-unsigned:
+    name: iOS · unsigned build (untested)
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+    environment:
+      flutter: 3.38.6
+      xcode: latest
+      cocoapods: default
+      # Optional: an environment group holding SUPABASE_URL / SUPABASE_ANON_KEY.
+      # groups:
+      #   - supabase
+    triggering:
+      events: [push, pull_request]
+      branch_patterns:
+        - pattern: '*'
+    scripts:
+      - name: Packages
+        script: flutter pub get
+      - name: Analyze and test
+        script: |
+          flutter analyze
+          flutter test --exclude-tags golden   # goldens are rendered on Windows; see README
+      - name: Pods
+        script: cd ios && pod install --repo-update
+      - name: Build (no codesign)
+        script: |
+          flutter build ios --release --no-codesign \
+            --dart-define=SUPABASE_URL=${SUPABASE_URL:-} \
+            --dart-define=SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
+    artifacts:
+      - build/ios/iphoneos/*.app
+      - /tmp/xcodebuild_logs/*.log
+
+  # 2) TestFlight. Fill in once an App Store Connect API key exists in
+  #    Codemagic (Teams › Integrations) and the bundle id com.doji.app is
+  #    registered. Left commented so it can't run half-configured.
+  # ios-testflight:
+  #   name: iOS · TestFlight (untested)
+  #   max_build_duration: 60
+  #   instance_type: mac_mini_m2
+  #   integrations:
+  #     app_store_connect: <your integration name>
+  #   environment:
+  #     flutter: 3.38.6
+  #     xcode: latest
+  #     cocoapods: default
+  #     ios_signing:
+  #       distribution_type: app_store
+  #       bundle_identifier: com.doji.app
+  #     groups:
+  #       - supabase
+  #   scripts:
+  #     - name: Packages
+  #       script: flutter pub get
+  #     - name: Signing
+  #       script: xcode-project use-profiles
+  #     - name: Build ipa
+  #       script: |
+  #         flutter build ipa --release \
+  #           --build-number=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID") + 1)) \
+  #           --export-options-plist=/Users/builder/export_options.plist \
+  #           --dart-define=SUPABASE_URL=$SUPABASE_URL \
+  #           --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
+  #   artifacts:
+  #     - build/ios/ipa/*.ipa
+  #   publishing:
+  #     app_store_connect:
+  #       auth: integration
+  #       submit_to_testflight: true

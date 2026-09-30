@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&family=Roboto:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0..1,0&display=block">
+<style>
+@keyframes dojiBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes authType{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes authFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</helmet>
+<div data-screen-label="{{ label }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:#050607;border:1px solid #26292E;box-shadow:0 40px 80px rgba(0,0,0,0.5);font-family:'Geist',system-ui,sans-serif;color:#F5F5F7;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;">
+<div aria-hidden="true" style="position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;background-image:{{ grain }};"></div>
+
+<sc-if value="{{ is.welcome }}" hint-placeholder-val="{{ true }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> auth</span>
+    <button aria-label="Close" onClick="{{ g.back }}" style="margin-left:auto;margin-right:-10px;width:44px;height:44px;border:none;border-radius:22px;background:transparent;color:#A1A1A6;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">close</span></button>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;">
+    <div role="img" aria-label="doji" style="position:relative;width:72px;height:72px;border-radius:17px;background:#0F1113;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);">
+      <span style="position:absolute;left:33px;top:15px;width:4px;height:41px;border-radius:2px;background:#F5F5F7;"></span>
+      <span style="position:absolute;left:23px;top:34px;width:25px;height:4px;border-radius:2px;background:#F5F5F7;"></span>
+      <span style="position:absolute;left:51px;top:47px;width:8px;height:9px;border-radius:2px;background:#2FD67B;"></span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">welcome back.</h1>
+      <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">sign in to load your profile.doji on this phone.</p>
+    </div>
+  </div>
+  <button onClick="{{ g.apple }}" style="display:flex;align-items:center;justify-content:center;gap:6px;height:56px;border-radius:999px;border:none;background:#FFFFFF;color:#000000;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-size:19px;font-weight:600;cursor:pointer;"><span aria-hidden="true" style="font-size:22px;line-height:1;margin-top:-3px;"></span>Sign in with Apple</button>
+  <button onClick="{{ g.google }}" style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;border:1px solid #8E918F;background:#131314;color:#E3E3E3;font-family:'Roboto',sans-serif;font-size:17px;font-weight:500;cursor:pointer;"><span aria-hidden="true" style="width:22px;height:22px;border-radius:11px;background:#FFFFFF;color:#4285F4;display:flex;align-items:center;justify-content:center;font-family:'Roboto',sans-serif;font-size:14px;font-weight:700;">G</span>Sign in with Google</button>
+  <button onClick="{{ g.email }}" style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;line-height:1;">mail</span>continue with email</button>
+  <p style="margin:6px 0 0;font-size:15px;color:#A1A1A6;text-align:center;">new here? <a href="#" style="color:#2FD67B;">start setup</a></p>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.save }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#2FD67B;">&gt; 100% configured</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding-top:12px;">
+    <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">save your setup.</h1>
+    <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">sign in to keep profile.doji and sync it to your other devices.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;padding:16px;border-radius:24px;background:rgba(15,17,19,0.6);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.08);font-family:'Geist Mono',monospace;">
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+      <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;color:#2FD67B;">description</span>
+      <span>profile.doji</span>
+      <span style="margin-left:auto;font-size:11px;letter-spacing:0.06em;color:#2FD67B;background:rgba(47,214,123,0.12);border-radius:6px;padding:3px 7px;">READY TO SAVE</span>
+    </div>
+    <sc-for list="{{ saveLines }}" as="l" hint-placeholder-count="4">
+      <div style="display:flex;gap:12px;font-size:14px;line-height:1.5;"><span style="width:18px;text-align:right;color:#A1A1A6;flex:none;">{{ l.n }}</span><span style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:#A1A1A6;">{{ l.k }}: </span><span style="color:{{ l.c }};">{{ l.v }}</span><span style="color:#A1A1A6;">{{ l.m }}</span></span></div>
+    </sc-for>
+    <span style="padding-top:10px;border-top:1px solid #26292E;font-size:12px;color:#A1A1A6;">14 lines · stored on this device only</span>
+  </div>
+  <div style="flex:1;"></div>
+  <button onClick="{{ g.apple }}" style="display:flex;align-items:center;justify-content:center;gap:6px;height:56px;border-radius:999px;border:none;background:#FFFFFF;color:#000000;font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;font-size:19px;font-weight:600;cursor:pointer;"><span aria-hidden="true" style="font-size:22px;line-height:1;margin-top:-3px;"></span>Continue with Apple</button>
+  <button onClick="{{ g.google }}" style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;border:1px solid #8E918F;background:#131314;color:#E3E3E3;font-family:'Roboto',sans-serif;font-size:17px;font-weight:500;cursor:pointer;"><span aria-hidden="true" style="width:22px;height:22px;border-radius:11px;background:#FFFFFF;color:#4285F4;display:flex;align-items:center;justify-content:center;font-family:'Roboto',sans-serif;font-size:14px;font-weight:700;">G</span>Continue with Google</button>
+  <button onClick="{{ g.email }}" style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;line-height:1;">mail</span>continue with email</button>
+  <button onClick="{{ g.skip }}" style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:'Geist',sans-serif;font-size:15px;cursor:pointer;">continue without account</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.appleSheet }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;padding:62px 20px 0;">
+  <p style="margin:0;padding-top:56px;font-family:'Geist Mono',monospace;font-size:17px;line-height:1.5;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> waiting for {{ sheetLower }}…{{ cursor }}</p>
+  <div style="position:absolute;left:0;right:0;bottom:0;height:470px;border-radius:24px 24px 0 0;background:repeating-linear-gradient(135deg,#0F1113 0 10px,#131518 10px 20px);border-top:1px solid #26292E;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;text-align:center;">
+    <span style="color:#F5F5F7;">system sheet · {{ sheetFor }}</span>
+    <span>{{ sheetApi }}</span>
+    <span>not drawn: rendered by the OS</span>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.email }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;gap:2px;height:44px;flex:none;">
+    <button aria-label="Back" onClick="{{ g.back }}" style="width:44px;height:44px;margin-left:-12px;border:none;border-radius:22px;background:transparent;color:#F5F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:30px;line-height:1;">chevron_left</span></button>
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> auth --email</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding-top:8px;">
+    <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">what's your email?</h1>
+    <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">we'll send a 6-digit code. no password to remember.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;padding-top:8px;">
+    <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.06em;color:#A1A1A6;">EMAIL</span>
+    <div style="display:flex;align-items:center;height:60px;padding:0 18px;border-radius:16px;background:#0F1113;border:1px solid #2FD67B;">
+      <sc-if value="{{ live }}" hint-placeholder-val="{{ false }}">
+        <input type="email" aria-label="Email" autocomplete="email" placeholder="you@example.com" value="{{ emailVal }}" onChange="{{ onEmail }}" onKeyDown="{{ onEmailKey }}" style="flex:1;min-width:0;height:100%;border:none;outline:none;background:transparent;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:19px;caret-color:#2FD67B;">
+      </sc-if>
+      <sc-if value="{{ notLive }}" hint-placeholder-val="{{ true }}">
+        <span style="font-size:19px;">[email]</span><span aria-hidden="true" style="width:2px;height:24px;margin-left:2px;background:#2FD67B;"></span>
+      </sc-if>
+    </div>
+  </div>
+  <button onClick="{{ g.send }}" style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;opacity:{{ sendOp }};">send code</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.anyCode }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;gap:2px;height:44px;flex:none;">
+    <button aria-label="Back" onClick="{{ g.back }}" style="width:44px;height:44px;margin-left:-12px;border:none;border-radius:22px;background:transparent;color:#F5F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:30px;line-height:1;">chevron_left</span></button>
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> auth --code</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding-top:8px;">
+    <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">check your email.</h1>
+    <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">we sent a 6-digit code to <span style="color:#F5F5F7;">{{ emailShown }}</span>. <a href="#" onClick="{{ g.change }}" style="color:#2FD67B;">change</a></p>
+  </div>
+  <div style="position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;padding-top:8px;">
+    <sc-for list="{{ digits }}" as="d" hint-placeholder-count="6">
+      <div style="display:flex;align-items:center;justify-content:center;height:64px;border-radius:10px;background:{{ d.bg }};border:{{ d.bd }};font-family:'Geist Mono',monospace;font-size:28px;font-weight:500;color:{{ d.fg }};">{{ d.ch }}<sc-if value="{{ d.active }}" hint-placeholder-val="{{ false }}">{{ caret }}</sc-if></div>
+    </sc-for>
+    <sc-if value="{{ codeInput }}" hint-placeholder-val="{{ false }}">
+      <input aria-label="6-digit code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" value="{{ codeVal }}" onChange="{{ onCode }}" style="position:absolute;left:0;top:8px;width:100%;height:64px;opacity:0;border:none;font-size:16px;cursor:text;">
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ st.timer }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;min-height:44px;">
+      <span style="font-family:'Geist Mono',monospace;font-size:14px;color:#A1A1A6;">resend in {{ timer }}</span>
+      <button onClick="{{ g.paste }}" style="margin-left:auto;display:flex;align-items:center;gap:6px;height:44px;padding:0 14px;border-radius:10px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:15px;font-weight:500;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;">content_paste</span>paste</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ st.resend }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <button onClick="{{ g.resend }}" style="align-self:flex-start;display:flex;align-items:center;gap:6px;height:44px;margin-left:-4px;padding:0 4px;border:none;background:transparent;color:#2FD67B;font-family:'Geist Mono',monospace;font-size:15px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;">refresh</span>resend code</button>
+      <span style="font-size:15px;line-height:1.45;color:#A1A1A6;">nothing yet? check spam and promotions.</span>
+    </div>
+  </sc-if>
+  <sc-if value="{{ st.wrong }}" hint-placeholder-val="{{ false }}">
+    <p role="alert" style="margin:0;font-family:'Geist Mono',monospace;font-size:15px;line-height:1.5;color:#FF9F0A;">&gt; that code didn't match. 4 tries left.{{ cursorO }}</p>
+  </sc-if>
+  <sc-if value="{{ st.expired }}" hint-placeholder-val="{{ false }}">
+    <p role="alert" style="margin:0;font-family:'Geist Mono',monospace;font-size:15px;line-height:1.5;color:#FF9F0A;">&gt; that code expired. codes last 10 minutes.{{ cursorO }}</p>
+    <button onClick="{{ g.resend }}" style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">send a new code</button>
+  </sc-if>
+  <sc-if value="{{ st.locked }}" hint-placeholder-val="{{ false }}">
+    <p role="alert" style="margin:0;font-family:'Geist Mono',monospace;font-size:15px;line-height:1.5;color:#FF9F0A;">&gt; too many attempts. try again in 14:59.{{ cursorO }}</p>
+    <p style="margin:0;font-size:15px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">this protects your account. you can still sign in another way.</p>
+    <button onClick="{{ g.back }}" style="display:flex;align-items:center;justify-content:center;height:56px;margin-top:8px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">use another method</button>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.exists }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;gap:2px;height:44px;flex:none;">
+    <button aria-label="Back" style="width:44px;height:44px;margin-left:-12px;border:none;border-radius:22px;background:transparent;color:#F5F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:30px;line-height:1;">chevron_left</span></button>
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> auth --lookup</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding-top:8px;">
+    <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">you've been here before.</h1>
+    <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">you signed up with Google last time. use it again to load your setup.</p>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;min-height:72px;padding:0 16px;margin-top:8px;border-radius:16px;background:#0F1113;border:1px solid #26292E;">
+    <span aria-hidden="true" style="flex:none;width:36px;height:36px;border-radius:18px;background:#FFFFFF;color:#4285F4;display:flex;align-items:center;justify-content:center;font-family:'Roboto',sans-serif;font-size:18px;font-weight:700;">G</span>
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
+      <span style="font-size:17px;font-weight:500;">Google</span>
+      <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">[email]</span>
+    </div>
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.04em;color:#A1A1A6;text-align:right;">LAST USED<br>[date]</span>
+  </div>
+  <div style="flex:1;"></div>
+  <button style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;border:1px solid #8E918F;background:#131314;color:#E3E3E3;font-family:'Roboto',sans-serif;font-size:17px;font-weight:500;cursor:pointer;"><span aria-hidden="true" style="width:22px;height:22px;border-radius:11px;background:#FFFFFF;color:#4285F4;display:flex;align-items:center;justify-content:center;font-family:'Roboto',sans-serif;font-size:14px;font-weight:700;">G</span>Continue with Google</button>
+  <button style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:'Geist',sans-serif;font-size:15px;cursor:pointer;">use a different email</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.merge }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> sync --conflict</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding-top:8px;">
+    <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">keep this device's setup?</h1>
+    <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">you set doji up here as a guest, and your account already has a setup. pick one to keep.</p>
+  </div>
+  <div role="radiogroup" style="display:flex;flex-direction:column;gap:10px;padding-top:8px;">
+    <sc-for list="{{ mergeOpts }}" as="o" hint-placeholder-count="2">
+      <div role="radio" aria-checked="{{ o.sel }}" style="display:flex;align-items:flex-start;gap:14px;padding:16px;border-radius:16px;background:#0F1113;border:{{ o.bd }};cursor:pointer;">
+        <span aria-hidden="true" style="flex:none;width:22px;height:22px;margin-top:1px;border-radius:11px;border:{{ o.ring }};display:flex;align-items:center;justify-content:center;"><span style="width:10px;height:10px;border-radius:5px;background:#2FD67B;opacity:{{ o.dot }};"></span></span>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;">
+          <span style="font-size:17px;font-weight:600;">{{ o.t }}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:13px;line-height:1.5;color:#A1A1A6;">{{ o.m }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <p style="margin:0;font-size:15px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">the other setup is removed. you can edit any line afterwards.</p>
+  <div style="flex:1;"></div>
+  <button style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">keep this device's setup</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.age }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> auth --consent</span>
+  </div>
+  <h1 style="margin:0;padding-top:8px;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">before you start.</h1>
+  <div style="display:flex;flex-direction:column;border-radius:16px;background:#0F1113;overflow:hidden;">
+    <sc-for list="{{ consents }}" as="c" hint-placeholder-count="2">
+      <div role="checkbox" aria-checked="true" style="display:flex;align-items:flex-start;gap:14px;min-height:56px;padding:16px;border-top:{{ c.div }};cursor:pointer;">
+        <span aria-hidden="true" style="flex:none;width:24px;height:24px;border-radius:6px;background:#2FD67B;color:#050607;display:flex;align-items:center;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;font-weight:600;">check</span></span>
+        <div style="flex:1;display:flex;flex-direction:column;gap:4px;">
+          <span style="font-size:17px;line-height:1.35;font-weight:500;text-wrap:pretty;">{{ c.t }}</span>
+          <span style="font-size:15px;line-height:1.4;color:#A1A1A6;text-wrap:pretty;">{{ c.s }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;gap:20px;font-size:15px;"><a href="#" style="color:#2FD67B;">terms of use</a><a href="#" style="color:#2FD67B;">privacy policy</a></div>
+  <div role="note" style="display:flex;gap:10px;padding:14px 16px;border-radius:16px;border:1px solid #26292E;">
+    <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:#A1A1A6;">info</span>
+    <span style="font-size:15px;line-height:1.45;color:#F5F5F7;text-wrap:pretty;">Doji is coaching and analysis software, not financial advice.</span>
+  </div>
+  <div style="flex:1;"></div>
+  <button style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">agree and continue</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.faceSetup }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> security --app-lock</span>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;">
+    <div aria-hidden="true" style="width:88px;height:88px;border-radius:24px;background:#0F1113;border:1px solid #26292E;display:flex;align-items:center;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:48px;line-height:1;font-variation-settings:'wght' 300;">familiar_face_and_zone</span></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">lock doji with Face ID.</h1>
+      <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">your journal, rules and results stay private if someone else picks up your phone.</p>
+    </div>
+    <p style="margin:0;font-family:'Geist Mono',monospace;font-size:13px;line-height:1.6;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> asks when you open doji<br><span style="color:#2FD67B;">&gt;</span> and after 5 min away</p>
+  </div>
+  <button style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">turn on Face ID</button>
+  <button style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:'Geist',sans-serif;font-size:15px;cursor:pointer;">not now</button>
+  <span style="font-size:13px;color:#A1A1A6;text-align:center;">change anytime in settings → app lock</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.faceLock }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;gap:12px;padding:62px 20px 34px;background:rgba(15,17,19,0.55);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+    <div role="img" aria-label="doji" style="position:relative;width:72px;height:72px;border-radius:17px;background:#0F1113;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);">
+      <span style="position:absolute;left:33px;top:15px;width:4px;height:41px;border-radius:2px;background:#F5F5F7;"></span>
+      <span style="position:absolute;left:23px;top:34px;width:25px;height:4px;border-radius:2px;background:#F5F5F7;"></span>
+      <span style="position:absolute;left:51px;top:47px;width:8px;height:9px;border-radius:2px;background:#2FD67B;"></span>
+    </div>
+    <span style="font-family:'Geist Mono',monospace;font-size:17px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> locked.{{ cursor }}</span>
+  </div>
+  <button aria-label="Unlock with Face ID" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;border:1px solid #26292E;background:#17191C;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;line-height:1;">familiar_face_and_zone</span>unlock with Face ID</button>
+  <button style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:'Geist',sans-serif;font-size:15px;cursor:pointer;">use passcode</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.anySuccess }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:28px;padding:62px 20px 34px;">
+  {{ typed }}
+</div>
+</sc-if>
+
+<sc-if value="{{ is.offline }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> auth</span>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;">
+    <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:32px;line-height:1;color:#FF9F0A;">wifi_off</span>
+    <p role="alert" style="margin:0;font-family:'Geist Mono',monospace;font-size:24px;font-weight:500;line-height:1.3;letter-spacing:-0.01em;"><span style="color:#FF9F0A;">&gt;</span> connection lost.<br>try again.{{ cursorO }}</p>
+    <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">nothing was lost. your setup is still on this device.</p>
+  </div>
+  <button style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">try again</button>
+  <button style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:'Geist',sans-serif;font-size:15px;cursor:pointer;">continue offline</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.signout }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:20px;padding:62px 20px 34px;">
+  <h1 style="margin:44px 0 0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">settings</h1>
+  <sc-for list="{{ settingsGroups }}" as="grp" hint-placeholder-count="2">
+    <div style="display:flex;flex-direction:column;border-radius:16px;background:#0F1113;overflow:hidden;">
+      <sc-for list="{{ grp }}" as="r" hint-placeholder-count="2">
+        <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;border-top:{{ r.div }};">
+          <span style="flex:1;font-size:17px;color:{{ r.c }};">{{ r.l }}</span>
+          <span style="font-size:15px;color:#A1A1A6;">{{ r.v }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </sc-for>
+  <div aria-hidden="true" style="position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.55);"></div>
+  <div role="dialog" aria-label="Sign out" style="position:absolute;left:8px;right:8px;bottom:8px;display:flex;flex-direction:column;gap:12px;padding:12px 20px 26px;border-radius:40px 40px 40px 40px;background:rgba(23,25,28,0.78);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.08);">
+    <span aria-hidden="true" style="align-self:center;width:36px;height:5px;border-radius:3px;background:#26292E;margin-bottom:8px;"></span>
+    <span style="font-size:22px;font-weight:600;letter-spacing:-0.02em;">sign out of doji?</span>
+    <span style="font-size:15px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">profile.doji stays in your account. sign in again to get it back on this phone.</span>
+    <button style="display:flex;align-items:center;justify-content:center;height:56px;margin-top:8px;border-radius:999px;border:none;background:#F5F5F7;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">sign out</button>
+    <button style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:'Geist',sans-serif;font-size:15px;cursor:pointer;">cancel</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.delExplain }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;gap:2px;height:44px;flex:none;">
+    <button aria-label="Back" style="width:44px;height:44px;margin-left:-12px;border:none;border-radius:22px;background:transparent;color:#F5F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:30px;line-height:1;">chevron_left</span></button>
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#FF9F0A;">&gt;</span> account --delete</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding-top:8px;">
+    <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">delete your account.</h1>
+    <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">this erases everything tied to [email]. it can't be undone.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;border-radius:16px;background:#0F1113;overflow:hidden;">
+    <sc-for list="{{ delItems }}" as="d" hint-placeholder-count="4">
+      <div style="display:flex;align-items:center;gap:14px;min-height:52px;padding:10px 16px;border-top:{{ d.div }};">
+        <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:#A1A1A6;">{{ d.i }}</span>
+        <span style="font-size:16px;line-height:1.35;">{{ d.t }}</span>
+      </div>
+    </sc-for>
+  </div>
+  <div role="note" style="display:flex;gap:10px;padding:14px 16px;border-radius:16px;background:rgba(255,159,10,0.09);border:1px solid rgba(255,159,10,0.32);">
+    <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:#FF9F0A;">info</span>
+    <span style="font-size:15px;line-height:1.45;text-wrap:pretty;">subscribed through the App Store? cancel in Settings → Apple Account first. deleting doji doesn't stop Apple billing.</span>
+  </div>
+  <div style="flex:1;"></div>
+  <button style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:999px;border:1px solid #FF9F0A;background:transparent;color:#FF9F0A;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">continue</button>
+  <button style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:'Geist',sans-serif;font-size:15px;cursor:pointer;">keep my account</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.delType }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;gap:2px;height:44px;flex:none;">
+    <button aria-label="Back" style="width:44px;height:44px;margin-left:-12px;border:none;border-radius:22px;background:transparent;color:#F5F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:30px;line-height:1;">chevron_left</span></button>
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;"><span style="color:#FF9F0A;">&gt;</span> account --delete --confirm</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding-top:8px;">
+    <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">type <span style="font-family:'Geist Mono',monospace;color:#FF9F0A;">delete</span> to confirm.</h1>
+    <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">so it only happens on purpose.</p>
+  </div>
+  <div style="display:flex;align-items:center;height:60px;margin-top:8px;padding:0 18px;border-radius:16px;background:#0F1113;border:1px solid #FF9F0A;font-family:'Geist Mono',monospace;font-size:20px;">delete<span aria-hidden="true" style="width:2px;height:24px;margin-left:2px;background:#FF9F0A;"></span></div>
+  <button style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:999px;border:none;background:#FF9F0A;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">delete account</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.delConfirm }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:62px 20px 34px;">
+  <h1 style="margin:52px 0 0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;opacity:0.3;">type delete to confirm.</h1>
+  <div aria-hidden="true" style="position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.6);"></div>
+  <div role="alertdialog" aria-label="Delete permanently" style="position:absolute;left:36px;right:36px;top:300px;display:flex;flex-direction:column;border-radius:24px;background:rgba(23,25,28,0.82);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.08);overflow:hidden;">
+    <div style="display:flex;flex-direction:column;gap:8px;padding:22px 20px 20px;text-align:center;">
+      <span style="font-size:19px;font-weight:600;">delete permanently?</span>
+      <span style="font-size:15px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">your account and all its data will be erased. this can't be undone.</span>
+    </div>
+    <button style="height:52px;border:none;border-top:1px solid #26292E;background:transparent;color:#FF9F0A;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">delete</button>
+    <button style="height:52px;border:none;border-top:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:17px;cursor:pointer;">cancel</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.delDone }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:62px 20px 34px;">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;">
+    <span style="font-family:'Geist Mono',monospace;font-size:15px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> account deleted.{{ cursor }}</span>
+    <h1 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;line-height:1.08;">your data is gone.</h1>
+    <p style="margin:0;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">profile.doji, your journal and your coaching history are erased. backups clear within [30] days.</p>
+  </div>
+  <button style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">done</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.home }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:62px 20px 34px;">
+  <div style="display:flex;align-items:center;height:44px;">
+    <div role="img" aria-label="doji" style="display:inline-flex;align-items:baseline;font-family:'Geist Mono',monospace;font-weight:700;font-size:18px;letter-spacing:-0.02em;line-height:1;"><span>doj</span><span style="position:relative;display:inline-block;width:0.6em;height:0.74em;"><span style="position:absolute;left:calc(50% - 0.06em);top:0;width:0.12em;height:100%;background:#F5F5F7;border-radius:1px;"></span><span style="position:absolute;left:0.1em;right:0.1em;top:50%;height:0.11em;background:#F5F5F7;border-radius:1px;"></span></span><span style="color:#2FD67B;">_</span></div>
+  </div>
+  <div style="flex:1;border-radius:24px;border:1px solid #26292E;background:repeating-linear-gradient(135deg,#0F1113 0 10px,#131518 10px 20px);display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">home · separate brief</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showKb }}" hint-placeholder-val="{{ false }}">
+  <div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:291px;background:repeating-linear-gradient(135deg,#0F1113 0 10px,#131518 10px 20px);border-top:1px solid #26292E;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:16px;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;text-align:center;">
+    <span style="color:#F5F5F7;">system keyboard</span>
+    <span>{{ kbLabel }}</span>
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:392,&quot;height&quot;:846},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;welcome&quot;,&quot;save&quot;,&quot;appleSheet&quot;,&quot;email&quot;,&quot;code&quot;,&quot;codeWrong&quot;,&quot;codeExpired&quot;,&quot;codeLocked&quot;,&quot;codeResend&quot;,&quot;exists&quot;,&quot;merge&quot;,&quot;age&quot;,&quot;faceSetup&quot;,&quot;faceLock&quot;,&quot;success&quot;,&quot;successNew&quot;,&quot;offline&quot;,&quot;signout&quot;,&quot;delExplain&quot;,&quot;delType&quot;,&quot;delConfirm&quot;,&quot;delDone&quot;,&quot;home&quot;],&quot;default&quot;:&quot;welcome&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;interactive&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showKeyboard&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;reduceMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;label&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;email&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;code&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;timer&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;sheetFor&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;'Apple'|'Google'&quot;},&quot;onGo&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(target: string) =&gt; void&quot;},&quot;onEmail&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v: string) =&gt; void&quot;},&quot;onCode&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const e = React.createElement, p = this.props;
+    const sc = p.screen ?? 'welcome', live = !!p.interactive, rm = !!p.reduceMotion;
+    const G = '#2FD67B', O = '#FF9F0A', W = '#F5F5F7', mono = "'Geist Mono',monospace";
+    const go = (t) => (ev) => { if (ev && ev.preventDefault) ev.preventDefault(); if (p.onGo) p.onGo(t); };
+    const g = {}; ['back', 'apple', 'google', 'email', 'skip', 'send', 'change', 'paste', 'resend'].forEach((k) => { g[k] = go(k); });
+    const names = ['welcome', 'save', 'appleSheet', 'email', 'code', 'codeWrong', 'codeExpired', 'codeLocked', 'codeResend', 'exists', 'merge', 'age', 'faceSetup', 'faceLock', 'success', 'successNew', 'offline', 'signout', 'delExplain', 'delType', 'delConfirm', 'delDone', 'home'];
+    const is = {}; names.forEach((n) => { is[n] = sc === n; });
+    is.anyCode = sc.indexOf('code') === 0;
+    is.anySuccess = is.success || is.successNew;
+
+    const blink = rm ? 'none' : 'dojiBlink 1.1s steps(1) infinite';
+    const cursor = e('span', { 'aria-hidden': true, style: { color: G, animation: blink, marginLeft: 2 } }, '_');
+    const cursorO = e('span', { 'aria-hidden': true, style: { color: O, animation: blink, marginLeft: 2 } }, '_');
+    const caret = e('span', { 'aria-hidden': true, style: { display: 'inline-block', width: 2, height: 28, background: G, animation: blink } });
+
+    const timer = live ? (p.timer ?? '0:30') : '0:42';
+    const ready = live && timer === '0:00';
+    const st = { timer: is.code && !ready, resend: is.codeResend || (is.code && ready), wrong: is.codeWrong, expired: is.codeExpired, locked: is.codeLocked };
+    const off = is.codeExpired || is.codeLocked;
+    const val = live ? String(p.code ?? '') : ({ code: '48', codeWrong: '482931', codeExpired: '482913' }[sc] || '');
+    const digits = [0, 1, 2, 3, 4, 5].map((i) => {
+      const ch = val[i] || '', active = !off && !is.codeWrong && i === val.length;
+      return { ch, active, bd: is.codeWrong ? '1.5px solid ' + O : active ? '1.5px solid ' + G : '1px solid #26292E', bg: ch ? '#17191C' : '#0F1113', fg: off ? '#A1A1A6' : W };
+    });
+
+    const emailVal = String(p.email ?? '');
+    const valid = /@.+\./.test(emailVal);
+
+    const lines = is.successNew ? ['creating account… ok', 'saving profile.doji… 14 lines'] : ['verifying code… ok', 'loading profile.doji… 14 lines'];
+    const second = is.successNew ? null : 'welcome back, [Name].';
+    const an = (s) => (rm ? 'none' : s);
+    const typed = e('div', { key: sc + (live ? 'L' : 'S'), style: { display: 'flex', flexDirection: 'column', gap: 22 } },
+      e('div', { style: { display: 'flex', flexDirection: 'column', gap: 6, fontFamily: mono, fontSize: 15, lineHeight: 1.6, color: '#A1A1A6' } },
+        lines.map((l, i) => e('span', { key: i, style: { animation: an(`authFade .25s ease-out ${i * 0.4}s both`) } }, e('span', { style: { color: G } }, '> '), l))),
+      e('div', { role: 'status', 'aria-label': 'authenticated. ' + (second || ''), style: { display: 'flex', flexDirection: 'column', gap: 6, fontFamily: mono, fontSize: 24, fontWeight: 500, lineHeight: 1.3, letterSpacing: '-0.01em' } },
+        e('span', { style: { whiteSpace: 'nowrap', animation: an('authType .6s steps(16) 1s both') } }, e('span', { style: { color: G } }, '> '), 'authenticated.', second ? null : cursor),
+        second ? e('span', { style: { whiteSpace: 'nowrap', animation: an('authType .8s steps(21) 1.75s both') } }, second, cursor) : null),
+      e('span', { style: { fontFamily: mono, fontSize: 12, color: '#A1A1A6', animation: an('authFade .3s ease-out 2.8s both') } }, '→ opening home'));
+
+    const sheetFor = p.sheetFor === 'Google' ? 'Sign in with Google' : 'Sign in with Apple';
+    const sheetApi = p.sheetFor === 'Google' ? 'google_sign_in · ASWebAuthenticationSession' : 'ASAuthorizationController · sign_in_with_apple';
+
+    const kbOn = (p.showKeyboard ?? true) && (is.email || is.delType || is.code || is.codeWrong || is.codeResend);
+    const kbLabel = is.email ? '.emailAddress · return: send' : is.delType ? '.default · autocorrect off' : '.oneTimeCode · QuickType: from Mail 482 913';
+
+    const div = (i) => (i ? '1px solid #1C1E22' : 'none');
+    return {
+      label: p.label ?? sc, is, g, live, notLive: !live, st, digits, timer, caret, cursor, cursorO, typed,
+      grain: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/></svg>\")",
+      emailVal, emailShown: live && emailVal ? emailVal : '[email]', sendOp: !live || valid ? 1 : 0.4,
+      onEmail: (ev) => { if (p.onEmail) p.onEmail(ev.target.value); },
+      onEmailKey: (ev) => { if (ev.key === 'Enter' && p.onGo) p.onGo('send'); },
+      codeInput: live && !off, codeVal: val,
+      onCode: (ev) => { if (p.onCode) p.onCode(ev.target.value); },
+      sheetFor, sheetLower: p.sheetFor === 'Google' ? 'google' : 'apple', sheetApi,
+      showKb: kbOn, kbLabel,
+      saveLines: [['name', '"[Name]"', W], ['style', 'day_trader', G], ['pairs', '[XAUUSD, NAS100]', G], ['rank', 'M1', G, '  # starting rank']].map(([k, v, c, m], i) => ({ n: String(i + 1).padStart(2, '0'), k, v, c, m: m || '' })),
+      mergeOpts: [
+        { t: 'this device', m: 'profile.doji · today · 14 lines · rank M1', sel: 'true', bd: '1px solid ' + G, ring: '2px solid ' + G, dot: 1 },
+        { t: 'your account', m: 'profile.doji · [date] · 22 lines · rank M3', sel: 'false', bd: '1px solid #26292E', ring: '2px solid #26292E', dot: 0 }
+      ],
+      consents: [
+        { t: "I'm 18 or older.", s: 'doji talks about trading, which carries real financial risk.', div: 'none' },
+        { t: 'I consent to doji processing my personal information.', s: 'under POPIA, to run my account and coaching. withdraw anytime in settings.', div: div(1) }
+      ],
+      settingsGroups: [
+        [{ l: 'account', v: '[email]' }, { l: 'app lock', v: 'Face ID' }, { l: 'coach voice', v: 'calm female' }],
+        [{ l: 'sign out', v: '' }, { l: 'delete account', v: '', c: O }]
+      ].map((grp) => grp.map((r, i) => Object.assign({ c: W, div: div(i) }, r))),
+      delItems: [['description', 'profile.doji and your rules'], ['book_2', 'journal, trade logs and screenshots'], ['forum', 'coaching history and voice settings'], ['key', 'sign-in methods and app lock']].map(([i, t], k) => ({ i, t, div: div(k) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

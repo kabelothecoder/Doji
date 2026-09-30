@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<style>
+html,body{margin:0;background:#0B0C0E;color:#F5F5F7;-webkit-font-smoothing:antialiased;}
+a{color:#2FD67B;text-decoration:none;}
+a:hover{color:#F5F5F7;text-decoration:underline;}
+</style>
+</helmet>
+<div style="min-width:1400px;padding:72px 72px 160px;font-family:'Geist',system-ui,sans-serif;background:#0B0C0E;display:flex;flex-direction:column;gap:96px;">
+
+<header style="display:flex;flex-direction:column;gap:28px;max-width:1344px;">
+  <div role="img" aria-label="doji" style="display:inline-flex;align-items:baseline;font-family:'Geist Mono',monospace;font-weight:700;font-size:40px;letter-spacing:-0.02em;line-height:1;">
+    <span>doj</span><span style="position:relative;display:inline-block;width:0.6em;height:0.74em;"><span style="position:absolute;left:calc(50% - 0.06em);top:0;width:0.12em;height:100%;background:#F5F5F7;border-radius:1px;"></span><span style="position:absolute;left:0.1em;right:0.1em;top:50%;height:0.11em;background:#F5F5F7;border-radius:1px;"></span></span><span style="color:#2FD67B;">_</span>
+  </div>
+  <h1 style="margin:0;font-size:52px;font-weight:600;letter-spacing:-0.035em;line-height:1.02;">Sign-in and account · iOS</h1>
+  <p style="margin:0;font-size:17px;line-height:1.55;color:#A1A1A6;max-width:800px;text-wrap:pretty;">iPhone 390 × 844. Apple first, then Google, then a passwordless 6-digit email code. Every status is a terminal line. Sections: <a href="#prototype">prototype</a> · <a href="#entry">entry</a> · <a href="#code">email code</a> · <a href="#account">account</a> · <a href="#lock">app lock</a> · <a href="#outcomes">outcomes</a> · <a href="#settings">settings</a> · <a href="#spec">component spec</a>.</p>
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;">
+    <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:#0F1113;border:1px solid #26292E;">
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.06em;color:#2FD67B;">&gt; MOBBIN · PATTERNS TAKEN</span>
+      <span style="font-size:15px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;"><a href="https://mobbin.com/screens/fab98baa-77bd-4893-9f44-001a037ed372" target="_blank">Apple Fitness</a>: Apple button first, full width, standard wording (A1, A2). <a href="https://mobbin.com/screens/f5dc6c59-86df-49d7-815a-e3a454d176f3" target="_blank">Brick</a>, <a href="https://mobbin.com/screens/51bf29fc-b481-487b-8142-464fc49dc1b7" target="_blank">Fresha</a>, <a href="https://mobbin.com/screens/38f5af91-1247-44d6-918c-8a91cbdc91ca" target="_blank">MoonPay</a>: six separate boxes, active box outlined, resend countdown under the field (A4). <a href="https://mobbin.com/screens/8744adc6-f3a1-4561-b3e7-401e48f4c8cc" target="_blank">Blue Apron</a>: one clear button for the linked method when the account exists (A5).</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:#0F1113;border:1px solid #26292E;">
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.06em;color:#2FD67B;">&gt; MOBBIN · CONTINUED</span>
+      <span style="font-size:15px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;"><a href="https://mobbin.com/screens/6c261ecc-5fbe-4e9d-9a64-cfc7e2f3a3be" target="_blank">Lloyds</a>, <a href="https://mobbin.com/screens/93b48f35-d164-497d-9a00-e0dc452454ca" target="_blank">Klarna</a>: explain Face ID's value before the system prompt, with a quiet "not now" (A8a). <a href="https://mobbin.com/flows/abbe345e-435c-4622-b719-8c414413768a" target="_blank">Dot</a>, <a href="https://mobbin.com/flows/73a191f3-dd03-48ee-b409-c9a1edbc2667" target="_blank">Bird</a>: delete lives in settings, lists what is erased, ends in a final confirmation (A12).</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:rgba(255,159,10,0.07);border:1px solid rgba(255,159,10,0.3);">
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.06em;color:#FF9F0A;">&gt; OPEN ITEMS</span>
+      <span style="font-size:15px;line-height:1.55;color:#F5F5F7;text-wrap:pretty;">No Higgsfield assets used: solid #050607 with 5% grain. doji-symbol.svg and doji-app-icon.svg were not attached, so the icon is the coded stand-in from onboarding. The Apple glyph and Google G are stand-ins; ship the official SignInWithAppleButton and Google's G asset. Brand buttons keep their official sentence case; everything else is lowercase.</span>
+    </div>
+  </div>
+</header>
+
+<section id="prototype" style="display:flex;flex-direction:column;gap:32px;">
+  <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
+    <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;">Clickable prototype</h2>
+    <span style="font-size:15px;color:#A1A1A6;">Type any email, then any 6 digits, or tap paste. 111111 shows the wrong-code state. The timer runs 30s, then offers resend.</span>
+  </div>
+  <div style="display:flex;gap:48px;align-items:flex-start;">
+    <div style="display:flex;flex-direction:column;gap:16px;width:340px;">
+      <sc-for list="{{ flows }}" as="f" hint-placeholder-count="2">
+        <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:#0F1113;border:{{ f.bd }};">
+          <button onClick="{{ f.start }}" style="display:flex;align-items:center;gap:10px;height:44px;padding:0;border:none;background:transparent;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;text-align:left;"><span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;color:#050607;background:{{ f.badge }};border-radius:6px;padding:3px 7px;">{{ f.id }}</span>{{ f.title }}</button>
+          <div style="display:flex;flex-direction:column;gap:2px;font-family:'Geist Mono',monospace;font-size:13px;">
+            <sc-for list="{{ f.steps }}" as="s" hint-placeholder-count="4">
+              <span style="padding:5px 8px;border-radius:6px;background:{{ s.bg }};color:{{ s.c }};">{{ s.n }} {{ s.l }}</span>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+      <button onClick="{{ restart }}" style="align-self:flex-start;display:flex;align-items:center;height:44px;padding:0 18px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:15px;font-weight:500;cursor:pointer;">restart flow</button>
+    </div>
+    <dc-import name="Doji Auth Screen iOS" screen="{{ step }}" label="Prototype" interactive="{{ true }}" email="{{ email }}" code="{{ code }}" timer="{{ timer }}" sheet-for="{{ sheetFor }}" show-keyboard="{{ showKb }}" reduce-motion="{{ rm }}" on-go="{{ onGo }}" on-email="{{ onEmail }}" on-code="{{ onCode }}" hint-size="392px,846px"></dc-import>
+  </div>
+</section>
+
+<sc-for list="{{ groups }}" as="grp" hint-placeholder-count="2">
+<section id="{{ grp.anchor }}" style="display:flex;flex-direction:column;gap:32px;">
+  <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
+    <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;">{{ grp.title }}</h2>
+    <span style="font-size:15px;color:#A1A1A6;max-width:900px;">{{ grp.sub }}</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;">
+    <sc-for list="{{ grp.screens }}" as="s" hint-placeholder-count="3">
+      <div id="{{ s.id }}" style="display:flex;flex-direction:column;gap:14px;width:392px;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;color:#050607;background:#2FD67B;border-radius:6px;padding:3px 7px;">{{ s.id }}</span><span style="font-size:17px;font-weight:600;">{{ s.title }}</span></div>
+        <dc-import name="Doji Auth Screen iOS" screen="{{ s.screen }}" label="{{ s.label }}" show-keyboard="{{ showKb }}" reduce-motion="{{ rm }}" hint-size="392px,846px"></dc-import>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:#A1A1A6;">
+          <span style="text-wrap:pretty;">{{ s.note }}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#F5F5F7;">{{ s.flutter }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+</sc-for>
+
+<section id="spec" style="display:flex;flex-direction:column;gap:24px;max-width:1344px;">
+  <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;">Component spec · Flutter</h2>
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;">
+    <sc-for list="{{ spec }}" as="c" hint-placeholder-count="6">
+      <div style="display:flex;flex-direction:column;gap:14px;padding:22px;border-radius:16px;background:#0F1113;border:1px solid #26292E;">
+        <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;"><span style="font-family:'Geist Mono',monospace;font-size:18px;font-weight:600;color:#2FD67B;">{{ c.name }}</span><span style="font-size:14px;color:#A1A1A6;">{{ c.used }}</span></div>
+        <sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding-top:10px;border-top:1px solid #1C1E22;">
+            <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.04em;color:#A1A1A6;">{{ r.k }}</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:13px;line-height:1.55;color:#F5F5F7;text-wrap:pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;padding:20px 24px;border-radius:16px;background:#0F1113;">
+    <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.06em;color:#2FD67B;">&gt; SYSTEM RULES</span>
+    <span style="font-size:15px;line-height:1.6;color:#A1A1A6;text-wrap:pretty;">Safe areas: content starts at 62pt, bottom actions sit 34pt above the home indicator; no status bar is drawn. Dynamic Type: text uses TextScaler up to 1.35×, buttons grow in height rather than truncate, and at AX sizes the method stack becomes scrollable. Reduce motion (MediaQuery.disableAnimations): typing lines render complete, cursors stop blinking, the wrong-code shake becomes a colour change. Every icon button carries a Semantics label. Tilt-orange #FF9F0A on #050607 is 9.6:1; secondary #A1A1A6 is 7.9:1.</span>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showKeyboard&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Screens&quot;},&quot;reduceMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Screens&quot;}}">
+class Component extends DCLogic {
+  state = { flow: 'A', hist: ['welcome'], email: '', code: '', end: 0, now: Date.now(), sheetFor: 'Apple' };
+  componentDidMount() { this.iv = setInterval(() => { if (this.cur().indexOf('code') === 0) this.setState({ now: Date.now() }); }, 500); }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.to); }
+  cur() { const h = this.state.hist; return h[h.length - 1]; }
+  push(s) {
+    clearTimeout(this.to);
+    this.setState((st) => ({ hist: st.hist.concat(s) }));
+    if (s === 'success' || s === 'successNew') this.to = setTimeout(() => this.push('home'), 3600);
+  }
+  swap(s) { this.setState((st) => ({ hist: st.hist.slice(0, -1).concat(s) })); }
+  start(flow) { clearTimeout(this.to); this.setState({ flow, hist: [flow === 'A' ? 'welcome' : 'save'], email: '', code: '' }); }
+  onGo = (t) => {
+    const c = this.cur();
+    if (t === 'back' || t === 'change') { clearTimeout(this.to); this.setState((st) => (st.hist.length > 1 ? { hist: st.hist.slice(0, -1), code: '' } : null)); return; }
+    if (t === 'email') return this.push('email');
+    if (t === 'skip') return this.push('home');
+    if (t === 'apple' || t === 'google') {
+      this.setState({ sheetFor: t === 'apple' ? 'Apple' : 'Google' });
+      this.push('appleSheet');
+      clearTimeout(this.to);
+      this.to = setTimeout(() => this.push(this.state.flow === 'A' ? 'success' : 'successNew'), 1600);
+      return;
+    }
+    if (t === 'send') { if (!/@.+\./.test(this.state.email)) return; this.setState({ end: Date.now() + 30000, now: Date.now(), code: '' }); return this.push('code'); }
+    if (t === 'paste') return this.onCode('482913');
+    if (t === 'resend') { this.setState({ end: Date.now() + 30000, now: Date.now(), code: '' }); if (c !== 'code') this.swap('code'); }
+  };
+  onEmail = (v) => this.setState({ email: v });
+  onCode = (v) => {
+    const d = String(v).replace(/\D/g, '').slice(0, 6);
+    const c = this.cur();
+    this.setState({ code: d });
+    if (c === 'codeWrong' && d.length < 6) this.swap('code');
+    if (d.length === 6 && c === 'code') {
+      if (d === '111111') this.swap('codeWrong');
+      else { clearTimeout(this.to); this.to = setTimeout(() => this.push(this.state.flow === 'A' ? 'success' : 'successNew'), 350); }
+    }
+  };
+  renderVals() {
+    const step = this.cur(), flow = this.state.flow;
+    const left = Math.max(0, Math.ceil((this.state.end - this.state.now) / 1000));
+    const timer = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+    const map = { codeWrong: 'code', appleSheet: 'appleSheet', successNew: 'success' };
+    const defs = {
+      A: { title: 'welcome back → email → code', steps: [['welcome', 'welcome back'], ['email', 'email'], ['code', 'code'], ['success', 'authenticated'], ['home', 'home']] },
+      B: { title: 'save your setup → Apple', steps: [['save', 'save your setup'], ['appleSheet', 'apple sheet'], ['success', 'authenticated'], ['home', 'home']] }
+    };
+    const norm = map[step] || step;
+    const flows = ['A', 'B'].map((id) => {
+      const on = id === flow;
+      return {
+        id, title: defs[id].title, bd: on ? '1px solid #2FD67B' : '1px solid #26292E', badge: on ? '#2FD67B' : '#A1A1A6',
+        start: () => this.start(id),
+        steps: defs[id].steps.map(([k, l], i) => { const cur = on && k === norm; return { n: String(i + 1).padStart(2, '0'), l, bg: cur ? 'rgba(47,214,123,0.12)' : 'transparent', c: cur ? '#F5F5F7' : '#A1A1A6' }; })
+      };
+    });
+    const S = (id, screen, title, note, flutter) => ({ id, screen, title, note, flutter, label: id + ' ' + title });
+    const groups = [
+      { anchor: 'entry', title: 'Entry', sub: 'Two ways in: returning users from "I already have an account", new users at the end of onboarding.', screens: [
+        S('A1', 'welcome', 'Welcome back', 'Close returns to onboarding K5. Icon above the headline stays quiet so the Apple button is the first strong shape.', 'Column › AppIcon · TerminalLine · AuthMethodButton × 3'),
+        S('A2', 'save', 'Save your setup', 'Shown after the pledge. The card mirrors profile.doji exactly; "continue without account" keeps the setup local and asks again after the first session.', 'ProfileSaveCard · AuthMethodButton × 3 · TextButton'),
+        S('A2b', 'appleSheet', 'Apple sheet open', 'The OS draws the Sign in with Apple sheet. Doji only shows a waiting line behind it; cancel returns to the previous screen with no error.', 'SignInWithApple.getAppleIDCredential()')
+      ] },
+      { anchor: 'code', title: 'Email code', sub: 'Passwordless. One hidden field drives six boxes so paste and one-time-code autofill work natively. Auto-submits on the sixth digit.', screens: [
+        S('A3', 'email', 'Email entry', 'Keyboard opens on entry. Send is disabled until the value looks like an email; return also sends.', 'TextField(keyboardType: emailAddress, autofillHints: [email])'),
+        S('A4', 'code', 'Code entry', 'Active box in doji-green. QuickType offers the code from Mail; paste accepts any string containing 6 digits.', 'OtpCodeField(length: 6, onCompleted)'),
+        S('A4b', 'codeWrong', 'Wrong code', 'Boxes turn tilt-orange and shake 3 × 6px over 240ms; the next keystroke clears them. Attempts left are stated plainly.', 'OtpCodeField(state: wrong) · TerminalLine(tone: tilt)'),
+        S('A4c', 'codeExpired', 'Expired code', 'Codes last 10 minutes. The field locks and the only action is a new code.', 'OtpCodeField(state: disabled)'),
+        S('A4d', 'codeLocked', 'Too many attempts', 'After 5 wrong codes, a 15-minute lock with a live countdown. Other methods stay available.', 'OtpCodeField(state: disabled) · OutlinedButton'),
+        S('A4e', 'codeResend', 'Resend available', 'The countdown becomes a link at 0:00. Each resend restarts the 30s timer and invalidates the previous code.', 'TextButton.icon · Timer.periodic')
+      ] },
+      { anchor: 'account', title: 'Account', sub: 'Collisions and consent, handled before anything is written.', screens: [
+        S('A5', 'exists', 'Signed up with another method', 'Shown when the email matches an account created with Google (or Apple). One button for that method; no account linking UI here.', 'LinkedMethodCard · AuthMethodButton(method: google)'),
+        S('A6', 'merge', 'Keep this device\'s setup?', 'Only when a guest profile exists locally and the account has its own. Defaults to this device because it is the most recent.', 'RadioListTile × 2 (custom) · FilledButton'),
+        S('A7', 'age', '18+ and consent', 'New accounts only, after the first successful sign-in. Both boxes are required; the CTA stays disabled until both are ticked.', 'CheckboxListTile × 2 (custom) · InfoNote')
+      ] },
+      { anchor: 'lock', title: 'App lock', sub: 'Optional. Offered once, after the first session, never during sign-up.', screens: [
+        S('A8a', 'faceSetup', 'Face ID setup', 'Explains the benefit, then the system prompt (NSFaceIDUsageDescription: "unlock doji and keep your journal private").', 'local_auth · authenticate(localizedReason)'),
+        S('A8b', 'faceLock', 'Lock screen on reopen', 'Content is blurred behind glass, also in the app switcher. Face ID triggers automatically on appear; the button retries.', 'BiometricLockScreen · AppLifecycleListener')
+      ] },
+      { anchor: 'outcomes', title: 'Outcomes', sub: 'Success types itself in, then hands off to Home. Errors say what happened and what still works.', screens: [
+        S('A9', 'success', 'Authenticated · returning', 'Two status lines fade in, the headline types at 45ms per character, success haptic on the last character, Home after 3.6s.', 'TerminalLine(typing: true) · HapticFeedback.mediumImpact'),
+        S('A9b', 'successNew', 'Authenticated · new account', 'Same pattern after Save your setup. No name line, because the name was just entered.', 'TerminalLine(typing: true)'),
+        S('A10', 'offline', 'Connection lost', 'Shown when any auth call fails on network. "continue offline" is available only when a local setup exists.', 'connectivity_plus · TerminalLine(tone: tilt)')
+      ] },
+      { anchor: 'settings', title: 'Settings · sign out and delete', sub: 'Account deletion is in-app, as Apple requires, and revokes the Sign in with Apple token.', screens: [
+        S('A11', 'signout', 'Sign out sheet', 'Glass sheet over settings. Sign out is not destructive to data, so it stays neutral white.', 'showModalBottomSheet · BackdropFilter'),
+        S('A12a', 'delExplain', 'Delete · what goes', 'Lists every data type erased. The App Store billing note is required because deletion does not cancel subscriptions.', 'DeleteAccountFlow › ExplainStep'),
+        S('A12b', 'delType', 'Delete · type to confirm', 'Button enables only when the field equals "delete" (trimmed, any case). Autocorrect off.', 'DeleteAccountFlow › TypeConfirmStep'),
+        S('A12c', 'delConfirm', 'Delete · final confirmation', 'Last chance. Delete is tilt-orange, cancel is the default for VoiceOver focus.', 'showCupertinoDialog-style DojiAlert'),
+        S('A12d', 'delDone', 'Delete · done', 'Local storage wiped, tokens revoked. Done returns to the splash as a new install.', 'DeleteAccountFlow › DoneStep')
+      ] }
+    ];
+    const R = (pairs) => pairs.map(([k, v]) => ({ k, v }));
+    const spec = [
+      { name: 'AuthMethodButton', used: 'A1 · A2 · A5', rows: R([
+        ['props', 'method: apple | google | email · title: signIn | continue · onPressed · loading'],
+        ['maps to', 'apple: SignInWithAppleButton(style: white, height: 56, borderRadius: 28) · google: custom per Google branding (#131314 fill, #8E918F stroke, Roboto Medium 17, official G) · email: OutlinedButton'],
+        ['states', 'default · pressed (8% white overlay, scale .98) · loading (label → "…" + cursor) · disabled 40%'],
+        ['a11y', 'Semantics(button, label: official title) · min 56 × full width · order apple, google, email']
+      ]) },
+      { name: 'OtpCodeField', used: 'A4 – A4e', rows: R([
+        ['props', 'length: 6 · onCompleted(String) · state: idle | wrong | disabled · resendIn: Duration'],
+        ['maps to', 'Stack › [Row of 6 _OtpBox (64h, radius 10, Geist Mono 28), invisible TextField(keyboardType: number, autofillHints: [oneTimeCode], maxLength: 6, digitsOnly)]'],
+        ['states', 'empty · active box green · filled #17191C · wrong: orange + shake (reduce motion: colour only) · disabled grey'],
+        ['a11y', 'one Semantics node: "6-digit code, 2 of 6 entered" · paste via Clipboard.getData, first 6 digits']
+      ]) },
+      { name: 'TerminalLine', used: 'every screen', rows: R([
+        ['props', 'text · tone: muted | primary | tilt · typing: bool · charDelay: 45ms · cursor: bool'],
+        ['maps to', 'Text.rich in Geist Mono · ">" in green (tilt: orange) · BlinkingCursor(1.1s, steps) · AnimationController for typing'],
+        ['states', 'static · typing · done (cursor blinks) · reduce motion: full text, cursor solid'],
+        ['a11y', 'Semantics(liveRegion: true) for status lines so VoiceOver announces errors and success']
+      ]) },
+      { name: 'ProfileSaveCard', used: 'A2 · A6', rows: R([
+        ['props', 'lines: List<ConfigLine> · status: readyToSave | saving | saved · lineCount'],
+        ['maps to', 'ClipRRect(24) › BackdropFilter(blur 28) › Container(#0F1113 @ 60%, 1px white 8%) › Column of ConfigLine'],
+        ['states', 'ready (green pill) · saving (pill → "saving…") · saved (pill → "synced")'],
+        ['a11y', 'reads as a list: "profile dot doji, 14 lines, ready to save"']
+      ]) },
+      { name: 'BiometricLockScreen', used: 'A8a · A8b', rows: R([
+        ['props', 'mode: setup | lock · onUnlocked · onFallback · lockAfter: 5 min'],
+        ['maps to', 'local_auth.authenticate(biometricOnly: false) · AppLifecycleListener(onResume) · privacy blur on inactive'],
+        ['states', 'setup · locked · authenticating · failed (stay, retry button) · unavailable (hide setup)'],
+        ['a11y', 'button label "Unlock with Face ID" · passcode fallback always visible']
+      ]) },
+      { name: 'DeleteAccountFlow', used: 'A12a – A12d', rows: R([
+        ['props', 'email · hasAppStoreSubscription · onDeleted'],
+        ['maps to', 'Navigator › ExplainStep → TypeConfirmStep → DojiAlert → DoneStep · DELETE /account · Apple token revoke · flutter_secure_storage.deleteAll()'],
+        ['states', 'explain · typing (button disabled until "delete") · confirming · deleting (TerminalLine "> erasing…") · done · error (A10 pattern)'],
+        ['a11y', 'final alert focuses cancel first · done announces "account deleted"']
+      ]) }
+    ];
+    return {
+      step, flows, groups, spec, timer, email: this.state.email, code: this.state.code, sheetFor: this.state.sheetFor,
+      onGo: this.onGo, onEmail: this.onEmail, onCode: this.onCode, restart: () => this.start(flow),
+      showKb: this.props.showKeyboard ?? true, rm: this.props.reduceMotion ?? false
+    };
+  }
+}
+</script>
+</body>
+</html>

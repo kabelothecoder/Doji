@@ -1,0 +1,7 @@
+<!-- STAND-IN. Transcribed from DojiSymbol in design/system/Doji Design System.dc.html.
+     Replace with the real doji-symbol.svg when it is attached. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="28" viewBox="0 0 44 28">
+  <rect x="9" y="1" width="2.5" height="26" rx="1" fill="#F5F5F7"/>
+  <rect x="2" y="12.75" width="16.5" height="2.5" rx="1" fill="#F5F5F7"/>
+  <rect x="26" y="5" width="12" height="18" rx="1.5" fill="#2FD67B"/>
+</svg>

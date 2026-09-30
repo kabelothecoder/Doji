@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0..1,0&display=block">
+<script src="./image-slot.js"></script>
+<style>
+html,body{margin:0;background:#0B0C0E;color:#F5F5F7;-webkit-font-smoothing:antialiased;}
+a{color:#2FD67B;text-decoration:none;}
+a:hover{color:#F5F5F7;text-decoration:underline;}
+@keyframes dojiBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes spCandle{0%{opacity:1}52%{opacity:1}58%{opacity:0}100%{opacity:0}}
+@keyframes spBody{0%{height:120px;width:36px;background:#2FD67B;transform:translateY(-24px)}14%{height:84px;width:36px;background:#FF9F0A;transform:translateY(20px)}26%{height:52px;width:36px;background:#2FD67B;transform:translateY(-8px)}40%{height:5px;width:60px;background:#F5F5F7;transform:translateY(0)}100%{height:5px;width:60px;background:#F5F5F7;transform:translateY(0)}}
+@keyframes spWick{0%{height:210px}40%{height:150px}100%{height:150px}}
+@keyframes spWord{0%,54%{opacity:0;transform:translateY(0) scale(1)}60%{opacity:1;transform:translateY(0) scale(1)}82%{opacity:1;transform:translateY(0) scale(1)}94%,100%{opacity:1;transform:translateY(-318px) scale(.42)}}
+@keyframes spType{0%,60%{clip-path:inset(0 100% 0 0)}72%,100%{clip-path:inset(0 0 0 0)}}
+@keyframes spBoot{0%,90%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</helmet>
+<div style="min-width:1400px;padding:72px 72px 160px;font-family:'Geist',system-ui,sans-serif;background:#0B0C0E;display:flex;flex-direction:column;gap:96px;">
+
+<header style="display:flex;flex-direction:column;gap:28px;max-width:1344px;">
+  <div role="img" aria-label="doji" style="display:inline-flex;align-items:baseline;font-family:'Geist Mono',monospace;font-weight:700;font-size:40px;letter-spacing:-0.02em;line-height:1;">
+    <span>doj</span><span style="position:relative;display:inline-block;width:0.6em;height:0.74em;"><span style="position:absolute;left:calc(50% - 0.06em);top:0;width:0.12em;height:100%;background:#F5F5F7;border-radius:1px;"></span><span style="position:absolute;left:0.1em;right:0.1em;top:50%;height:0.11em;background:#F5F5F7;border-radius:1px;"></span></span><span style="color:#2FD67B;">_</span>
+  </div>
+  <h1 style="margin:0;font-size:52px;font-weight:600;letter-spacing:-0.035em;line-height:1.02;">Splash and onboarding</h1>
+  <p style="margin:0;font-size:17px;line-height:1.55;color:#A1A1A6;max-width:760px;text-wrap:pretty;">Onboarding is a terminal conversation. Doji types each question; you answer with large chips, fields and steppers; every answer lands as a line in <span style="font-family:'Geist Mono',monospace;color:#F5F5F7;">profile.doji</span> at the top, tappable to edit. Sections: <a href="#splash">splash</a> · <a href="#ios">iOS 390 × 844</a> · <a href="#android">Android 412 × 915</a> · <a href="#windows">Windows 1440 × 900</a> · <a href="#flutter">Flutter map</a>.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;">
+    <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:#0F1113;border:1px solid #26292E;">
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.06em;color:#2FD67B;">&gt; MOBBIN · PATTERNS TAKEN</span>
+      <span style="font-size:15px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;"><a href="https://mobbin.com/flows/eceb4e59-4502-4e2d-ba91-ba7bb8579617" target="_blank">ChatGPT onboarding</a>: sparse, one-line-at-a-time intro (boot). <a href="https://mobbin.com/flows/42b2cb68-706b-46ea-9612-9acbe53917da" target="_blank">Klarna AI assistant</a>: assistant replies inline, answers as tappable chips (conversation shell). <a href="https://mobbin.com/flows/e91bc9a4-db92-449a-8de2-2d5e81381f6b" target="_blank">Life Reset profile setup</a>, <a href="https://mobbin.com/screens/3c492e19-564c-4df7-b5f5-eb0ae1cbf310" target="_blank">MacroFactor</a>, <a href="https://mobbin.com/screens/e39d6403-ef77-45a0-9022-2009a306075c" target="_blank">Noom</a>: one question per step, large full-width answers, visible progress (steps 2–4). <a href="https://mobbin.com/flows/3ae2e6e9-0ad0-4cf8-b496-e511d37d9939" target="_blank">Ahead</a>: long setup split into short answered steps.</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:#0F1113;border:1px solid #26292E;">
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.06em;color:#2FD67B;">&gt; MOBBIN · CONTINUED</span>
+      <span style="font-size:15px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;"><a href="https://mobbin.com/screens/35145869-7ad6-4d8f-8f69-a21f399c7501" target="_blank">Sesame</a>, <a href="https://mobbin.com/screens/c120376a-db4b-46e7-9f85-df74065c3784" target="_blank">Wispr Flow</a>, <a href="https://mobbin.com/screens/7c59e843-a289-48bf-8422-3977f6824572" target="_blank">Perplexity</a>: voice list with inline play (step 5). <a href="https://mobbin.com/screens/525233d0-eabe-423d-94e0-ed37b4e21b53" target="_blank">Noom</a>, <a href="https://mobbin.com/screens/be42614b-6115-4fe0-ac7b-4ef7f7954397" target="_blank">Bumble</a>: explain the value before the system prompt (ritual). <a href="https://mobbin.com/screens/55e368d0-6f66-41f8-a8d6-e2c0da5ec61e" target="_blank">Jomo</a>, <a href="https://mobbin.com/screens/605541b1-6344-45e2-b924-e104d5be6d2c" target="_blank">Cash App</a>: press-and-hold to commit (pledge). <a href="https://mobbin.com/screens/fab98baa-77bd-4893-9f44-001a037ed372" target="_blank">Apple Fitness</a>: Sign in with Apple placement (save).</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:rgba(255,159,10,0.07);border:1px solid rgba(255,159,10,0.3);">
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.06em;color:#FF9F0A;">&gt; HIGGSFIELD · NOT GENERATED</span>
+      <span style="font-size:15px;line-height:1.55;color:#F5F5F7;text-wrap:pretty;">Balance checked: 6 credits, free plan. Preflight for asset #1 on gpt_image_2_5 quoted 0.25 credits, but both image submissions were rejected with "requires basic plan or higher". 0 jobs, 0 credits spent. Audio was not attempted: the same plan gate applies, and the audio tool only does speech, not UI sound effects. Fallbacks used: #050607 with 3% grain; the manifesto has a drop slot for asset #1.</span>
+    </div>
+  </div>
+</header>
+
+<section id="splash" style="display:flex;flex-direction:column;gap:32px;">
+  <div style="display:flex;align-items:baseline;gap:16px;">
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;color:#050607;background:#2FD67B;border-radius:8px;padding:4px 8px;">S</span>
+    <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;">Splash · ~1.5s</h2>
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">native 0ms → Flutter intro 0–1500ms → onboarding header</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;">
+
+    <div id="S0" style="display:flex;flex-direction:column;gap:14px;width:390px;">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;color:#050607;background:#F5F5F7;border-radius:6px;padding:3px 7px;">S0</span><span style="font-size:17px;font-weight:600;">Native splash</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">static</span></div>
+      <div data-screen-label="S0 Native splash" style="width:390px;height:844px;border-radius:48px;overflow:hidden;background:#050607;border:1px solid #26292E;display:flex;align-items:center;justify-content:center;">
+        <div role="img" aria-label="doji app icon" style="position:relative;width:112px;height:112px;border-radius:26px;background:#0F1113;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);">
+          <span style="position:absolute;left:52px;top:24px;width:6px;height:64px;border-radius:2px;background:#F5F5F7;"></span>
+          <span style="position:absolute;left:36px;top:53px;width:38px;height:6px;border-radius:2px;background:#F5F5F7;"></span>
+          <span style="position:absolute;left:80px;top:74px;width:12px;height:14px;border-radius:2px;background:#2FD67B;"></span>
+        </div>
+      </div>
+      <span style="font-size:15px;line-height:1.5;color:#A1A1A6;text-wrap:pretty;">flutter_native_splash: icon centred on #050607, same on Android 12 SplashScreen API. Swap in doji-app-icon.svg when attached; this is a coded stand-in.</span>
+    </div>
+
+    <sc-for list="{{ keys }}" as="k" hint-placeholder-count="5">
+      <div style="display:flex;flex-direction:column;gap:14px;width:390px;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;color:#050607;background:#F5F5F7;border-radius:6px;padding:3px 7px;">{{ k.id }}</span><span style="font-size:17px;font-weight:600;">{{ k.title }}</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:12px;color:#2FD67B;">{{ k.t }}</span></div>
+        <div data-screen-label="{{ k.label }}" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:#050607;border:1px solid #26292E;">
+          <sc-if value="{{ k.isCandle }}" hint-placeholder-val="{{ true }}">
+            <div style="position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;">
+              <div style="position:relative;width:80px;height:240px;display:flex;align-items:center;justify-content:center;">
+                <span style="position:absolute;left:38px;width:4px;border-radius:2px;background:#F5F5F7;top:{{ k.wickTop }};height:{{ k.wickH }};"></span>
+                <span style="position:absolute;border-radius:3px;left:{{ k.bodyL }};width:{{ k.bodyW }};top:{{ k.bodyTop }};height:{{ k.bodyH }};background:{{ k.bodyC }};"></span>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ k.isWord }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;left:0;right:0;top:{{ k.wordTop }};display:flex;justify-content:{{ k.wordJustify }};padding:0 20px;">
+              <div role="img" aria-label="doji" style="display:inline-flex;align-items:baseline;font-family:'Geist Mono',monospace;font-weight:700;letter-spacing:-0.02em;line-height:1;font-size:{{ k.wordSize }};">
+                <span style="opacity:{{ k.dojOp }};">doj</span><span style="position:relative;display:inline-block;width:0.6em;height:0.74em;"><span style="position:absolute;left:calc(50% - 0.06em);top:0;width:0.12em;height:100%;background:#F5F5F7;border-radius:1px;"></span><span style="position:absolute;left:0.1em;right:0.1em;top:50%;height:0.11em;background:#F5F5F7;border-radius:1px;"></span></span><span style="color:#2FD67B;">_</span>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ k.showBoot }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;left:20px;right:20px;top:132px;font-family:'Geist Mono',monospace;font-size:15px;line-height:1.7;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> initializing doji…</div>
+          </sc-if>
+          <div style="position:absolute;left:16px;right:16px;bottom:16px;display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:16px;background:rgba(15,17,19,0.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.08);font-family:'Geist Mono',monospace;font-size:12px;line-height:1.5;">
+            <span style="color:#F5F5F7;">{{ k.what }}</span>
+            <span style="color:#A1A1A6;">ease · {{ k.ease }}</span>
+            <span style="color:#2FD67B;">haptic · {{ k.haptic }}</span>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+
+    <div style="display:flex;flex-direction:column;gap:14px;width:390px;">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;color:#050607;background:#2FD67B;border-radius:6px;padding:3px 7px;">LIVE</span><span style="font-size:17px;font-weight:600;">Intro, looping at 0.5×</span></div>
+      <div data-screen-label="S Live intro" style="position:relative;width:390px;height:844px;border-radius:48px;overflow:hidden;background:#050607;border:1px solid #26292E;">{{ liveSplash }}</div>
+      <span style="font-size:15px;line-height:1.5;color:#A1A1A6;text-wrap:pretty;">3s loop here; ships at 1.5s. Reduce motion: S0 icon cross-fades to the K5 header in 200ms linear, no candle, no typing, one light haptic.</span>
+    </div>
+  </div>
+</section>
+
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+<section id="{{ g.anchor }}" style="display:flex;flex-direction:column;gap:32px;">
+  <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
+    <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;">{{ g.title }}</h2>
+    <span style="font-size:15px;color:#A1A1A6;max-width:900px;">{{ g.sub }}</span>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start;">
+    <sc-for list="{{ g.screens }}" as="s" hint-placeholder-count="4">
+    <div id="{{ s.id }}" style="display:flex;flex-direction:column;gap:14px;width:{{ s.w }};">
+      <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;color:#050607;background:#2FD67B;border-radius:6px;padding:3px 7px;">{{ s.id }}</span><span style="font-size:17px;font-weight:600;">{{ s.title }}</span><sc-if value="{{ s.assumed }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#FF9F0A;border:1px solid rgba(255,159,10,0.4);border-radius:6px;padding:2px 6px;">ASSUMED</span></sc-if></div>
+
+      <div data-screen-label="{{ s.label }}" style="position:relative;width:{{ s.w }};height:{{ s.h }};border-radius:{{ s.frameR }};overflow:hidden;background:#050607;border:1px solid #26292E;box-shadow:0 40px 80px rgba(0,0,0,0.5);display:flex;flex-direction:column;">
+
+        <sc-if value="{{ s.isManifesto }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;left:0;top:0;right:0;height:34%;opacity:0.36;"><image-slot id="manifesto-bg" shape="rect" placeholder="asset #1"></image-slot></div>
+        </sc-if>
+        <sc-if value="{{ s.grain }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;background-image:{{ grainUrl }};"></div>
+        </sc-if>
+        <sc-if value="{{ s.isPledge }}" hint-placeholder-val="{{ false }}">
+          <div aria-hidden="true" style="position:absolute;left:calc(50% - 0.5px);top:18%;height:48%;width:1px;background:#2FD67B;opacity:0.55;pointer-events:none;"></div>
+        </sc-if>
+
+        <div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:16px;padding:{{ s.pad }};">
+
+          <sc-if value="{{ s.hasHeader }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:10px;height:44px;flex:none;">
+              <sc-if value="{{ s.android }}" hint-placeholder-val="{{ false }}"><button aria-label="Back" style="width:44px;height:44px;margin-left:-10px;border:none;border-radius:22px;background:transparent;color:#F5F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">arrow_back</span></button></sc-if>
+              <div role="img" aria-label="doji" style="display:inline-flex;align-items:baseline;font-family:'Geist Mono',monospace;font-weight:700;font-size:18px;letter-spacing:-0.02em;line-height:1;">
+                <span>doj</span><span style="position:relative;display:inline-block;width:0.6em;height:0.74em;"><span style="position:absolute;left:calc(50% - 0.06em);top:0;width:0.12em;height:100%;background:#F5F5F7;border-radius:1px;"></span><span style="position:absolute;left:0.1em;right:0.1em;top:50%;height:0.11em;background:#F5F5F7;border-radius:1px;"></span></span><span style="color:#2FD67B;">_</span>
+              </div>
+              <span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;white-space:nowrap;">{{ s.progress }}</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ s.hasConfig }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:none;display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:16px;background:rgba(15,17,19,0.6);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.08);font-family:'Geist Mono',monospace;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#A1A1A6;">
+                <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;">{{ cfgChevron }}</span>
+                <span style="color:#F5F5F7;">profile.doji</span>
+                <span style="margin-left:auto;">{{ s.cfgCount }}</span>
+              </div>
+              <sc-for list="{{ s.cfg }}" as="l" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:10px;min-height:24px;padding:0 6px;margin:0 -6px;border-radius:6px;font-size:13px;line-height:1.4;background:{{ l.bg }};">
+                  <span style="width:16px;text-align:right;color:#A1A1A6;flex:none;">{{ l.n }}</span>
+                  <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:#A1A1A6;">{{ l.k }}: </span><span style="color:{{ l.vc }};">{{ l.v }}</span><span style="color:#A1A1A6;">{{ l.c }}</span></span>
+                  <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:15px;line-height:1;color:#A1A1A6;opacity:{{ l.editOp }};">edit</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ s.isConvo }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:14px;">
+              <sc-if value="{{ s.hasReply }}" hint-placeholder-val="{{ true }}">
+                <p style="margin:0;font-family:'Geist Mono',monospace;font-size:15px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;"><span style="color:#2FD67B;">&gt; </span>{{ s.reply }}</p>
+              </sc-if>
+              <p style="margin:0;font-family:'Geist Mono',monospace;font-size:24px;font-weight:500;line-height:1.3;letter-spacing:-0.01em;color:#F5F5F7;text-wrap:pretty;"><span style="color:#2FD67B;">&gt; </span>{{ s.q }}{{ cursor }}</p>
+              <sc-if value="{{ s.hasSub }}" hint-placeholder-val="{{ false }}"><span style="font-size:15px;line-height:1.45;color:#A1A1A6;">{{ s.sub }}</span></sc-if>
+            </div>
+
+            <div style="flex:none;display:flex;flex-direction:column;gap:12px;">
+              <sc-if value="{{ s.inText }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;height:60px;padding:0 20px;border-radius:16px;background:#0F1113;border:1px solid #2FD67B;font-size:22px;font-weight:500;">{{ s.textVal }}<span aria-hidden="true" style="width:2px;height:26px;margin-left:2px;background:#2FD67B;animation:dojiBlink 1.1s steps(1) infinite;"></span></div>
+                <span style="font-size:15px;color:#A1A1A6;">a nickname is fine. you can change it anytime.</span>
+              </sc-if>
+
+              <sc-if value="{{ s.inSearch }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:{{ s.r }};background:#0F1113;border:1px solid #26292E;font-family:'Geist Mono',monospace;font-size:15px;color:#A1A1A6;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;">search</span>search or add a symbol</div>
+              </sc-if>
+
+              <sc-if value="{{ s.inSingle }}" hint-placeholder-val="{{ false }}">
+                <div role="radiogroup" style="display:grid;gap:8px;grid-template-columns:{{ s.cols }};">
+                  <sc-for list="{{ s.chips }}" as="c" hint-placeholder-count="4">
+                    <button role="radio" style="display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:{{ s.rowH }};padding:0 18px;border-radius:{{ s.r }};background:{{ c.bg }};color:{{ c.fg }};border:{{ c.bd }};font-family:'Geist',sans-serif;font-size:17px;font-weight:500;text-align:left;cursor:pointer;"><span>{{ c.l }}</span><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;opacity:{{ c.chk }};">check</span></button>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ s.inMulti }}" hint-placeholder-val="{{ false }}">
+                <div role="group" style="display:flex;flex-wrap:wrap;gap:8px;">
+                  <sc-for list="{{ s.chips }}" as="c" hint-placeholder-count="6">
+                    <button aria-pressed="{{ c.sel }}" style="display:flex;align-items:center;gap:6px;height:48px;flex:none;white-space:nowrap;padding:0 16px;border-radius:{{ s.r }};background:{{ c.bg }};color:{{ c.fg }};border:{{ c.bd }};font-family:{{ c.font }};font-size:16px;font-weight:500;cursor:pointer;">{{ c.l }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ s.inTz }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:8px;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:16px;line-height:1;color:#2FD67B;">schedule</span>AFRICA/JOHANNESBURG · UTC+2 · DETECTED<a href="#" style="margin-left:auto;">change</a></div>
+              </sc-if>
+
+              <sc-if value="{{ s.inProp }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:16px;background:#0F1113;">
+                  <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.04em;color:#A1A1A6;white-space:nowrap;">PROP · OPTIONAL</span><div style="flex:1;display:flex;align-items:center;height:44px;padding:0 14px;border-radius:10px;background:#17191C;font-size:15px;color:#A1A1A6;">firm name</div></div>
+                  <div style="display:flex;gap:6px;">
+                    <sc-for list="{{ sizes }}" as="z" hint-placeholder-count="5">
+                      <span style="flex:1;display:flex;align-items:center;justify-content:center;height:40px;border-radius:10px;font-family:'Geist Mono',monospace;font-size:13px;background:{{ z.bg }};color:{{ z.fg }};">{{ z.l }}</span>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ s.inStrategy }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;">
+                  <p style="margin:0;font-size:17px;line-height:1.45;color:#F5F5F7;text-wrap:pretty;">i wait for the asian range, then trade the london breakout after a retest on M15. stop under the range, target 2R.</p>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="flex:1;font-family:'Geist Mono',monospace;font-size:13px;color:#2FD67B;">&gt; reading your strategy{{ cursor }}</span>
+                    <button aria-label="Dictate" style="width:44px;height:44px;border-radius:22px;border:1px solid #26292E;background:#17191C;color:#F5F5F7;display:flex;align-items:center;justify-content:center;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;line-height:1;font-variation-settings:'FILL' 1;">mic</span></button>
+                  </div>
+                </div>
+                <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.04em;color:#A1A1A6;">OR START FROM A TEMPLATE</span>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                  <sc-for list="{{ templates }}" as="t" hint-placeholder-count="5">
+                    <span style="display:flex;align-items:center;height:36px;flex:none;white-space:nowrap;padding:0 12px;border-radius:10px;border:1px solid #26292E;font-size:14px;color:#F5F5F7;">{{ t }}</span>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ s.inParsed }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;border-radius:16px;background:#0F1113;overflow:hidden;">
+                  <sc-for list="{{ parsed }}" as="p" hint-placeholder-count="5">
+                    <div style="display:grid;grid-template-columns:76px 1fr 20px;align-items:center;gap:10px;min-height:52px;padding:8px 14px;border-top:{{ p.div }};">
+                      <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ p.k }}</span>
+                      <span style="font-size:15px;line-height:1.35;color:#F5F5F7;">{{ p.v }}</span>
+                      <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;color:#A1A1A6;">edit</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ s.inRisk }}" hint-placeholder-val="{{ false }}">
+                <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.04em;color:#A1A1A6;">RISK PER TRADE</span>
+                <div role="radiogroup" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;">
+                  <sc-for list="{{ riskChips }}" as="c" hint-placeholder-count="4">
+                    <button role="radio" style="height:52px;border-radius:{{ s.r }};background:{{ c.bg }};color:{{ c.fg }};border:{{ c.bd }};font-family:'Geist Mono',monospace;font-size:16px;font-weight:500;cursor:pointer;">{{ c.l }}</button>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ riskHigh }}" hint-placeholder-val="{{ false }}">
+                  <div role="note" style="display:flex;gap:10px;padding:12px 14px;border-radius:16px;background:rgba(255,159,10,0.09);border:1px solid rgba(255,159,10,0.32);">
+                    <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:#FF9F0A;">info</span>
+                    <span style="font-size:15px;line-height:1.4;color:#F5F5F7;text-wrap:pretty;">3% is above what most plans allow. three losses in a row is about 9% down. you can keep it; i'll remind you before sessions.</span>
+                  </div>
+                </sc-if>
+                <sc-for list="{{ steppers }}" as="st" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:12px;min-height:60px;padding:0 8px 0 16px;border-radius:16px;background:#0F1113;">
+                    <span style="flex:1;font-size:17px;">{{ st.l }}</span>
+                    <button aria-label="Decrease" style="width:44px;height:44px;border-radius:{{ s.r }};border:none;background:#17191C;color:#F5F5F7;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;">remove</span></button>
+                    <span style="width:52px;text-align:center;font-family:'Geist Mono',monospace;font-size:20px;font-weight:500;">{{ st.v }}</span>
+                    <button aria-label="Increase" style="width:44px;height:44px;border-radius:{{ s.r }};border:none;background:#17191C;color:#F5F5F7;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;">add</span></button>
+                  </div>
+                </sc-for>
+              </sc-if>
+
+              <sc-if value="{{ s.inRules }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:12px;padding:18px;border-radius:24px;background:#0F1113;border:1px solid #26292E;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:20px;font-weight:600;letter-spacing:-0.01em;">your rules v1</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#2FD67B;">LONDON BREAK · M15</span></div>
+                  <sc-for list="{{ rules }}" as="ru" hint-placeholder-count="5">
+                    <div style="display:flex;gap:12px;font-size:15px;line-height:1.4;"><span style="font-family:'Geist Mono',monospace;color:#A1A1A6;width:20px;flex:none;">{{ ru.n }}</span><span style="text-wrap:pretty;">{{ ru.t }}</span></div>
+                  </sc-for>
+                  <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;padding-top:10px;border-top:1px solid #26292E;">v1 · editable anytime in profile.doji</span>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ s.inVoices }}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{ voices }}" as="v" hint-placeholder-count="3">
+                  <div role="radio" style="display:flex;align-items:center;gap:14px;min-height:76px;padding:0 16px;border-radius:{{ s.r }};background:#0F1113;border:{{ v.bd }};">
+                    <button aria-label="{{ v.aria }}" style="flex:none;width:44px;height:44px;border-radius:22px;border:none;background:{{ v.btnBg }};color:{{ v.btnFg }};display:flex;align-items:center;justify-content:center;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;font-variation-settings:'FILL' 1;">{{ v.icon }}</span></button>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0;">
+                      <span style="font-size:17px;font-weight:500;">{{ v.name }}</span>
+                      <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">{{ v.tag }}</span>
+                    </div>
+                    <div style="flex:none;width:92px;height:28px;">{{ v.wave }}</div>
+                  </div>
+                </sc-for>
+              </sc-if>
+
+              <sc-if value="{{ s.inRitual }}" hint-placeholder-val="{{ false }}">
+                <div role="radiogroup" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+                  <sc-for list="{{ ritualChips }}" as="c" hint-placeholder-count="3">
+                    <button role="radio" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:64px;border-radius:{{ s.r }};background:{{ c.bg }};color:{{ c.fg }};border:{{ c.bd }};cursor:pointer;"><span style="font-family:'Geist Mono',monospace;font-size:17px;font-weight:500;">{{ c.l }}</span><span style="font-size:12px;opacity:0.8;">{{ c.s }}</span></button>
+                  </sc-for>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:rgba(23,25,28,0.6);backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);border:1px solid rgba(255,255,255,0.08);">
+                  <div style="display:flex;align-items:center;gap:8px;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:#2FD67B;">notifications</span><span style="font-size:17px;font-weight:600;">one nudge a day, before london</span></div>
+                  <span style="font-size:15px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">plus a tilt check if you break your own rules. never about prices.</span>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ s.isBoot }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;display:flex;flex-direction:column;gap:32px;padding-top:40px;">
+              <div style="display:flex;flex-direction:column;gap:6px;font-family:'Geist Mono',monospace;font-size:15px;line-height:1.6;color:#A1A1A6;">
+                <span><span style="color:#2FD67B;">&gt;</span> initializing doji…</span>
+                <span><span style="color:#2FD67B;">&gt;</span> no holy grail found.</span>
+                <span style="color:#F5F5F7;"><span style="color:#2FD67B;">&gt;</span> building yours.{{ cursor }}</span>
+              </div>
+              <div style="flex:1;"></div>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <h3 style="margin:0;font-size:44px;font-weight:600;letter-spacing:-0.035em;line-height:1.05;">hey. i'm doji.</h3>
+                <p style="margin:0;font-size:19px;line-height:1.45;color:#A1A1A6;">let's set you up — about 3 minutes.</p>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ s.isManifesto }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;pointer-events:none;">
+              <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.08em;color:#2FD67B;">&gt; MANIFESTO</span>
+              <h3 style="margin:0;font-size:52px;font-weight:600;letter-spacing:-0.04em;line-height:1.02;text-wrap:balance;">There is no holy grail.<br><span style="color:#A1A1A6;">There is balance.</span></h3>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ s.isPledge }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;display:flex;flex-direction:column;gap:20px;">
+              <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.08em;color:#2FD67B;">&gt; PLEDGE · RULES V1</span>
+              <h3 style="margin:0;font-size:40px;font-weight:600;letter-spacing:-0.035em;line-height:1.05;">your plan,<br>not your feelings.</h3>
+              <div style="flex:1;"></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+                <div style="position:relative;width:128px;height:128px;">
+                  <svg width="128" height="128" viewBox="0 0 128 128" aria-hidden="true" style="position:absolute;left:0;top:0;transform:rotate(-90deg);"><circle cx="64" cy="64" r="61" fill="none" stroke="#26292E" stroke-width="3"></circle><circle cx="64" cy="64" r="61" fill="none" stroke="#2FD67B" stroke-width="3" stroke-linecap="round" stroke-dasharray="383" stroke-dashoffset="146"></circle></svg>
+                  <button aria-label="Hold to pledge" style="position:absolute;left:10px;top:10px;width:108px;height:108px;border-radius:54px;border:1px solid rgba(255,255,255,0.08);background:rgba(23,25,28,0.6);backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);color:#F5F5F7;font-family:'Geist Mono',monospace;font-size:13px;cursor:pointer;">hold</button>
+                </div>
+                <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">HOLD 1.5S TO PLEDGE · 62%</span>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ s.isSignin }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:1;display:flex;flex-direction:column;gap:14px;">
+              <div style="flex:1;"></div>
+              <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.08em;color:#2FD67B;">&gt; 100% CONFIGURED</span>
+              <h3 style="margin:0;font-size:44px;font-weight:600;letter-spacing:-0.035em;line-height:1.05;">save your doji.</h3>
+              <p style="margin:0 0 12px;font-size:17px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">profile.doji syncs to your phone and desktop.</p>
+              <sc-for list="{{ s.auth }}" as="a" hint-placeholder-count="3">
+                <button style="display:flex;align-items:center;justify-content:center;gap:10px;height:56px;border-radius:999px;background:{{ a.bg }};color:{{ a.fg }};border:{{ a.bd }};font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">{{ a.l }}</button>
+              </sc-for>
+              <span style="font-size:13px;line-height:1.5;color:#A1A1A6;text-align:center;">by continuing you agree to the terms and privacy policy.</span>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ s.hasFooter }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:none;display:flex;flex-direction:column;gap:4px;">
+              <button style="height:56px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">{{ s.cta }}</button>
+              <sc-if value="{{ s.hasSkip }}" hint-placeholder-val="{{ true }}">
+                <button style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:'Geist',sans-serif;font-size:15px;cursor:pointer;">{{ s.skip }}</button>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:#A1A1A6;">
+        <span style="text-wrap:pretty;">{{ s.note }}</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#F5F5F7;">{{ s.flutter }}</span>
+      </div>
+    </div>
+    </sc-for>
+  </div>
+</section>
+</sc-for>
+
+<section id="windows" style="display:flex;flex-direction:column;gap:32px;">
+  <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
+    <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;">Windows desktop · 1440 × 900</h2>
+    <span style="font-size:15px;color:#A1A1A6;">Same conversation on the left; profile.doji becomes a full editor pane on the right. Keyboard first: number keys pick chips, ↵ continues, esc skips.</span>
+  </div>
+  <div id="W1" data-screen-label="W1 Windows risk step" style="width:1440px;height:900px;border-radius:12px;overflow:hidden;background:#050607;border:1px solid #26292E;box-shadow:0 40px 80px rgba(0,0,0,0.5);display:flex;flex-direction:column;">
+    <div style="flex:none;display:flex;align-items:center;height:40px;padding-left:16px;background:#0F1113;border-bottom:1px solid #26292E;">
+      <div role="img" aria-label="doji" style="display:inline-flex;align-items:baseline;font-family:'Geist Mono',monospace;font-weight:700;font-size:14px;letter-spacing:-0.02em;line-height:1;"><span>doj</span><span style="position:relative;display:inline-block;width:0.6em;height:0.74em;"><span style="position:absolute;left:calc(50% - 0.06em);top:0;width:0.12em;height:100%;background:#F5F5F7;border-radius:1px;"></span><span style="position:absolute;left:0.1em;right:0.1em;top:50%;height:0.11em;background:#F5F5F7;border-radius:1px;"></span></span><span style="color:#2FD67B;">_</span></div>
+      <span style="flex:1;text-align:center;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">setup · profile.doji</span>
+      <sc-for list="{{ winCtl }}" as="w" hint-placeholder-count="3"><span aria-hidden="true" style="width:46px;height:40px;display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:16px;color:#A1A1A6;">{{ w }}</span></sc-for>
+    </div>
+    <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 520px;">
+      <div style="display:flex;flex-direction:column;gap:24px;padding:56px 120px 48px;">
+        <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">{{ winProgress }}</span>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:18px;max-width:720px;">
+          <p style="margin:0;font-family:'Geist Mono',monospace;font-size:17px;line-height:1.55;color:#A1A1A6;"><span style="color:#2FD67B;">&gt; </span>your plan, in writing. that's the hard part done.</p>
+          <p style="margin:0;font-family:'Geist Mono',monospace;font-size:36px;font-weight:500;line-height:1.2;letter-spacing:-0.015em;"><span style="color:#2FD67B;">&gt; </span>how much will you risk per trade?{{ cursor }}</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;max-width:720px;">
+          <div role="radiogroup" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;">
+            <sc-for list="{{ riskChips }}" as="c" hint-placeholder-count="4">
+              <button role="radio" style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 18px;border-radius:16px;background:{{ c.bg }};color:{{ c.fg }};border:{{ c.bd }};font-family:'Geist Mono',monospace;font-size:18px;font-weight:500;cursor:pointer;"><span>{{ c.l }}</span><span style="font-size:12px;opacity:0.7;">{{ c.key }}</span></button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ riskHigh }}" hint-placeholder-val="{{ false }}">
+            <div role="note" style="display:flex;gap:10px;padding:14px 16px;border-radius:16px;background:rgba(255,159,10,0.09);border:1px solid rgba(255,159,10,0.32);"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:#FF9F0A;">info</span><span style="font-size:15px;line-height:1.4;">3% is above what most plans allow. three losses in a row is about 9% down. you can keep it; i'll remind you before sessions.</span></div>
+          </sc-if>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+            <sc-for list="{{ steppers }}" as="st" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:12px;height:64px;padding:0 10px 0 18px;border-radius:16px;background:#0F1113;">
+                <span style="flex:1;font-size:17px;">{{ st.l }}</span>
+                <button aria-label="Decrease" style="width:44px;height:44px;border-radius:10px;border:none;background:#17191C;color:#F5F5F7;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;">remove</span></button>
+                <span style="width:52px;text-align:center;font-family:'Geist Mono',monospace;font-size:20px;">{{ st.v }}</span>
+                <button aria-label="Increase" style="width:44px;height:44px;border-radius:10px;border:none;background:#17191C;color:#F5F5F7;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;">add</span></button>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;padding-top:8px;">
+            <button style="height:52px;padding:0 28px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:'Geist',sans-serif;font-size:17px;font-weight:600;cursor:pointer;">continue</button>
+            <button style="height:44px;padding:0 12px;border:none;background:transparent;color:#A1A1A6;font-family:'Geist',sans-serif;font-size:15px;cursor:pointer;">skip for now</button>
+            <span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">1–4 PICK · ↵ CONTINUE · ESC SKIP</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;background:#0F1113;border-left:1px solid #26292E;font-family:'Geist Mono',monospace;">
+        <div style="display:flex;align-items:center;gap:8px;height:48px;padding:0 20px;border-bottom:1px solid #26292E;font-size:13px;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;line-height:1;color:#2FD67B;">description</span>profile.doji<span style="margin-left:auto;color:#A1A1A6;">{{ winCount }}</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;padding:16px 12px;">
+          <sc-for list="{{ winCfg }}" as="l" hint-placeholder-count="10">
+            <div style="display:flex;align-items:center;gap:14px;height:32px;padding:0 10px;border-radius:6px;font-size:14px;background:{{ l.bg }};">
+              <span style="width:20px;text-align:right;color:#A1A1A6;">{{ l.n }}</span>
+              <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><span style="color:#A1A1A6;">{{ l.k }}: </span><span style="color:{{ l.vc }};">{{ l.v }}</span><span style="color:#A1A1A6;">{{ l.c }}</span></span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding:14px 20px;border-top:1px solid #26292E;font-size:12px;color:#A1A1A6;">click a line to edit · ctrl+E</div>
+      </div>
+    </div>
+  </div>
+  <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#F5F5F7;">window_manager (custom title bar) · Row › [OnboardingConversation(maxWidth: 720), ProfileDojiEditor(width: 520)] · Shortcuts + Actions for 1–4 / ↵ / esc</span>
+</section>
+
+<section id="flutter" style="display:flex;flex-direction:column;gap:24px;max-width:1344px;">
+  <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.03em;">Flutter map</h2>
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px;">
+    <sc-for list="{{ fmap }}" as="f" hint-placeholder-count="12">
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;padding:14px 0;border-top:1px solid #26292E;">
+        <span style="font-size:15px;font-weight:500;">{{ f.ui }}</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:13px;line-height:1.5;color:#A1A1A6;">{{ f.w }}</span>
+      </div>
+    </sc-for>
+  </div>
+  <div style="padding:20px 24px;border-radius:16px;background:#0F1113;display:flex;flex-direction:column;gap:8px;">
+    <span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.06em;color:#FF9F0A;">&gt; OPEN ITEMS</span>
+    <span style="font-size:15px;line-height:1.55;color:#F5F5F7;text-wrap:pretty;">The brief I received stops mid-step 5 (after the voice cards) and has no Deliverables list. Ritual (<a href="#5b">5b</a>), pledge (<a href="#6">6</a>) and save (<a href="#7">7</a>) are inferred from the research list and are marked ASSUMED. doji-symbol.svg and doji-app-icon.svg were not attached; the icon and wordmark here are coded stand-ins. Higgsfield assets and voice previews need a basic plan or higher.</span>
+  </div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;configPanel&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;expanded&quot;,&quot;collapsed&quot;],&quot;default&quot;:&quot;expanded&quot;,&quot;tsType&quot;:&quot;'expanded'|'collapsed'&quot;,&quot;section&quot;:&quot;Onboarding&quot;},&quot;riskPick&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;1%&quot;,&quot;custom 3%&quot;],&quot;default&quot;:&quot;custom 3%&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Onboarding&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const e = React.createElement;
+    const collapsed = (this.props.configPanel ?? 'expanded') === 'collapsed';
+    const riskHigh = (this.props.riskPick ?? 'custom 3%') === 'custom 3%';
+    const W = '#F5F5F7', G = '#2FD67B';
+    const P = [
+      ['name', '"sam"', W], ['experience', '6-24m', G], ['style', 'day_trader', G],
+      ['markets', '[XAUUSD, NAS100]', G], ['sessions', '[london]', G, '  # UTC+2'],
+      ['goal', 'prop_challenge', G], ['prop.size', '50_000', W],
+      ['struggles', '[revenge, fomo, moving_stop]', G], ['strategy', 'london_break', G, '  # M15'],
+      ['risk', riskHigh ? '3.0%' : '1.0%', W], ['max_trades', '3', W], ['daily_loss', '2.0%', W],
+      ['coach.voice', 'calm_female', G], ['ritual', '08:30', W, '  # 30m pre-london']
+    ];
+    const TOTAL = P.length;
+    const line = (p, i, last) => ({ n: i + 1, k: p[0], v: p[1], vc: p[2], c: p[3] || '', bg: last ? 'rgba(47,214,123,0.12)' : 'transparent', editOp: last ? 1 : 0.5 });
+    const cfgFor = (n, lim) => {
+      const show = Math.min(collapsed ? 2 : 4, lim || 4);
+      const start = Math.max(0, n - show);
+      return P.slice(start, n).map((p, j) => line(p, start + j, start + j === n - 1));
+    };
+    const prog = (n) => { const pct = Math.round(n / TOTAL * 100), b = Math.round(pct / 10); return '[' + '█'.repeat(b) + '░'.repeat(10 - b) + '] ' + pct + '%'; };
+    const chip = (l, sel, mono) => ({ l, sel, bg: sel ? W : '#0F1113', fg: sel ? '#050607' : W, bd: sel ? '1px solid ' + W : '1px solid #26292E', chk: sel ? 1 : 0, font: mono ? "'Geist Mono',monospace" : "'Geist',sans-serif" });
+
+    const base = (o, android) => Object.assign({
+      w: android ? '412px' : '390px', h: android ? '915px' : '844px', frameR: android ? '36px' : '48px',
+      pad: android ? '40px 22px 24px' : '56px 20px 34px', r: android ? '10px' : '16px', android: !!android,
+      hasHeader: true, hasConfig: true, isConvo: true, hasFooter: true, hasSkip: true, cta: 'continue', skip: 'skip for now',
+      hasReply: true, hasSub: false, cols: 'repeat(2,minmax(0,1fr))', rowH: '56px', grain: false, assumed: false,
+      label: '', n: 0
+    }, o);
+    const fin = (s) => {
+      s.label = s.id + ' ' + s.title; s.progress = prog(s.n) + ' configured';
+      s.cfg = cfgFor(s.n, s.cfgShow); s.cfgCount = s.n ? (s.n + ' / ' + TOTAL + ' lines') : 'empty';
+      if (!s.n) s.hasConfig = false;
+      s.hasSub = !!s.sub; return s;
+    };
+
+    const ios = [
+      { id: '0', title: 'Boot', isBoot: true, isConvo: false, hasConfig: false, hasHeader: false, grain: true, cta: "let's go", skip: 'I already have an account',
+        note: 'Lines type at 28ms/char, 400ms pause between. The splash wordmark has already landed as the header of every following step.', flutter: 'TerminalLines(lines, charDelay: 28ms) · FilledButton · TextButton' },
+      { id: '1', title: 'Manifesto', isConvo: false, hasConfig: false, hasHeader: false, isManifesto: true, grain: true, cta: "I'm in", hasSkip: false,
+        note: 'Asset #1 goes in the drop slot at 36% opacity; until then #050607 + 3% grain. Second line in secondary grey so the eye lands on "balance".', flutter: 'Stack › [Image(opacity: .36), GrainOverlay, Text.rich]' },
+      { id: '2a', title: 'Identity · name', n: 0, hasReply: false, inText: true, q: 'what should I call you?', textVal: 'sam',
+        note: 'Keyboard opens on entry; return key submits. Config panel appears once the first line exists.', flutter: 'TextField(autofocus, textInputAction: next)' },
+      { id: '2b', title: 'Identity · experience', n: 1, reply: 'sam. good to meet you.', q: 'how long have you been trading?', inSingle: true,
+        chips: ['<6 months', '6–24 months', '2–5 years', '5+ years'].map((l, i) => chip(l, i === 1)),
+        note: 'Single choice auto-advances 350ms after tap; continue stays for VoiceOver users.', flutter: 'DojiChoiceGrid(single, columns: 2)' },
+      { id: '2c', title: 'Identity · style', n: 2, reply: '6–24 months. the stretch where habits get set.', q: 'how do you trade?', inSingle: true,
+        chips: ['scalper', 'day trader', 'swing', 'not sure yet'].map((l, i) => chip(l, i === 1)),
+        note: '"not sure yet" is a first-class answer; it sets style: undecided and the AI asks again after 2 weeks.', flutter: 'DojiChoiceGrid(single, columns: 2)' },
+      { id: '2d', title: 'Identity · markets', n: 3, reply: 'day trader. noted.', q: 'what do you trade?', sub: 'pick any.', inMulti: true, inSearch: true,
+        chips: ['XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'NAS100', 'US30', 'BTCUSD'].map((l) => chip(l, l === 'XAUUSD' || l === 'NAS100', true)).concat([Object.assign(chip('+ custom', false), { bd: '1px dashed #26292E', fg: '#A1A1A6' })]),
+        note: 'Symbols in Geist Mono. Search matches broker aliases (GOLD, XAU/USD).', flutter: 'SearchBar · Wrap › FilterChip × n' },
+      { id: '2e', title: 'Identity · sessions', n: 4, reply: "gold and nasdaq. both move fast — we'll keep you steady.", q: 'when do you trade?', inMulti: true, inTz: true,
+        chips: ['Asia', 'London', 'New York', 'around my job'].map((l) => chip(l, l === 'London')),
+        note: 'Time zone from DateTime.now().timeZoneName + flutter_timezone; "change" opens a searchable list.', flutter: 'Wrap › FilterChip · TimezoneRow' },
+      { id: '3a', title: 'Goal', n: 5, reply: "london, 09:00 your time. i'll be there.", q: 'what are you working toward?', inSingle: true, inProp: true, cols: '1fr', cfgShow: 1, rowH: '48px',
+        chips: ['pass a prop challenge', 'grow my account', 'be consistent', 'make this my job', 'learn properly'].map((l, i) => chip(l, i === 0)),
+        note: 'Prop fields expand under the list only when prop is picked (AnimatedSize, spring). Both optional.', flutter: 'DojiChoiceList · AnimatedSize › PropDetails' },
+      { id: '3b', title: 'Struggle', n: 7, reply: 'a prop challenge. rules matter even more there.', q: 'be honest — what usually gets you?', sub: 'pick any. this stays between us.', inMulti: true,
+        chips: ['revenge trading', 'FOMO', 'overtrading', 'hesitation', 'moving my stop', 'oversizing', 'trading when bored'].map((l) => chip(l, ['revenge trading', 'FOMO', 'moving my stop'].includes(l))),
+        note: 'Selected struggles tune tilt alerts later. No scoring, no labels.', flutter: 'Wrap › FilterChip × 7' },
+      { id: '4a', title: 'Strategy · describe', n: 8, reply: "revenge trading. noted. we'll handle that together.", q: 'describe your strategy in your own words', inStrategy: true, cfgShow: 1, cta: 'read it',
+        note: 'Text or dictation. While parsing, the blinking cursor is the only loading state; no spinner.', flutter: 'TextField(maxLines: 5) · MicButton(speech_to_text) · ActionChip × 5' },
+      { id: '4b', title: 'Strategy · parsed', n: 8, reply: 'got it. check what i understood.', q: 'your strategy, structured', inParsed: true, cfgShow: 1, cta: 'looks right',
+        note: 'Each row opens an inline editor. Lines stream in one by one as the model returns them.', flutter: 'ParsedRuleRow(label, value, onEdit) × 5' },
+      { id: '4c', title: 'Risk and limits', n: 9, reply: "your plan, in writing. that's the hard part done.", q: 'how much will you risk per trade?', inRisk: true,
+        note: 'Above 2% shows a calm tilt-orange note, never a block. Use the riskPick tweak to see 1%.', flutter: 'SegmentedButton · InfoNote(tone: tilt) · DojiStepper × 2' },
+      { id: '4d', title: 'Your rules v1', n: 12, reply: riskHigh ? '3% a trade. noted, and i will remind you.' : "1% a trade. that's room to be wrong.", q: 'here are your rules.', inRules: true, cta: 'these are my rules', hasSkip: false,
+        note: 'Summary of everything so far in plain language. Tapping a rule jumps to its line in profile.doji.', flutter: 'RulesCard(version: 1)' },
+      { id: '5a', title: 'Coach voice', n: 12, reply: 'rules saved. now pick who you will hear.', q: 'which voice should coach you?', inVoices: true,
+        note: 'Previews are placeholders until Higgsfield voice lines exist; play uses just_audio, waveform is live amplitude.', flutter: 'VoiceCard(onPlay) × 3 · Waveform(CustomPainter)' },
+      { id: '5b', title: 'Ritual', n: 13, assumed: true, reply: 'calm female. she sounds like this at the open.', q: 'when should we do your open?', sub: '60 seconds before your session.', inRitual: true, cta: 'allow notifications', skip: 'not now',
+        note: 'Priming card first, then the OS prompt. "not now" keeps the ritual in-app only.', flutter: 'DojiChoiceGrid(columns: 3) · permission_handler' },
+      { id: '6', title: 'Pledge', n: 14, assumed: true, isConvo: false, hasConfig: false, isPledge: true, grain: true, hasFooter: false,
+        note: 'Press and hold 1.5s. Ring fills linearly; light haptic every 25%, heavy thud at 100%. Releasing early rewinds with a spring.', flutter: 'HoldToConfirm(duration: 1500ms) · HapticFeedback' },
+      { id: '7', title: 'Save', n: 14, assumed: true, isConvo: false, hasConfig: false, hasFooter: false, hasHeader: true,
+        auth: [{ l: 'continue with Apple', bg: W, fg: '#050607', bd: 'none' }, { l: 'continue with Google', bg: '#17191C', fg: W, bd: '1px solid #26292E' }, { l: 'continue with email', bg: 'transparent', fg: W, bd: '1px solid #26292E' }],
+        note: 'Account comes last, after value. Use the official Apple button widget so the logo meets guidelines.', flutter: 'SignInWithAppleButton · GoogleSignIn · OutlinedButton' }
+    ].map((o) => fin(base(o)));
+
+    const pick = (id, extra) => fin(base(Object.assign({}, ios.find((s) => s.id === id), { id: 'A' + id }, extra), true));
+    const android = [
+      pick('2d', { note: 'Android: back arrow in the header, predictive back returns one question. Chips at radius 10 (Material 3 FilterChip), 22px margins.', flutter: 'FilterChip(shape: RoundedRectangleBorder(10))' }),
+      pick('4c', { note: 'Steppers keep 44dp targets; TalkBack reads "3 trades, max per day, double-tap and hold to adjust".', flutter: 'SegmentedButton · DojiStepper' }),
+      pick('5a', { note: 'Audio focus: previews duck other media via audio_session.', flutter: 'VoiceCard × 3' }),
+      pick('7', { auth: [{ l: 'continue with Google', bg: W, fg: '#050607', bd: 'none' }, { l: 'continue with Apple', bg: '#17191C', fg: W, bd: '1px solid #26292E' }, { l: 'continue with email', bg: 'transparent', fg: W, bd: '1px solid #26292E' }], note: 'Google first on Android (Credential Manager one-tap), Apple second.', flutter: 'CredentialManager · SignInWithAppleButton' })
+    ].map((s) => { s.label = s.id + ' Android ' + s.title; return s; });
+
+    const groups = [
+      { anchor: 'ios', title: 'iOS · 390 × 844', sub: 'Every step with the live config file. Tap any line to edit. Target ~3 minutes: 14 answers at ~12s each.', screens: ios },
+      { anchor: 'android', title: 'Android · 412 × 915', sub: 'Same flow and components; differences are navigation, chip radius, sign-in order.', screens: android }
+    ];
+
+    const cursor = e('span', { 'aria-hidden': true, style: { color: G, animation: 'dojiBlink 1.1s steps(1) infinite', marginLeft: 2 } }, '_');
+
+    const bars = (seed, playing) => {
+      const hs = []; let s = seed;
+      for (let i = 0; i < 18; i++) { s = (s * 16807) % 2147483647; hs.push(0.3 + (s % 70) / 100); }
+      return e('div', { 'aria-hidden': true, style: { display: 'flex', alignItems: 'center', gap: 2, height: 28 } },
+        hs.map((h, i) => e('span', { key: i, style: { width: 3, height: Math.round(h * 28), borderRadius: 2, background: playing ? (i < 11 ? G : '#26292E') : '#26292E', transformOrigin: 'center', animation: playing ? `wave ${0.7 + (i % 5) * 0.12}s ease-in-out ${i * 0.04}s infinite` : 'none' } })));
+    };
+    const voices = [['calm male', 3, false], ['calm female', 9, true], ['coach tone', 5, false]].map(([name, seed, on]) => ({
+      name, tag: on ? 'PLAYING · PLACEHOLDER PREVIEW' : 'PLACEHOLDER PREVIEW', aria: 'Play ' + name + ' preview',
+      icon: on ? 'pause' : 'play_arrow', btnBg: on ? G : '#17191C', btnFg: on ? '#050607' : W, bd: on ? '1px solid ' + G : '1px solid #26292E', wave: bars(seed, on)
+    }));
+
+    const riskChips = ['0.5%', '1%', '2%', riskHigh ? '3%' : 'custom'].map((l, i) => Object.assign(chip(l, riskHigh ? i === 3 : i === 1, true), { key: String(i + 1) }));
+    const steppers = [{ l: 'max trades/day', v: '3' }, { l: 'daily loss limit', v: '2%' }];
+    const rules = [
+      'trade the london break of the asian range, M15 only.',
+      'enter only after an M15 retest closes beyond the level.',
+      'stop under the range. target 2R.',
+      'risk ' + (riskHigh ? '3%' : '1%') + ' a trade. max 3 trades a day.',
+      'stop for the day at -2%.'
+    ].map((t, i) => ({ n: String(i + 1).padStart(2, '0'), t }));
+    const parsed = [['setup', 'london breakout of the asian range'], ['timeframe', 'M15'], ['entry', 'retest of the broken level, candle closes beyond'], ['stop', 'under the asian range'], ['target', '2R']].map(([k, v], i) => ({ k, v, div: i ? '1px solid #1C1E22' : 'none' }));
+    const sizes = ['10k', '25k', '50k', '100k', '200k'].map((l) => ({ l, bg: l === '50k' ? W : '#17191C', fg: l === '50k' ? '#050607' : W }));
+    const ritualChips = [['08:30', '30m before'], ['08:45', '15m before'], ['09:00', 'at the open']].map(([l, s], i) => Object.assign(chip(l, i === 0), { s }));
+
+    const K = (o) => Object.assign({ isCandle: true, isWord: false, showBoot: false, wickTop: '15px', wickH: '210px', bodyL: '22px', bodyW: '36px', bodyTop: '60px', bodyH: '120px', bodyC: G, wordTop: '380px', wordJustify: 'center', wordSize: '72px', dojOp: 1 }, o);
+    const keys = [
+      K({ id: 'K1', title: 'Candle rises', t: '0–250ms', what: 'green body grows from centre, wick extends', ease: 'spring(stiffness 260, damping 18)', haptic: 'none', bodyTop: '36px' }),
+      K({ id: 'K2', title: 'Wiggle down', t: '250–550ms', what: 'body flips to tilt-orange, drops, recovers green', ease: 'cubic-bezier(.3,0,.2,1) ×2', haptic: 'none', wickTop: '30px', wickH: '180px', bodyC: '#FF9F0A', bodyH: '84px', bodyTop: '120px' }),
+      K({ id: 'K3', title: 'Perfect doji', t: '550–800ms', what: 'open = close: body collapses to a 5px bar, colour to white', ease: 'spring(stiffness 400, damping 30), settles', haptic: 'light impact on settle', wickTop: '45px', wickH: '150px', bodyL: '10px', bodyW: '60px', bodyTop: '117px', bodyH: '5px', bodyC: W }),
+      K({ id: 'K4', title: 'Cursor, then type', t: '800–1250ms', isCandle: false, isWord: true, what: '_ blinks twice (2×120ms), then d-o-j types in; the doji becomes the i', ease: 'steps, 60ms per char', haptic: 'selection tick per char' }),
+      K({ id: 'K5', title: 'Glide to header', t: '1250–1500ms', isCandle: false, isWord: true, showBoot: true, wordTop: '68px', wordJustify: 'flex-start', wordSize: '18px', what: 'wordmark shrinks and glides to the onboarding header; boot line fades in', ease: 'spring(stiffness 220, damping 26) · shared-element Hero', haptic: 'none' })
+    ].map((k) => Object.assign(k, { label: k.id + ' ' + k.title }));
+
+    const liveSplash = e('div', { style: { position: 'absolute', inset: 0 } },
+      e('div', { style: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'spCandle 3s linear infinite' } },
+        e('div', { style: { position: 'relative', width: 80, height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' } },
+          e('span', { style: { position: 'absolute', width: 4, borderRadius: 2, background: W, animation: 'spWick 3s cubic-bezier(.3,0,.2,1) infinite' } }),
+          e('span', { style: { position: 'absolute', borderRadius: 3, animation: 'spBody 3s cubic-bezier(.3,0,.2,1) infinite' } }))),
+      e('div', { style: { position: 'absolute', left: 0, right: 0, top: 380, display: 'flex', justifyContent: 'center', animation: 'spWord 3s cubic-bezier(.2,.8,.2,1) infinite', transformOrigin: '50% 50%' } },
+        e('div', { style: { display: 'inline-flex', alignItems: 'baseline', fontFamily: "'Geist Mono',monospace", fontWeight: 700, fontSize: 72, letterSpacing: '-0.02em', lineHeight: 1 } },
+          e('span', { style: { animation: 'spType 3s steps(3) infinite' } }, 'doj'),
+          e('span', { style: { position: 'relative', display: 'inline-block', width: '0.6em', height: '0.74em' } },
+            e('span', { style: { position: 'absolute', left: 'calc(50% - 0.06em)', top: 0, width: '0.12em', height: '100%', background: W, borderRadius: 1 } }),
+            e('span', { style: { position: 'absolute', left: '0.1em', right: '0.1em', top: '50%', height: '0.11em', background: W, borderRadius: 1 } })),
+          e('span', { style: { color: G, animation: 'dojiBlink .5s steps(1) infinite' } }, '_'))),
+      e('div', { style: { position: 'absolute', left: 20, right: 20, top: 132, fontFamily: "'Geist Mono',monospace", fontSize: 15, color: '#A1A1A6', animation: 'spBoot 3s ease-out infinite' } }, e('span', { style: { color: G } }, '> '), 'initializing doji…'));
+
+    const winCfg = P.slice(0, 10).map((p, i) => line(p, i, i === 9));
+
+    const fmap = [
+      ['Terminal line + cursor', 'TypewriterText (AnimationController + substring) · BlinkingCursor'],
+      ['profile.doji panel', 'ProfileDojiPanel: AnimatedSize + ListView of ConfigLine(onTap → edit) · SelectableText.rich'],
+      ['Progress', 'ConfigProgress: Text("[██░░] 60% configured") in Geist Mono, semantics label "60 percent"'],
+      ['Single choice', 'DojiChoiceGrid → GridView / Column of DojiChoiceTile (InkWell, 56pt)'],
+      ['Multi choice', 'Wrap › FilterChip (custom theme, 48pt)'],
+      ['Text answer', 'TextField + InputDecoration(filled, radius 16)'],
+      ['Strategy parse', 'StrategyInput (TextField, speech_to_text) → ParsedRuleRow list'],
+      ['Risk', 'SegmentedButton<double> · InfoNote(tone: tilt)'],
+      ['Steppers', 'DojiStepper: Row › IconButton, AnimatedSwitcher(value), IconButton'],
+      ['Rules card', 'RulesCard: Card(color elevated-1, radius 24)'],
+      ['Voice card', 'VoiceCard: ListTile-like Row · just_audio · Waveform(CustomPainter)'],
+      ['Glass', 'ClipRRect › BackdropFilter(ImageFilter.blur(28)) › Container(60% elevated, 1px white 8%)'],
+      ['Hold to pledge', 'HoldToConfirm: GestureDetector(onLongPressStart/End) + CustomPaint ring'],
+      ['Splash', 'flutter_native_splash → IntroScreen(AnimationController 1500ms) → Hero("wordmark")'],
+      ['Reduce motion', 'MediaQuery.disableAnimations → FadeTransition 200ms, skip intro'],
+      ['Grain fallback', 'GrainOverlay: tiled noise PNG at 3% opacity']
+    ].map(([ui, w]) => ({ ui, w }));
+
+    return {
+      keys, liveSplash, groups, cursor, voices, riskChips, riskHigh, steppers, rules, parsed, sizes, ritualChips, fmap,
+      templates: ['support & resistance', 'SMC/ICT', 'trend pullback', 'breakout', "I don't have one yet"],
+      cfgChevron: collapsed ? 'chevron_right' : 'expand_more',
+      grainUrl: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.06'/></svg>\")",
+      winCtl: ['remove', 'crop_square', 'close'], winCfg, winCount: '10 / ' + TOTAL + ' lines', winProgress: prog(9) + ' configured'
+    };
+  }
+}
+</script>
+</body>
+</html>

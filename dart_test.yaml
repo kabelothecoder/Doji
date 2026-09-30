@@ -1,0 +1,4 @@
+tags:
+  # Pixel goldens are rendered on Windows (font rasterisation differs per OS).
+  # Elsewhere: flutter test --exclude-tags golden
+  golden:

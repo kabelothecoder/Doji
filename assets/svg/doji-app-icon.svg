@@ -1,0 +1,9 @@
+<!-- STAND-IN. Transcribed from the coded icon in design/handoff/Doji Onboarding.dc.html (S0).
+     Replace with the real doji-app-icon.svg when it is attached, then run
+     `flutter test tool/export_brand_assets_test.dart` and the icon/splash generators. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="112" viewBox="0 0 112 112">
+  <rect width="112" height="112" fill="#0F1113"/>
+  <rect x="52" y="24" width="6" height="64" rx="2" fill="#F5F5F7"/>
+  <rect x="36" y="53" width="38" height="6" rx="2" fill="#F5F5F7"/>
+  <rect x="80" y="74" width="12" height="14" rx="2" fill="#2FD67B"/>
+</svg>
