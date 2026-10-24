@@ -66,6 +66,11 @@ class HomeController extends Notifier<HomeState> {
     state = state.copyWith(doneTasks: next);
   }
 
+  /// Ticks [task] when the trader did it elsewhere (a first coach reply).
+  void completeTask(SetupTask task) {
+    if (!state.doneTasks.contains(task)) state = state.copyWith(doneTasks: {...state.doneTasks, task});
+  }
+
   void pickMood(String mood) => state = state.copyWith(mood: mood);
 
   void startOpen() => state = state.copyWith(mood: null);

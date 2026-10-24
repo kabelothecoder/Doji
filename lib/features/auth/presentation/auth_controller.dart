@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/routes.dart';
 import '../../../core/widgets/auth_method_button.dart' show AuthMethod;
 import '../../app_lock/presentation/app_lock_controller.dart';
+import '../../coach/data/coach_session_repository.dart';
 import '../../journal/data/journal_repository.dart';
 import '../../journal/presentation/journal_controller.dart';
 import '../../onboarding/data/onboarding_repository.dart';
@@ -338,6 +339,8 @@ class AccountActions {
     // The journal is this device's copy of the trades: it goes with the profile.
     await _ref.read(journalRepositoryProvider).clear();
     _ref.invalidate(journalControllerProvider);
+    // Saved coach sessions ("coaching history" on the delete screen) too.
+    await _ref.read(coachSessionRepositoryProvider).clear();
     await _ref.read(appLockControllerProvider.notifier).reset();
     await _ref.read(billingRepositoryProvider).clear();
     _ref.invalidate(entitlementProvider);

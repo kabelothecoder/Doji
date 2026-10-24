@@ -101,6 +101,11 @@ const List<Plan> plans = [
 
 Plan planOf(PlanId id) => plans.firstWhere((p) => p.id == id);
 
+/// Voice coaching comes with pro trader (60 min a month) and elite prop (fair
+/// use); on the other plans the coach is text. TODO(next-slice): count pro's
+/// minutes and show `UpsellKind.voice` when they run out.
+bool includesVoiceCoach(PlanId id) => id == PlanId.pro || id == PlanId.elite;
+
 /// A row of the compare table. A cell is `true` (included), `false` (not
 /// included) or a short string.
 class FeatureRow {

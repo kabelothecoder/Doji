@@ -6,9 +6,13 @@ abstract final class Routes {
   // Main tabs (bottom bar on phones, side rail on wide screens).
   static const home = '/home';
   static const markets = '/markets';
-  static const coach = '/coach';
   static const journal = '/journal';
   static const me = '/me';
+
+  // Coach (design: Doji Hero Screens 1c): the centre tab opens a full-screen
+  // cover, not a branch. A long-press on the orb opens it listening.
+  static const coach = '/coach';
+  static const coachListening = '/coach?listen=1';
 
   // Journal (design: Doji Trade Journal Phone.dc.html). The trades list lives in
   // the journal tab (bar stays); adding and reading one trade are full screen.

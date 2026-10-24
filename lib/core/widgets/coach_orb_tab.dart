@@ -25,9 +25,13 @@ class CoachOrbTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final core = size * 24 / 56 * (listening ? 1.2 : 1);
+    // One button node: tap opens the coach, long-press opens it listening.
     return Semantics(
+      container: true,
+      button: true,
       label: 'coach',
       selected: selected,
+      onTap: onTap,
       onLongPress: onLongPress,
       child: ExcludeSemantics(
         child: GestureDetector(

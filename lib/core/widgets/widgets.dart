@@ -30,3 +30,4 @@ export 'rule_meter.dart';
 export 'terminal_line.dart';
 export 'typing_text.dart';
 export 'voice_card.dart';
+export 'voice_orb.dart';

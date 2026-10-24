@@ -3,6 +3,7 @@ import 'package:doji_app/core/platform/connectivity.dart';
 import 'package:doji_app/features/app_lock/data/biometric_auth.dart';
 import 'package:doji_app/features/app_lock/domain/biometric_kind.dart';
 import 'package:doji_app/features/auth/data/fake_auth_repository.dart';
+import 'package:doji_app/features/coach/data/fake_coach.dart';
 import 'package:doji_app/features/onboarding/data/device_services.dart';
 import 'package:doji_app/features/onboarding/data/mock_strategy_parser.dart';
 import 'package:doji_app/features/onboarding/data/onboarding_repository.dart';
@@ -74,6 +75,56 @@ class FakeBiometricAuth implements BiometricAuth {
   }
 }
 
+/// Dictation the test drives: [say] what the mic hears, [silence] to end it
+/// the way a pause does. [availability] answers the first `prepare`.
+class FakeVoiceInput implements VoiceInput {
+  FakeVoiceInput({this.availability = VoiceAvailability.available});
+
+  final VoiceAvailability availability;
+  int prepares = 0;
+  int starts = 0;
+  int stops = 0;
+  void Function(String words, bool isFinal)? _onResult;
+  void Function()? _onStopped;
+
+  bool get listening => _onResult != null;
+
+  @override
+  bool get mightBeAvailable => true;
+
+  @override
+  Future<VoiceAvailability> prepare() async {
+    prepares++;
+    return availability;
+  }
+
+  @override
+  Future<void> start({
+    required void Function(String words, bool isFinal) onResult,
+    required void Function() onStopped,
+  }) async {
+    starts++;
+    _onResult = onResult;
+    _onStopped = onStopped;
+  }
+
+  @override
+  Future<void> stop() async {
+    if (_onResult != null) stops++;
+    _onResult = null;
+    _onStopped = null;
+  }
+
+  void say(String words) => _onResult?.call(words, false);
+
+  void silence() {
+    final stopped = _onStopped;
+    _onResult = null;
+    _onStopped = null;
+    stopped?.call();
+  }
+}
+
 /// [FakeAuthRepository] with test latencies (short, but long enough to see
 /// the waiting states).
 FakeAuthRepository testAuthRepository(SharedPreferences prefs, {bool Function()? isOnline}) =>
@@ -90,12 +141,14 @@ List<Override> testOverrides(
   RecordingHaptics? haptics,
   FakeBiometricAuth? biometric,
   bool Function()? isOnline,
+  VoiceInput? voice,
 }) => [
   sharedPreferencesProvider.overrideWithValue(prefs),
   timeZoneServiceProvider.overrideWithValue(const FakeTimeZoneService()),
   strategyParserProvider.overrideWithValue(const MockStrategyParser(latency: Duration.zero)),
+  coachProvider.overrideWithValue(const FakeCoach(latency: Duration.zero)),
   notificationPermissionProvider.overrideWithValue(FakeNotificationPermission()),
-  voiceInputProvider.overrideWithValue(const UnavailableVoiceInput()),
+  voiceInputProvider.overrideWithValue(voice ?? const UnavailableVoiceInput()),
   isOnlineProvider.overrideWith((ref) => Stream.value(true)),
   hapticsProvider.overrideWithValue(haptics ?? RecordingHaptics()),
   biometricAuthProvider.overrideWithValue(biometric ?? FakeBiometricAuth()),

@@ -21,7 +21,7 @@ Synced **2026-10-01**; auth files re-checked byte-for-byte **2026-10-07** (uncha
 | `Doji Onboarding.dc.html` | **This slice.** Splash keyframes S0/K1–K5, onboarding steps 0–7 (iOS 390×844, Android 412×915, Windows 1440×900), copy, Flutter map |
 | `Doji Auth Screen iOS.dc.html` | **Auth slice (2026-10-07).** Every A-screen; A1–A4e, A9, A10, A8, A11–A12 built |
 | `Doji Sign-in iOS.dc.html` | Auth canvas: flows, per-screen notes, Flutter component spec (`OtpCodeField`, `BiometricLockScreen`, `DeleteAccountFlow`…) |
-| `Doji Hero Screens.dc.html` | Home/Markets/Coach — **not built**; Home header borrowed for the placeholder |
+| `Doji Hero Screens.dc.html` | 1a Home (built later from `Doji Home`), 1b Markets pair detail (**not built**), **1c Coach (coach slice, 2026-10-24)**: built as drawn on a fake coach; text input, the save sheet and the reason notes under the orb are added from design-system parts |
 
 The project holds 20+ other screens (Home, Journal, Plans, Replay…) and ~400
 reference images under `uploads/mcp/`; they belong to later slices and were

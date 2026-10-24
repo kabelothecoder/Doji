@@ -18,7 +18,7 @@ class DojiBottomBar extends StatelessWidget {
   final MainTab selected;
   final ValueChanged<MainTab> onSelect;
 
-  /// Long-press on the orb. TODO(next-slice): start listening directly.
+  /// Long-press on the orb: the coach, already listening.
   final VoidCallback onCoachVoice;
 
   @override

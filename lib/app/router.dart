@@ -10,6 +10,7 @@ import '../features/auth/presentation/code_entry_screen.dart';
 import '../features/auth/presentation/email_entry_screen.dart';
 import '../features/auth/presentation/save_your_setup_screen.dart';
 import '../features/auth/presentation/sign_in_screen.dart';
+import '../features/coach/presentation/coach_screen.dart';
 import '../features/home/presentation/close_day_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/home/presentation/open_screen.dart';
@@ -48,6 +49,12 @@ Page<void> _fade(BuildContext context, GoRouterState state, Widget child) {
   );
 }
 
+/// A full-screen cover (handoff 1c): slides up on iOS, the platform's
+/// full-screen route on Android and Windows. Reduce motion: the cross-fade.
+Page<void> _cover(BuildContext context, GoRouterState state, Widget child) => DojiMotion.reduced(context)
+    ? _fade(context, state, child)
+    : MaterialPage<void>(key: state.pageKey, fullscreenDialog: true, child: child);
+
 GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
   initialLocation: initialLocation,
   routes: [
@@ -64,10 +71,11 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
     GoRoute(path: Routes.code, builder: (c, s) => const CodeEntryScreen()),
     GoRoute(path: Routes.authenticated, pageBuilder: (c, s) => _fade(c, s, const AuthSuccessScreen())),
     // Five tabs in one shell: bottom bar on phones, side rail on wide screens.
+    // The coach is the centre item but not a branch: it is the cover below.
     StatefulShellRoute.indexedStack(
       pageBuilder: (c, s, shell) => _fade(c, s, AppShell(shell: shell)),
       branches: [
-        for (final tab in MainTab.values)
+        for (final tab in MainTab.branches)
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -89,6 +97,10 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
             ],
           ),
       ],
+    ),
+    GoRoute(
+      path: Routes.coach,
+      pageBuilder: (c, s) => _cover(c, s, CoachScreen(listen: s.uri.queryParameters['listen'] == '1')),
     ),
     GoRoute(path: Routes.addTrade, builder: (c, s) => const ManualTradeScreen()),
     GoRoute(

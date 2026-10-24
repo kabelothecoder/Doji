@@ -22,4 +22,8 @@ enum MainTab {
 
   /// The centre tab is drawn as the coach orb, not an icon.
   bool get isOrb => this == MainTab.coach;
+
+  /// The tabs that are shell branches, in branch order. The coach is not one:
+  /// it opens as a full-screen cover over the current tab.
+  static final List<MainTab> branches = values.where((t) => !t.isOrb).toList();
 }

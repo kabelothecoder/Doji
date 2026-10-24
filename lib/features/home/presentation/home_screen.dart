@@ -93,7 +93,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         TiltBanner(
           losses: snap.losses,
           lossesToCooldown: snap.lossesToCooldown,
-          onCoach: () => context.go(Routes.coach),
+          onCoach: () => context.push(Routes.coach),
         ),
       if (state.dayClosed)
         const DayClosedCard()

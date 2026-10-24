@@ -130,7 +130,7 @@ void main() {
     });
   }, variant: ios);
 
-  testWidgets('tilt: two losses in the journal show the banner; talk to coach opens the coach tab', (
+  testWidgets('tilt: two losses in the journal show the banner; talk to coach opens the coach', (
     tester,
   ) async {
     await withClock(_morning, () async {
@@ -224,6 +224,19 @@ void main() {
         expect(find.text('how did that trade feel?'), findsOneWidget);
         await h.tapText('save');
         expect(find.textContaining('logged: after the trade · 6/10'), findsOneWidget);
+      });
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.windows),
+  );
+
+  testWidgets(
+    "the side rail's items reach screen readers (the branch page doesn't hide them)",
+    (tester) async {
+      await withClock(_morning, () async {
+        await AppHarness.pump(tester, at: Routes.home, seed: seedProfile(), size: const Size(1280, 800));
+        for (final tab in ['home', 'markets', 'coach', 'journal', 'me']) {
+          expect(find.bySemanticsLabel(tab), findsOneWidget, reason: tab);
+        }
       });
     },
     variant: TargetPlatformVariant.only(TargetPlatform.windows),

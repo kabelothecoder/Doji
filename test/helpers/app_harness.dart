@@ -45,6 +45,7 @@ class AppHarness {
     bool reduced = true,
     double textScale = 1,
     FakeBiometricAuth? biometric,
+    FakeVoiceInput? voice,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -66,7 +67,7 @@ class AppHarness {
     late final AppHarness h;
     final container = ProviderContainer(
       overrides: [
-        ...testOverrides(prefs, haptics: haptics, biometric: bio, isOnline: () => h.online),
+        ...testOverrides(prefs, haptics: haptics, biometric: bio, isOnline: () => h.online, voice: voice),
         routerProvider.overrideWith((ref) {
           final r = buildRouter(initialLocation: at);
           ref.onDispose(r.dispose);

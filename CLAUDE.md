@@ -46,8 +46,12 @@ lib/
     journal/      domain/ trade · trade_math · journal_stats · process_grade · trade_filter · formatting
                   data/journal_repository.dart (shared_preferences) · presentation/ journal · trades · manual_trade ·
                   trade_detail · review_sheet · filters_sheet · journal_controller · widgets/
-app/shell/        AppShell (StatefulShellRoute): DojiBottomBar on phones, DojiNavRail when wide. main_tab.dart = the 5 tabs;
-                  markets/coach/me are TabPlaceholderScreens until their briefs
+    coach/        domain/ coach.dart (Coach interface, CoachContext, CoachVoice) · coach_session.dart
+                  data/ fake_coach.dart (FAKE coach) · coach_session_repository.dart (shared_preferences)
+                  presentation/ coach_screen (1c) · coach_controller · save_session_sheet · widgets/
+app/shell/        AppShell (StatefulShellRoute): DojiBottomBar on phones, DojiNavRail when wide. main_tab.dart = the 5 items,
+                  MainTab.branches = the 4 shell branches (the coach is a cover, not a branch);
+                  markets/me are TabPlaceholderScreens until their briefs
 test/  (unit, widget, a11y, goldens; helpers/app_harness.dart pumps the real app)   integration_test/   tool/ (asset export)
 design/  handoff/ · system/ · brand/ · SOURCE.md       supabase/migrations/
 ```
@@ -88,8 +92,10 @@ Source: `Doji Plans.dc.html` + `Doji Plans Phone.dc.html`. `BillingRepository` i
 boundary (StoreKit / Play Billing / Microsoft Store); `FakeBillingRepository` is the only
 implementation (`next` forces cancelled/failed). Prices are placeholders, annual = 10x monthly.
 Recommended plan comes from `recommendPlan(profile)`. Upsells call `showUpsellSheet`; its
-CTA opens `/plans?plan=<id>`. **Not wired yet:** auto-showing plans after onboarding, upsell
-triggers (once per trigger per day), terms/privacy links, a real `openStoreSubscriptions`.
+CTA opens `/plans?plan=<id>`. `includesVoiceCoach(plan)` (pro, elite) decides voice vs text on
+the coach. **Not wired yet:** auto-showing plans after onboarding, upsell triggers (once per
+trigger per day), counting pro's 60 voice minutes, terms/privacy links, a real
+`openStoreSubscriptions`.
 
 ## Markets and prop rules (market-neutral)
 
@@ -153,9 +159,39 @@ conditions and the next news are still SAMPLE; TODOs mark each feed hookup.
 - `Doji Rail` is **not** a nav rail: it is an always-on-top companion panel (strategy state,
   rule meters, tilt, next news, log emotion; Ctrl+Shift+D). It is docked inside Home for now; a
   real always-on-top window needs `window_manager`. The nav rail has no artwork; it reuses the
-  bottom bar's items.
+  bottom bar's items. The branch area is wrapped in `Semantics(container: true)` so the rail stays
+  visible to screen readers (see Gotchas).
 - Not built: notification centre (bell is hidden), persistence of the open / reflection,
-  coach long-press voice, the markets, coach and me tabs.
+  the markets and me tabs.
+
+## Coach (fake coach for now)
+
+Source: `design/handoff/Doji Hero Screens.dc.html` › 1c, orb from the design system's `VoiceOrb`.
+The coach is a **full-screen cover** at `/coach` (`MaterialPage(fullscreenDialog)`, cross-fade
+under reduce motion), not a shell branch: tapping the orb (bar or rail) pushes it over the current
+tab, long-pressing pushes `/coach?listen=1`, which opens the mic straight away. Home's "talk to
+coach" pushes it too.
+
+- `Coach` is the boundary (`opener`, `reply`); `FakeCoach` is the only implementation: keyword
+  intents (crisis first, then call, done, revenge, sizing, stop, hesitation, urge, feeling,
+  another) answered from `CoachContext` (profile.doji + today's journal: entry rule, risk, max
+  trades, the stricter daily limit, loss streak, today's loss). It never says what the market will
+  do; asked for a call, it declines. Crisis words get the SADAG line before anything else. Its
+  replies are checked against the copy rules in `coach_domain_test`.
+- **Voice or text**: push-to-talk (`VoiceInput`, the same speech_to_text wrapper as onboarding)
+  when the plan includes the voice coach and the device has dictation; otherwise a text field in
+  its place, with the reason under the orb (plan → "see pro trader", Windows, microphone refused).
+  Push-to-talk: hold and release to send, or tap to open and tap to send; a speech pause sends
+  too. Screen readers and the keyboard get the tap version. Haptic tick on press and release.
+- The orb's states: idle, listening (breathes), speaking (rings; = the reply typing out until real
+  audio). "THINKING…" while a reply is on its way. Reduce motion: still orb, opacity only.
+- Voice picker writes `profile.doji › coach.voice`. A reply ticks Home's "try the coach" task.
+- **Saving**: `CoachSessionRepository` (`doji.coach.v1`, shared_preferences); "save" keeps the
+  transcript, saving again replaces it. Close, end, back and (iOS) pull-down ask before dropping
+  unsaved words. Sign out and delete clear saved sessions.
+- Not built: the real coach (`SupabaseCoach` + an Edge Function, streamed), text-to-speech in the
+  chosen voice, voice-minute metering, a place to read saved sessions, Windows dictation, and a
+  tappable / region-specific helpline (SADAG is South African).
 
 ## Journal (on this device)
 
@@ -297,3 +333,9 @@ dart run flutter_native_splash:create
   `scrollUntilVisible` first.
 - `permission_handler` ≥ 13 pulls an AGP 9-only Android plugin; stay on 12.x
   until the Flutter Android template moves to AGP 9.
+- A route's modal barrier carries `BlockSemantics`, which hides every node painted *before* it in
+  the same semantics container. A nested navigator (the shell's branches) next to other UI hides
+  that UI from screen readers unless the navigator is wrapped in `Semantics(container: true)`.
+- In widget tests `clock.now()` advances with `pump` (hold durations work), but `withClock(fixed)`
+  freezes it. The harness's reduce-motion flag is cleared only at teardown: test motion on and off
+  in separate `testWidgets`, not in one loop.

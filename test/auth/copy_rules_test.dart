@@ -1,6 +1,7 @@
 // Product rule (CLAUDE.md): no buy/sell calls, signals, guarantees, win rates
 // or profit promises. The onboarding script is checked in domain_test; this
-// covers every string literal in the auth, app-lock and settings screens.
+// covers every string literal in the auth, app-lock, settings, plans and
+// coach screens.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,9 @@ void main() {
       'lib/features/app_lock',
       'lib/features/settings',
       'lib/features/plans',
+      // The coach's screens; what the fake coach says is checked in coach_domain_test.
+      'lib/features/coach/domain',
+      'lib/features/coach/presentation',
     ];
     final literals = [RegExp(r"'(?:[^'\\\n]|\\.)*'"), RegExp(r'"(?:[^"\\\n]|\\.)*"')];
     final copy = <String>[];
