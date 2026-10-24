@@ -1,34 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/routes.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/theme/typography.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../markets/domain/instrument_catalog.dart';
-import '../../domain/home_models.dart';
+import '../../../markets/domain/market_format.dart';
+import '../../../markets/domain/pair_brief.dart';
+import '../../../markets/presentation/pair_detail_controller.dart';
+import '../../../onboarding/domain/user_zone.dart';
 import 'home_card.dart';
 
 /// Design spec `AiBriefCard`: the brief for the selected instrument, measured
 /// against the user's strategy. Conditions are shape + word; the "not
-/// financial advice" footer is required.
+/// financial advice" footer is required. The conditions come from the same
+/// brief as Markets 1b ([pairBriefProvider]); "open the brief" goes there.
 ///
-/// PLACEHOLDER: conditions and times are sample data.
-/// TODO(next-slice): brief from the `ai-brief` edge function.
-class AiBriefCard extends StatefulWidget {
-  const AiBriefCard({super.key, required this.instruments, required this.conditions});
+/// The conditions are measured, not written, so they show on every plan; the
+/// free plan's one brief a day is counted on 1b.
+class AiBriefCard extends ConsumerStatefulWidget {
+  const AiBriefCard({super.key, required this.instruments});
 
   final List<String> instruments;
-  final List<BriefCondition> conditions;
 
   @override
-  State<AiBriefCard> createState() => _AiBriefCardState();
+  ConsumerState<AiBriefCard> createState() => _AiBriefCardState();
 }
 
-class _AiBriefCardState extends State<AiBriefCard> {
+class _AiBriefCardState extends ConsumerState<AiBriefCard> {
   int _selected = 0;
 
   @override
   Widget build(BuildContext context) {
-    final met = widget.conditions.where((c) => c.met).length;
-    final total = widget.conditions.length;
+    final symbol = widget.instruments[_selected.clamp(0, widget.instruments.length - 1)];
+    final brief = ref.watch(pairBriefProvider(symbol));
+    final zone = userZoneFromProfile(ref.watch(marketsProfileProvider));
+    final b = brief.value;
+    final met = b?.metCount ?? 0;
+    final total = b?.conditions.length ?? 0;
     return HomeCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -54,29 +65,56 @@ class _AiBriefCardState extends State<AiBriefCard> {
             ],
           ),
           const SizedBox(height: 12),
-          Text.rich(
-            TextSpan(
-              style: DojiType.callout.copyWith(color: DojiColors.textPrimary),
-              children: [
-                const TextSpan(text: 'measured against your strategy: '),
-                // TODO(next-slice): the parsed strategy's name.
-                TextSpan(
-                  text: '[strategy name]',
-                  style: DojiType.config.copyWith(color: DojiColors.textPrimary),
-                ),
-                TextSpan(text: '. $met of $total conditions are in place.'),
-              ],
+          if (b == null)
+            brief.hasError
+                ? const TerminalLine("couldn't measure your conditions.", tone: TerminalTone.tilt)
+                : const TerminalLine('measuring against your strategy', liveRegion: false)
+          else ...[
+            Text.rich(
+              TextSpan(
+                style: DojiType.callout.copyWith(color: DojiColors.textPrimary),
+                children: [
+                  if (b.strategyName case final name?) ...[
+                    const TextSpan(text: 'measured against your strategy: '),
+                    TextSpan(
+                      text: name,
+                      style: DojiType.config.copyWith(color: DojiColors.textPrimary),
+                    ),
+                    TextSpan(text: '. $met of $total conditions are in place.'),
+                  ] else
+                    TextSpan(text: 'measured against your rules. $met of $total conditions are in place.'),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          for (final c in widget.conditions) _ConditionRow(c),
+            const SizedBox(height: 12),
+            for (final c in b.conditions) _ConditionRow(c),
+          ],
           const SizedBox(height: 4),
           Container(
-            padding: const EdgeInsets.only(top: 10),
+            padding: const EdgeInsets.only(top: 4),
             decoration: const BoxDecoration(
               border: Border(top: BorderSide(color: DojiColors.separator)),
             ),
-            child: Text('not financial advice · updated [time]', style: DojiType.hint.copyWith(fontSize: 11)),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    b == null
+                        ? 'not financial advice'
+                        : 'not financial advice · updated ${clockTime(zone, b.updatedAt)}',
+                    style: DojiType.hint.copyWith(fontSize: 11),
+                  ),
+                ),
+                DojiButton(
+                  label: 'open the brief',
+                  semanticLabel: 'open the ${displaySymbol(symbol)} brief',
+                  variant: DojiButtonVariant.ghost,
+                  size: DojiButtonSize.small,
+                  expand: false,
+                  onPressed: () => context.push(Routes.pairDetail(symbol)),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -127,16 +165,24 @@ class _InstrumentChip extends StatelessWidget {
   }
 }
 
+/// Home's compact row (Doji Home): a dot and the status word ("met", "not
+/// met", "waiting"), so it never relies on colour.
 class _ConditionRow extends StatelessWidget {
   const _ConditionRow(this.c);
 
-  final BriefCondition c;
+  final EntryCondition c;
 
   @override
   Widget build(BuildContext context) {
+    final word = c.status.label.toLowerCase();
+    final (Color ring, Color? fill, Color text) = switch (c.status) {
+      ConditionStatus.met => (DojiColors.dojiGreen, DojiColors.dojiGreen, DojiColors.textPrimary),
+      ConditionStatus.notMet => (DojiColors.tiltOrange, null, DojiColors.tiltOrange),
+      ConditionStatus.waiting => (DojiColors.textSecondary, null, DojiColors.textSecondary),
+    };
     return Semantics(
       container: true,
-      label: '${c.text}, ${c.met ? 'met' : 'waiting'}',
+      label: '${c.text}, $word',
       child: ExcludeSemantics(
         child: Container(
           constraints: const BoxConstraints(minHeight: 36),
@@ -150,11 +196,8 @@ class _ConditionRow extends StatelessWidget {
                 height: 10,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: c.met ? DojiColors.dojiGreen : Colors.transparent,
-                  border: Border.all(
-                    color: c.met ? DojiColors.dojiGreen : DojiColors.textSecondary,
-                    width: 2,
-                  ),
+                  color: fill,
+                  border: Border.all(color: ring, width: 2),
                 ),
               ),
               const SizedBox(width: 10),
@@ -164,12 +207,7 @@ class _ConditionRow extends StatelessWidget {
                   style: DojiType.callout.copyWith(fontSize: 14, color: DojiColors.textPrimary),
                 ),
               ),
-              Text(
-                c.met ? 'met' : 'waiting',
-                style: DojiType.hint.copyWith(
-                  color: c.met ? DojiColors.textPrimary : DojiColors.textSecondary,
-                ),
-              ),
+              Text(word, style: DojiType.hint.copyWith(color: text)),
             ],
           ),
         ),

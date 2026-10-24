@@ -10,6 +10,7 @@ import '../../app_lock/presentation/app_lock_controller.dart';
 import '../../coach/data/coach_session_repository.dart';
 import '../../journal/data/journal_repository.dart';
 import '../../journal/presentation/journal_controller.dart';
+import '../../markets/data/brief_allowance_repository.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/profile_doji.dart';
 import '../../onboarding/presentation/onboarding_controller.dart';
@@ -341,6 +342,7 @@ class AccountActions {
     _ref.invalidate(journalControllerProvider);
     // Saved coach sessions ("coaching history" on the delete screen) too.
     await _ref.read(coachSessionRepositoryProvider).clear();
+    await _ref.read(briefAllowanceRepositoryProvider).clear();
     await _ref.read(appLockControllerProvider.notifier).reset();
     await _ref.read(billingRepositoryProvider).clear();
     _ref.invalidate(entitlementProvider);

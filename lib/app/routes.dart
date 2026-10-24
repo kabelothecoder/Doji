@@ -24,6 +24,11 @@ abstract final class Routes {
   static String tradeDetail(String id, {bool review = false}) =>
       '/journal/trade/${Uri.encodeComponent(id)}${review ? '?review=1' : ''}';
 
+  // Markets (design: Doji Hero Screens 1b): one instrument's chart and brief,
+  // full screen with the floating ask bar instead of the tab bar.
+  static const pairDetailPattern = '/markets/pair/:symbol';
+  static String pairDetail(String symbol) => '/markets/pair/${Uri.encodeComponent(symbol)}';
+
   // Daily loop (design: Doji Home.dc.html › 02): full screen, no tab bar.
   static const open = '/open';
   static const closeDay = '/close-day';

@@ -264,7 +264,7 @@ void main() {
       await withClock(saturday, () async {
         await AppHarness.pump(tester, at: Routes.home, seed: seed(['XAUUSD', 'BTCUSD']));
         await tester.scrollUntilVisible(find.text('AI BRIEF'), 300);
-        expect(find.bySemanticsLabel('XAUUSD market open, waiting'), findsOneWidget);
+        expect(find.bySemanticsLabel('The market is open, not met'), findsOneWidget);
       });
       handle.dispose();
     }, variant: ios);
@@ -274,7 +274,7 @@ void main() {
       await withClock(saturday, () async {
         await AppHarness.pump(tester, at: Routes.home, seed: seed(['BTCUSD']));
         await tester.scrollUntilVisible(find.text('AI BRIEF'), 300);
-        expect(find.bySemanticsLabel('BTCUSD market open, met'), findsOneWidget);
+        expect(find.bySemanticsLabel('The market is open, met'), findsOneWidget);
       });
       handle.dispose();
     }, variant: ios);
@@ -286,7 +286,7 @@ void main() {
         await tester.scrollUntilVisible(find.text('AI BRIEF'), 300);
         expect(find.text('Volatility 75'), findsOneWidget);
         expect(find.text('Boom 1000'), findsOneWidget);
-        expect(find.bySemanticsLabel('Volatility 75 market open, met'), findsOneWidget);
+        expect(find.bySemanticsLabel('The market is open, met'), findsOneWidget);
       });
       handle.dispose();
     }, variant: ios);

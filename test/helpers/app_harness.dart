@@ -22,13 +22,14 @@ import 'fakes.dart';
 /// Pass `variant: ios` (or another [TargetPlatformVariant]) to the test:
 /// PlatformInfo reads the global target platform.
 class AppHarness {
-  AppHarness._(this.tester, this.container, this.prefs, this.haptics, this.biometric);
+  AppHarness._(this.tester, this.container, this.prefs, this.haptics, this.biometric, this.reminders);
 
   final WidgetTester tester;
   final ProviderContainer container;
   final SharedPreferences prefs;
   final RecordingHaptics haptics;
   final FakeBiometricAuth biometric;
+  final FakeReminders reminders;
 
   bool online = true;
 
@@ -46,6 +47,7 @@ class AppHarness {
     double textScale = 1,
     FakeBiometricAuth? biometric,
     FakeVoiceInput? voice,
+    FakeReminders? reminders,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -64,10 +66,18 @@ class AppHarness {
     final prefs = await SharedPreferences.getInstance();
     final haptics = RecordingHaptics();
     final bio = biometric ?? FakeBiometricAuth();
+    final notes = reminders ?? FakeReminders();
     late final AppHarness h;
     final container = ProviderContainer(
       overrides: [
-        ...testOverrides(prefs, haptics: haptics, biometric: bio, isOnline: () => h.online, voice: voice),
+        ...testOverrides(
+          prefs,
+          haptics: haptics,
+          biometric: bio,
+          isOnline: () => h.online,
+          voice: voice,
+          reminders: notes,
+        ),
         routerProvider.overrideWith((ref) {
           final r = buildRouter(initialLocation: at);
           ref.onDispose(r.dispose);
@@ -76,7 +86,7 @@ class AppHarness {
       ],
     );
     addTearDown(container.dispose);
-    h = AppHarness._(tester, container, prefs, haptics, bio);
+    h = AppHarness._(tester, container, prefs, haptics, bio, notes);
     await tester.pumpWidget(UncontrolledProviderScope(container: container, child: const DojiApp()));
     await h.wait(100);
     return h;

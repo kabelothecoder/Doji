@@ -16,6 +16,9 @@ import '../../../core/widgets/widgets.dart';
 import '../../app_lock/presentation/app_lock_controller.dart';
 import '../../onboarding/presentation/onboarding_controller.dart';
 import '../../markets/domain/instrument_catalog.dart';
+import '../../markets/domain/market_format.dart';
+import '../../markets/presentation/pair_detail_controller.dart';
+import '../../onboarding/domain/user_zone.dart';
 import '../domain/home_models.dart';
 import 'home_controller.dart';
 import 'post_trade_sheet.dart';
@@ -80,6 +83,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final state = ref.watch(homeControllerProvider);
     final profile = ref.watch(homeProfileProvider);
     final margin = PlatformInfo.isAndroid ? DojiSpace.screenMarginAndroid : DojiSpace.screenMargin;
+    // The docked rail shows the first instrument's brief (the same one as 1b).
+    final railBrief = wide ? ref.watch(pairBriefProvider(snap.instruments.first)).value : null;
+    final zone = userZoneFromProfile(profile);
 
     final evening = isEvening();
     final zero = isDayZero(profile);
@@ -132,7 +138,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ] else ...[
         _ScoreGridCard(snap: snap, days: days, todayIndex: todayIndex),
         OpenCard(doneAt: state.openDoneAt, mood: state.mood, onStart: _startOpen),
-        AiBriefCard(instruments: snap.instruments, conditions: snap.conditions),
+        AiBriefCard(instruments: snap.instruments),
         RulesTodayCard(usage: snap.usage, onLogTrade: _logTrade),
         InsightCard(onTap: () => context.go(Routes.journal)),
         if (!evening && !state.dayClosed)
@@ -177,9 +183,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: _railOpen
                               ? DojiRailPanel(
                                   instrument: instrumentLabel(snap.instruments.first),
-                                  strategyLine:
-                                      '[strategy name] · ${snap.metCount}/${snap.conditions.length} · [2m] ago',
-                                  conditionsMet: snap.metCount == snap.conditions.length,
+                                  strategyLine: railBrief == null
+                                      ? 'measuring…'
+                                      : '${railBrief.strategyName ?? 'your rules'} · '
+                                            '${railBrief.metCount}/${railBrief.conditions.length} · '
+                                            '${clockTime(zone, railBrief.updatedAt)}',
+                                  conditionsMet:
+                                      railBrief != null && railBrief.metCount == railBrief.conditions.length,
+                                  onOpenBrief: () => context.push(Routes.pairDetail(snap.instruments.first)),
                                   meters: [
                                     for (final u in snap.usage)
                                       (label: u.label, used: u.used, limit: u.limit, unit: u.unit),

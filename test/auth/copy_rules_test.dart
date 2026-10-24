@@ -16,6 +16,9 @@ void main() {
       // The coach's screens; what the fake coach says is checked in coach_domain_test.
       'lib/features/coach/domain',
       'lib/features/coach/presentation',
+      // Markets 1b's screens; what the fake brief and its chat say is checked in brief_test.
+      'lib/features/markets/domain',
+      'lib/features/markets/presentation',
     ];
     final literals = [RegExp(r"'(?:[^'\\\n]|\\.)*'"), RegExp(r'"(?:[^"\\\n]|\\.)*"')];
     final copy = <String>[];

@@ -5,6 +5,7 @@ import 'package:doji_app/app/shell/doji_bottom_bar.dart';
 import 'package:doji_app/app/shell/doji_nav_rail.dart';
 import 'package:doji_app/core/widgets/widgets.dart';
 import 'package:doji_app/features/home/domain/home_models.dart';
+import 'package:doji_app/features/markets/presentation/pair_detail_controller.dart';
 import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -217,8 +218,14 @@ void main() {
         expect(find.byType(DojiBottomBar), findsNothing);
         expect(find.byType(DojiRailPanel), findsOneWidget);
         expect(find.text('log emotion'), findsOneWidget);
-        expect(find.text('conditions met'), findsNothing, reason: 'sample brief has 2 of 4 conditions');
-        expect(find.text('waiting'), findsWidgets);
+        // The rail reads the same brief as Markets 1b (no strategy: "your rules").
+        final brief = await h.container.read(pairBriefProvider('XAUUSD').future);
+        final all = brief.metCount == brief.conditions.length;
+        expect(find.text('conditions met'), all ? findsOneWidget : findsNothing);
+        expect(
+          find.textContaining('your rules · ${brief.metCount}/${brief.conditions.length}'),
+          findsOneWidget,
+        );
 
         await h.tapText('log emotion');
         expect(find.text('how did that trade feel?'), findsOneWidget);

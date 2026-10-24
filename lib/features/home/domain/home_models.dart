@@ -2,6 +2,7 @@ import '../../../core/widgets/grid_cell.dart';
 import '../../journal/domain/journal_stats.dart';
 import '../../journal/domain/trade.dart';
 import '../../markets/domain/instrument_catalog.dart';
+import '../../markets/domain/news.dart';
 import '../../onboarding/domain/profile_doji.dart';
 import '../../onboarding/domain/prop_drawdown.dart';
 import '../../onboarding/domain/sessions.dart';
@@ -46,16 +47,10 @@ class RuleUsage {
   final String unit;
 }
 
-/// A brief condition: shape plus word, never colour alone.
-class BriefCondition {
-  const BriefCondition(this.text, {required this.met});
-  final String text;
-  final bool met;
-}
-
 /// The day, as the screens need it. Trades taken, loss, tilt and the prop
-/// drawdown come from the journal; the score, streak, brief conditions and
-/// news are still PLACEHOLDER until their own slices.
+/// drawdown come from the journal; the brief's conditions come from Markets
+/// (`pairBriefProvider`); the score, streak and the rail's news are still
+/// PLACEHOLDER until their own slices.
 class HomeSnapshot {
   const HomeSnapshot({
     required this.name,
@@ -63,7 +58,6 @@ class HomeSnapshot {
     required this.instruments,
     required this.rules,
     required this.usage,
-    required this.conditions,
     required this.losses,
     required this.lossesToCooldown,
     required this.score,
@@ -77,7 +71,6 @@ class HomeSnapshot {
   final List<String> instruments;
   final List<String> rules;
   final List<RuleUsage> usage;
-  final List<BriefCondition> conditions;
   final int losses;
   final int lossesToCooldown;
   final int score;
@@ -85,14 +78,12 @@ class HomeSnapshot {
 
   /// Shown after two losses in a row.
   bool get tilt => losses >= 2;
-  int get metCount => conditions.where((c) => c.met).length;
 
   /// Tilt meter, 1–5. TODO(next-slice): also from emotion logs.
   int get tiltLevel => (1 + losses * 2).clamp(1, 5);
   String get tiltWord => tiltLevel <= 2 ? 'low' : (tiltLevel <= 4 ? 'elevated' : 'high');
 
-  /// [now] decides whether the first instrument's market is open and which
-  /// trades count as today's.
+  /// [now] decides which trades count as today's.
   factory HomeSnapshot.fromJournal(ProfileDoji p, {required List<Trade> trades, DateTime? now}) {
     final rules = p.rules;
     final prop = p.prop;
@@ -106,9 +97,6 @@ class HomeSnapshot {
     final limits = [rules?.dailyLossLimit, prop?.dailyLossLimitPct].whereType<double>();
     final lossLimit = limits.isEmpty ? 2.0 : limits.reduce((a, b) => a < b ? a : b);
     final instruments = p.instruments.isEmpty ? defaultInstruments : p.instruments;
-    final first = instrumentBySymbol(instruments.first);
-    // Unknown (custom) symbols: assume open rather than say a false "waiting".
-    final marketOpen = first?.hours.isOpenAt(now ?? DateTime.now().toUtc()) ?? true;
     final drawdown = prop == null || accountSize == null
         ? null
         : PropDrawdown.evaluate(prop, accountSize: accountSize, state: accountStateFrom(trades, accountSize));
@@ -120,7 +108,7 @@ class HomeSnapshot {
         'max ${rules?.maxTradesPerDay ?? '[3]'} trades',
         'stop at ${_n(lossLimit)}% daily loss',
         if (drawdown != null) 'prop max drawdown ${_n(drawdown.limitPct)}% (${prop!.drawdownLabel})',
-        'no entries 15 min around high-impact news',
+        'no entries $kNewsBufferMinutes min around high-impact news',
         'only [setup name] setups',
       ],
       usage: [
@@ -134,13 +122,6 @@ class HomeSnapshot {
             limit: drawdown.limitPct,
             unit: '%',
           ),
-      ],
-      // TODO(next-slice): conditions measured against the parsed strategy.
-      conditions: [
-        BriefCondition('${instrumentLabel(instruments.first)} market open', met: marketOpen),
-        const BriefCondition('price at your key level', met: false),
-        const BriefCondition('higher-timeframe bias agrees', met: true),
-        const BriefCondition('no high-impact news in 30 min', met: false),
       ],
       losses: day.lossStreak,
       lossesToCooldown: 3,

@@ -21,7 +21,7 @@ Synced **2026-10-01**; auth files re-checked byte-for-byte **2026-10-07** (uncha
 | `Doji Onboarding.dc.html` | **This slice.** Splash keyframes S0/K1–K5, onboarding steps 0–7 (iOS 390×844, Android 412×915, Windows 1440×900), copy, Flutter map |
 | `Doji Auth Screen iOS.dc.html` | **Auth slice (2026-10-07).** Every A-screen; A1–A4e, A9, A10, A8, A11–A12 built |
 | `Doji Sign-in iOS.dc.html` | Auth canvas: flows, per-screen notes, Flutter component spec (`OtpCodeField`, `BiometricLockScreen`, `DeleteAccountFlow`…) |
-| `Doji Hero Screens.dc.html` | 1a Home (built later from `Doji Home`), 1b Markets pair detail (**not built**), **1c Coach (coach slice, 2026-10-24)**: built as drawn on a fake coach; text input, the save sheet and the reason notes under the orb are added from design-system parts |
+| `Doji Hero Screens.dc.html` | 1a Home (built later from `Doji Home`), **1b Markets pair detail (markets slice, 2026-10-24)**: built as drawn on sample prices and a fake brief; the locked free-plan state, the ask sheet and the reminder lines are added from design-system parts. **1c Coach (coach slice, 2026-10-24)**: built as drawn on a fake coach; text input, the save sheet and the reason notes under the orb are added from design-system parts |
 
 The project holds 20+ other screens (Home, Journal, Plans, Replay…) and ~400
 reference images under `uploads/mcp/`; they belong to later slices and were
@@ -64,6 +64,12 @@ system). The real files were never attached — see *Missing*.
 | A12a App Store billing note | iOS only in the handoff | Same layout, platform wording: Google Play on Android, Microsoft Store on Windows |
 | Face ID copy on other platforms | Handoff names Face ID only | Names what the device has: Touch ID, fingerprint, face unlock, Windows Hello, screen lock |
 | A2b cancel | The OS sheet has its own cancel | Adds a quiet "cancel" for browser sign-in (Apple on Android, both on Windows) |
+| Markets list (the tab itself) | Not in this handoff; the placeholder names Claude Design "Doji Core Tabs", not synced | **Not built.** 1b is reached from Home's brief card and the rail until the list is synced and built |
+| 1b timeframe tabs (32) and suggested questions (36) | Below doji's 44pt / 48dp minimum | Drawn at the minimum touch target; same look otherwise |
+| 1b "Back to watchlist" | There is no list yet | Spoken as "back"; Esc goes back on Windows |
+| Sample data | The handoff shows `[price]` placeholders | Prices, candles and news are sample data and the screen says "sample prices · not a live feed" |
+| 1b on the free plan | Plans say "1 ai brief a day"; the handoff has no locked state | A locked card in place of 01, 02 and 04 with the existing `aiBrief` upsell copy; conditions, chart and 05 still show |
+| 1b chart overlays for other strategies | The handoff draws the Asian range for a london break | Only a london break of the Asian range gets levels; other strategies get the news window only, and their entry shows "waiting" |
 | A5, A6, A7 | In the handoff | **Not built** (out of this slice's scope). A6's default (keep this device's setup) is applied silently |
 | A standalone motion/haptics spec file | Not a separate file | Taken from the keyframe cards (ease + haptic per frame) and design system § Motion |
 

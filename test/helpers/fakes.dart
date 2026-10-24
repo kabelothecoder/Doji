@@ -1,9 +1,14 @@
 import 'package:doji_app/core/haptics/doji_haptics.dart';
 import 'package:doji_app/core/platform/connectivity.dart';
+import 'package:doji_app/core/platform/reminders.dart';
 import 'package:doji_app/features/app_lock/data/biometric_auth.dart';
 import 'package:doji_app/features/app_lock/domain/biometric_kind.dart';
 import 'package:doji_app/features/auth/data/fake_auth_repository.dart';
 import 'package:doji_app/features/coach/data/fake_coach.dart';
+import 'package:doji_app/features/markets/data/fake_brief.dart';
+import 'package:doji_app/features/markets/data/fake_brief_chat.dart';
+import 'package:doji_app/features/markets/data/fake_market_data.dart';
+import 'package:doji_app/features/markets/data/sample_news_calendar.dart';
 import 'package:doji_app/features/onboarding/data/device_services.dart';
 import 'package:doji_app/features/onboarding/data/mock_strategy_parser.dart';
 import 'package:doji_app/features/onboarding/data/onboarding_repository.dart';
@@ -142,6 +147,7 @@ List<Override> testOverrides(
   FakeBiometricAuth? biometric,
   bool Function()? isOnline,
   VoiceInput? voice,
+  Reminders? reminders,
 }) => [
   sharedPreferencesProvider.overrideWithValue(prefs),
   timeZoneServiceProvider.overrideWithValue(const FakeTimeZoneService()),
@@ -153,4 +159,33 @@ List<Override> testOverrides(
   hapticsProvider.overrideWithValue(haptics ?? RecordingHaptics()),
   biometricAuthProvider.overrideWithValue(biometric ?? FakeBiometricAuth()),
   authRepositoryProvider.overrideWithValue(testAuthRepository(prefs, isOnline: isOnline)),
+  marketDataProvider.overrideWithValue(const FakeMarketData(latency: Duration.zero)),
+  briefSourceProvider.overrideWith(
+    (ref) => FakeBrief(
+      market: ref.watch(marketDataProvider),
+      news: ref.watch(newsCalendarProvider),
+      latency: Duration.zero,
+    ),
+  ),
+  briefChatProvider.overrideWithValue(const FakeBriefChat(latency: Duration.zero)),
+  remindersProvider.overrideWithValue(reminders ?? FakeReminders()),
 ];
+
+/// Reminders the test can read back; answers [result] without the OS.
+class FakeReminders implements Reminders {
+  FakeReminders([this.result = ReminderResult.scheduled]);
+
+  ReminderResult result;
+  final scheduled = <({int id, DateTime at, String title, String body})>[];
+
+  @override
+  Future<ReminderResult> schedule({
+    required int id,
+    required DateTime at,
+    required String title,
+    required String body,
+  }) async {
+    if (result == ReminderResult.scheduled) scheduled.add((id: id, at: at, title: title, body: body));
+    return result;
+  }
+}

@@ -18,6 +18,7 @@ import '../features/journal/presentation/journal_screen.dart';
 import '../features/journal/presentation/manual_trade_screen.dart';
 import '../features/journal/presentation/trade_detail_screen.dart';
 import '../features/journal/presentation/trades_screen.dart';
+import '../features/markets/presentation/pair_detail_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/plans/domain/plans.dart';
 import '../features/plans/presentation/compare_plans_screen.dart';
@@ -109,6 +110,10 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
         tradeId: s.pathParameters['id'] ?? '',
         openReview: s.uri.queryParameters['review'] == '1',
       ),
+    ),
+    GoRoute(
+      path: Routes.pairDetailPattern,
+      builder: (c, s) => PairDetailScreen(symbol: s.pathParameters['symbol'] ?? ''),
     ),
     GoRoute(path: Routes.open, builder: (c, s) => const OpenScreen()),
     GoRoute(path: Routes.closeDay, builder: (c, s) => const CloseDayScreen()),

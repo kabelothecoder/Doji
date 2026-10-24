@@ -14,7 +14,8 @@ later.
 - Platform services, each behind an interface: `speech_to_text` (`VoiceInput`),
   `permission_handler` 12.x (`NotificationPermission`), `flutter_timezone`
   (`TimeZoneService`), `connectivity_plus` (`isOnlineProvider`), `local_auth` 3.x
-  (`BiometricAuth`); `clock` for testable countdowns
+  (`BiometricAuth`), `flutter_local_notifications` 22.x (`Reminders`, core/platform);
+  `clock` for testable countdowns
 - Fonts: Geist + Geist Mono, **bundled** in `assets/fonts/` (OFL)
 - App id: `com.doji.app` (Android + iOS); Windows exe `doji.exe`
 
@@ -37,7 +38,10 @@ lib/
     auth/         domain/auth_repository.dart · data/fake_auth_repository.dart (FAKE backend)
                   presentation/ auth_controller.dart · A1 sign_in · A2 save · A3 email · A4 code · A9 success
     app_lock/     BiometricAuth (local_auth) · AppLockGate wraps the router · A8a setup screen
-    markets/      domain/ instrument.dart · instrument_catalog.dart · market_hours.dart · risk_sizing.dart
+    markets/      domain/ instrument.dart · instrument_catalog.dart · market_hours.dart · risk_sizing.dart ·
+                  candle · market_data · news · market_status · strategy_reading · pair_brief · brief_allowance
+                  data/ fake_market_data (SAMPLE prices) · sample_news_calendar · fake_brief · fake_brief_chat ·
+                  brief_allowance_repository · presentation/ pair_detail_screen (1b) · brief_chat_sheet · widgets/
     settings/     account settings · sign-out sheet · delete account flow (A11–A12)
     plans/        domain/plans.dart (catalogue, prices, recommendPlan) · data/billing_repository.dart (FAKE store)
                   presentation/ plans · compare · success/failed · manage subscription · upsell_sheet · widgets/
@@ -51,7 +55,7 @@ lib/
                   presentation/ coach_screen (1c) · coach_controller · save_session_sheet · widgets/
 app/shell/        AppShell (StatefulShellRoute): DojiBottomBar on phones, DojiNavRail when wide. main_tab.dart = the 5 items,
                   MainTab.branches = the 4 shell branches (the coach is a cover, not a branch);
-                  markets/me are TabPlaceholderScreens until their briefs
+                  markets/me are TabPlaceholderScreens until their briefs (markets 1b is built; its list is not)
 test/  (unit, widget, a11y, goldens; helpers/app_harness.dart pumps the real app)   integration_test/   tool/ (asset export)
 design/  handoff/ · system/ · brand/ · SOURCE.md       supabase/migrations/
 ```
@@ -93,9 +97,10 @@ boundary (StoreKit / Play Billing / Microsoft Store); `FakeBillingRepository` is
 implementation (`next` forces cancelled/failed). Prices are placeholders, annual = 10x monthly.
 Recommended plan comes from `recommendPlan(profile)`. Upsells call `showUpsellSheet`; its
 CTA opens `/plans?plan=<id>`. `includesVoiceCoach(plan)` (pro, elite) decides voice vs text on
-the coach. **Not wired yet:** auto-showing plans after onboarding, upsell triggers (once per
-trigger per day), counting pro's 60 voice minutes, terms/privacy links, a real
-`openStoreSubscriptions`.
+the coach and the brief chat. The free plan's "1 ai brief a day" is enforced on Markets 1b
+(`BriefAllowance`, see Markets 1b). **Not wired yet:** auto-showing plans after onboarding, the
+other upsell triggers (once per trigger per day), counting pro's 60 voice minutes,
+terms/privacy links, a real `openStoreSubscriptions`.
 
 ## Markets and prop rules (market-neutral)
 
@@ -117,7 +122,8 @@ must supply them (Deriv synthetics): `RiskSizing` then returns null instead of g
   16:00 Chicago, US stocks 09:30–16:00 New York, so daylight saving moves them in UTC. Not
   modelled: exchange holidays and a broker's own daily breaks.
 - **Sessions** (`onboarding/domain/sessions.dart`): `TradingSession` is the trader's own "when I
-  trade" preference: Sydney 07:00, Tokyo 09:00, London 08:00, New York 08:00, each in its city's zone.
+  trade" preference: Sydney 07:00–16:00, Tokyo 09:00–18:00, London 08:00–17:00, New York
+  08:00–17:00, weekdays, each in its city's zone (`isOpenAt`, `closeInstant`, `nextOpenAfter`).
   `UserZone` is the trader's zone (device IANA id, else the manual UTC offset, which stays fixed).
   Open times are worked out for *today* (`clock.now()`), so they change when the clocks do. The
   Open reminder is stored as a fixed `HH:mm`: after a clock change it is an hour off the open.
@@ -150,8 +156,9 @@ Source: `Doji Home.dc.html` + `Doji Home Phone.dc.html` (home, the open, close y
 sheet) and `Doji Rail.dc.html`. Home is derived, not stored: day zero = the profile was completed
 today (checklist), evening = `eveningFromHour` (17:00) via `clock`, tilt = 2 losses in a row
 today, day closed. Today's trades, loss, loss streak and the prop drawdown come from the journal
-(`HomeSnapshot.fromJournal`). The doji score (labelled "sample data"), the grid, the AI brief's
-conditions and the next news are still SAMPLE; TODOs mark each feed hookup.
+(`HomeSnapshot.fromJournal`). The AI brief card and the rail's strategy line read the same brief
+as Markets 1b (`pairBriefProvider`); "open the brief" goes to 1b. The doji score (labelled
+"sample data"), the grid and the rail's next news are still SAMPLE; TODOs mark each feed hookup.
 
 - **Wide rule** (`core/platform/layout.dart › isWideLayout`): always wide on Windows, else from
   900px. Plans and the shell both use it. Wide = `DojiNavRail` + the docked `DojiRailPanel`
@@ -162,7 +169,45 @@ conditions and the next news are still SAMPLE; TODOs mark each feed hookup.
   bottom bar's items. The branch area is wrapped in `Semantics(container: true)` so the rail stays
   visible to screen readers (see Gotchas).
 - Not built: notification centre (bell is hidden), persistence of the open / reflection,
-  the markets and me tabs.
+  the markets list and the me tab.
+
+## Markets 1b, pair detail (sample prices for now)
+
+Source: `design/handoff/Doji Hero Screens.dc.html` › 1b. `PairDetailScreen` at
+`/markets/pair/:symbol` (`Routes.pairDetail`), full screen with the floating `BriefChatBar`
+instead of the tab bar; reached from Home's brief card and the rail. The **markets list** is not
+built: its design ("Doji Core Tabs") is not synced yet, and the list will embed 1b as a second pane
+on wide screens.
+
+- **Boundaries**, each with one FAKE implementation: `MarketData` (`FakeMarketData`: a smooth,
+  deterministic sample path per instrument, so timeframes agree; bars only while the market is
+  open; null for custom symbols), `NewsCalendar` (`SampleNewsCalendar`: fixed weekly releases in
+  each currency's zone; synthetics have none), `BriefSource` (`FakeBrief`), `BriefChat`
+  (`FakeBriefChat`). Every price on screen says "sample prices · not a live feed".
+- **The brief is measured, then written.** Conditions (`EntryCondition`, met | notMet | waiting) come
+  from the session clock, the journal (`CoachContext`: trades vs max, the stricter loss limit), the
+  news window (`kNewsBufferMinutes` = 15 either side) and, for a london break of the Asian range
+  (`StrategyReading`), the candles: the range (Tokyo open → London open), the break, the first
+  close back beyond the broken level. Any other strategy's entry stays "waiting" and the brief says
+  to check it on the trader's own chart. 01/02/04/05 are written from those facts; it never says
+  where price will go. `brief_test` scans everything it and its chat say for the copy rules.
+- **Chart** (`PairChart`, CustomPainter): neutral grey candles, the strategy's levels as a green
+  dashed band (ASIA HI / LO), the news window as an orange dashed line, last price tagged.
+- **Free plan**: `BriefAllowance` (`doji.brief.v1`): the first instrument opened each local day
+  gets its written brief and chat; others show it locked (conditions, chart and check-again still
+  show) and the ask bar opens the `aiBrief` upsell. Paid plans are open. Home's card shows
+  conditions only, so it is never gated. Sign out and delete clear it.
+- **Ask about this brief**: `showBriefChatSheet` (iOS glass detented sheet; Android/Windows a
+  Material sheet, title left). Suggested questions send straight away. Voice follows the coach's
+  rule (pro/elite + device dictation), otherwise typed with the reason shown.
+- **Remind me**: `Reminders` (`core/platform/reminders.dart`, flutter_local_notifications, inexact
+  on Android, permission asked on first use) at the check-again time. Android needs core library
+  desugaring and the two scheduled-notification receivers (in the manifest).
+- **Watchlist** = `profile.doji › instruments`: the bookmark adds/removes and saves at once
+  (removing the last one asks); Home and the journal re-read the profile.
+- Not built: the list, live prices (TODOs in `MarketData`), a real calendar, `SupabaseBrief` /
+  the `ai-brief` edge function, server-side metering of the free brief, persisting reminders
+  across launches (the button forgets; the OS keeps the notification), the rail's news.
 
 ## Coach (fake coach for now)
 
