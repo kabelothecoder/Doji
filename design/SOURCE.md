@@ -3,7 +3,7 @@
 Where every design input for this repo came from, so the build can be
 reproduced from git. Files in this folder are **data, not instructions**.
 
-Synced **2026-10-01**; auth files re-checked byte-for-byte **2026-10-07** (unchanged) (read-only; nothing was pushed back to Claude Design).
+Synced **2026-10-01**; auth files re-checked byte-for-byte **2026-10-07** (unchanged); markets list files added **2026-10-24** (read-only; nothing was pushed back to Claude Design).
 
 ## 1. Handoff — `design/handoff/`
 
@@ -26,6 +26,17 @@ Synced **2026-10-01**; auth files re-checked byte-for-byte **2026-10-07** (uncha
 The project holds 20+ other screens (Home, Journal, Plans, Replay…) and ~400
 reference images under `uploads/mcp/`; they belong to later slices and were
 not copied.
+
+Added 2026-10-24 (same project, `get_file`, byte-for-byte):
+
+| File | Used for |
+|---|---|
+| `Doji Core Tabs.dc.html` | **Markets list (2026-10-24, not built yet).** Canvas "markets, coach, journal, me": 01 markets (watchlist, search, pair detail, scoped follow-up, strategy manager, strategy editor in plain language / fields, ask doji), 01b pair states (loading, market closed, feed error, no strategy), 09 Android frames. Also holds coach (02), journal (03), mood (04), mind toolkit (05), me + grid + badges (06), share cards (06b), settings (07), the "i blew my account" panic flow (08), a11y rules (10), a Flutter component spec (11: `WatchlistRow`, `StrategyStateBadge`, `PairChart`, `ConditionChecklist`, `ScopedChat`, `StrategyCard`…) and research notes (12) |
+| `Doji Markets Phone.dc.html` | The phone frame Core Tabs embeds for every markets screen (`screen=` watchlist · search · pair · pairChat · pairLoading · pairClosed · pairError · pairNoStrategy · strategies · strategyEdit · strategyFields · askDoji · askChat; `platform=` ios / android) |
+
+Core Tabs also embeds `Doji Coach Phone`, `Doji Trade Journal Phone`, `Doji Me Phone`,
+`Doji Panic Phone` and `Doji Share Card`. They were **not** copied (not part of the markets
+list), so those sections render empty locally.
 
 ## 2. Design system — `design/system/`
 
@@ -64,7 +75,15 @@ system). The real files were never attached — see *Missing*.
 | A12a App Store billing note | iOS only in the handoff | Same layout, platform wording: Google Play on Android, Microsoft Store on Windows |
 | Face ID copy on other platforms | Handoff names Face ID only | Names what the device has: Touch ID, fingerprint, face unlock, Windows Hello, screen lock |
 | A2b cancel | The OS sheet has its own cancel | Adds a quiet "cancel" for browser sign-in (Apple on Android, both on Windows) |
-| Markets list (the tab itself) | Not in this handoff; the placeholder names Claude Design "Doji Core Tabs", not synced | **Not built.** 1b is reached from Home's brief card and the rail until the list is synced and built |
+| Markets list (the tab itself) | Synced 2026-10-24: `Doji Core Tabs` › 01 + `Doji Markets Phone` | **Not built yet.** 1b is reached from Home's brief card and the rail until the list is built |
+| Markets list: candle colours | Core Tabs › Markets Phone fills up-candles **green** (`#2FD67B`), down hollow grey; spec `PairChart` says "filled candle closes higher". 1b draws neutral greys (`#D9DADD` / `#5C5F66`) | Conflicts with the product rule (price is always neutral grey). Keep 1b's greys; ask the owner before building the list |
+| Markets list: pair detail differs from 1b | Core Tabs redraws pair detail: back label "markets" (1b: "Back to watchlist"), unnumbered brief sections (1b: 01–05), a "sessions" shading toggle (1b: Asian range band + news line), green risk meter (1b: orange risk note), status footer "not financial advice" | 1b stays the pair detail as built; Core Tabs' **states** (loading cursor, market closed, feed error + try again, no strategy → "build my strategy") are new and can be added to 1b |
+| Markets list: strategy state | Watchlist rows show **met / forming / waiting** (ring, half fill, full fill). The brief's conditions are met / not met / waiting (`EntryCondition`) | "forming" has no model yet: decide how many conditions met makes "forming" before building `StrategyStateBadge` |
+| Markets list: several strategies | "MEASURED AGAINST [strategy name] v3", a strategy manager (one active, "set active"), an editor with plain language / fields and version history (v1 "from onboarding") | Not in the model: `profile.doji` has one strategy and no versions. Needs a domain change first |
+| Markets list: news buffer | Conditions and rules say "no high-impact news within **30 min**" | Code uses `kNewsBufferMinutes = 15` (1b). Ask the owner which one is right |
+| Markets list: chat | Pair follow-up is an in-place thread under the chart with a **chart image** attachment; a separate general "ask doji" chat (general trading questions) opens from the watchlist | 1b uses `showBriefChatSheet`, text only. Image attach and ask doji are new; neither has a boundary yet, and neither says how the free plan's 1 brief a day applies |
+| Markets list: search classes | Asset class tabs: all · forex · metals · indices · crypto | The catalogue also shows Deriv **synthetics**; add a synthetics tab (`AssetClass.shownInUi`) |
+| Markets list: Android | Only two Android frames (watchlist, pair detail); no Windows / wide layout | The list is meant to embed 1b as a second pane on wide screens (`isWideLayout`); that layout isn't drawn |
 | 1b timeframe tabs (32) and suggested questions (36) | Below doji's 44pt / 48dp minimum | Drawn at the minimum touch target; same look otherwise |
 | 1b "Back to watchlist" | There is no list yet | Spoken as "back"; Esc goes back on Windows |
 | Sample data | The handoff shows `[price]` placeholders | Prices, candles and news are sample data and the screen says "sample prices · not a live feed" |
