@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+import 'package:doji_app/features/markets/domain/time_zones.dart';
 import 'package:doji_app/features/onboarding/data/mock_strategy_parser.dart';
 import 'package:doji_app/features/onboarding/domain/config_lines.dart';
 import 'package:doji_app/features/onboarding/domain/onboarding_catalog.dart';
@@ -8,6 +10,7 @@ import 'package:doji_app/features/splash/domain/launch_destination.dart';
 import 'package:doji_app/app/routes.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../helpers/clocks.dart';
 import '../helpers/sample_profile.dart';
 
 void main() {
@@ -88,7 +91,7 @@ void main() {
 
   group('profile.doji lines', () {
     test('print like the handoff config for the example trader', () {
-      final lines = buildConfigLines(answersBefore(StepIds.compile));
+      final lines = withClock(summerDay, () => buildConfigLines(answersBefore(StepIds.compile)));
       String line(String k) {
         final l = lines.firstWhere((l) => l.keyName == k);
         return '${l.value}${l.comment}';
@@ -106,12 +109,67 @@ void main() {
     });
   });
 
-  group('sessions', () {
-    test('london opens 09:00 at UTC+2 (handoff example)', () {
-      expect(hhmm(TradingSession.london.localOpen(120)!), '09:00');
-      expect(firstSession(['new_york', 'london'], 120), TradingSession.london);
-      expect(firstSession(['around_job'], 120), isNull);
-      expect(ritualOptions(answersBefore(StepIds.ritual)).map((o) => o.value), ['08:30', '08:45', '09:00']);
+  group('sessions (real zones, daylight saving)', () {
+    // Johannesburg is UTC+2 all year, so the open moves only with London's clock.
+    const johannesburg = UserZone.fixed(120);
+
+    test('london opens 09:00 at UTC+2 in summer (handoff example), 10:00 in winter', () {
+      withClock(summerDay, () {
+        expect(hhmm(TradingSession.london.localOpen(johannesburg)!), '09:00');
+        expect(firstSession(['new_york', 'london'], johannesburg), TradingSession.london);
+        expect(firstSession(['around_job'], johannesburg), isNull);
+        expect(ritualOptions(answersBefore(StepIds.ritual)).map((o) => o.value), ['08:30', '08:45', '09:00']);
+      });
+      withClock(winterDay, () {
+        expect(hhmm(TradingSession.london.localOpen(johannesburg)!), '10:00');
+        expect(ritualOptions(answersBefore(StepIds.ritual)).map((o) => o.value), ['09:30', '09:45', '10:00']);
+      });
+    });
+
+    test('each session opens at its own city time, whatever UTC says', () {
+      DateTime open(TradingSession s, Clock c) => withClock(c, () => s.openInstant()!);
+      // London 08:00: 07:00 UTC in summer, 08:00 UTC in winter.
+      expect(open(TradingSession.london, summerDay), DateTime.utc(2026, 7, 15, 7));
+      expect(open(TradingSession.london, winterDay), DateTime.utc(2026, 12, 15, 8));
+      // New York 08:00: 12:00 UTC in summer, 13:00 UTC in winter.
+      expect(open(TradingSession.newYork, summerDay), DateTime.utc(2026, 7, 15, 12));
+      expect(open(TradingSession.newYork, winterDay), DateTime.utc(2026, 12, 15, 13));
+      // Tokyo 09:00: no daylight saving, 00:00 UTC all year.
+      expect(open(TradingSession.tokyo, summerDay), DateTime.utc(2026, 7, 15, 0));
+      expect(open(TradingSession.tokyo, winterDay), DateTime.utc(2026, 12, 15, 0));
+      // Sydney 07:00: southern hemisphere, so daylight saving runs the other way.
+      expect(open(TradingSession.sydney, summerDay), DateTime.utc(2026, 7, 14, 21)); // AEST, UTC+10
+      expect(open(TradingSession.sydney, winterDay), DateTime.utc(2026, 12, 14, 20)); // AEDT, UTC+11
+      expect(TradingSession.aroundJob.openInstant(), isNull);
+    });
+
+    test("the trader's own zone has daylight saving too", () {
+      // A New York trader sees London 08:00 at 03:00 in July and in December,
+      // because both cities change their clocks in step…
+      final newYorkTrader = UserZone.from(id: 'America/New_York');
+      expect(hhmm(TradingSession.london.localOpen(newYorkTrader, DateTime.utc(2026, 7, 15))!), '03:00');
+      expect(hhmm(TradingSession.london.localOpen(newYorkTrader, DateTime.utc(2026, 12, 15))!), '03:00');
+      // …but not in mid-March: New York is already on EDT, London is not.
+      expect(hhmm(TradingSession.london.localOpen(newYorkTrader, DateTime.utc(2026, 3, 15, 12))!), '04:00');
+      // A Johannesburg trader never changes.
+      final johannesburgTrader = UserZone.from(id: 'Africa/Johannesburg');
+      expect(hhmm(TradingSession.tokyo.localOpen(johannesburgTrader, DateTime.utc(2026, 7, 15))!), '02:00');
+      expect(hhmm(TradingSession.tokyo.localOpen(johannesburgTrader, DateTime.utc(2026, 12, 15))!), '02:00');
+    });
+
+    test('a manual UTC offset (no zone id) stays fixed; a real zone follows the calendar', () {
+      final manual = UserZone.from(id: 'UTC+2', offsetMinutes: 120);
+      expect(manual.hasDaylightSaving, isFalse);
+      expect(manual.offsetMinutesAt(DateTime.utc(2026, 7, 15)), 120);
+      expect(manual.offsetMinutesAt(DateTime.utc(2026, 12, 15)), 120);
+      final london = UserZone.from(id: 'Europe/London', offsetMinutes: 0);
+      expect(london.hasDaylightSaving, isTrue);
+      expect(london.offsetMinutesAt(DateTime.utc(2026, 7, 15)), 60);
+      expect(london.offsetMinutesAt(DateTime.utc(2026, 12, 15)), 0);
+    });
+
+    test('sessions offered: sydney, tokyo, london, new york, around my job', () {
+      expect(sessionOptions.map((o) => o.value), ['sydney', 'tokyo', 'london', 'new_york', 'around_job']);
     });
 
     test('utc labels', () {
@@ -136,27 +194,15 @@ void main() {
   });
 
   group('launch routing', () {
-    test('signed in → home', () {
-      expect(decideLaunchRoute(signedIn: true, profileComplete: false, pausedAtStep: null), Routes.home);
-    });
-    test('finished on this device → home', () {
-      expect(decideLaunchRoute(signedIn: false, profileComplete: true, pausedAtStep: null), Routes.home);
+    test('finished on this device (or loaded from the account) → home', () {
+      expect(decideLaunchRoute(profileComplete: true, pausedAtStep: null), Routes.home);
     });
     test('paused on save → save screen', () {
-      expect(
-        decideLaunchRoute(signedIn: false, profileComplete: false, pausedAtStep: StepIds.save),
-        Routes.save,
-      );
+      expect(decideLaunchRoute(profileComplete: false, pausedAtStep: StepIds.save), Routes.save);
     });
     test('fresh or partial → onboarding (controller resumes the step)', () {
-      expect(
-        decideLaunchRoute(signedIn: false, profileComplete: false, pausedAtStep: null),
-        Routes.onboarding,
-      );
-      expect(
-        decideLaunchRoute(signedIn: false, profileComplete: false, pausedAtStep: StepIds.risk),
-        Routes.onboarding,
-      );
+      expect(decideLaunchRoute(profileComplete: false, pausedAtStep: null), Routes.onboarding);
+      expect(decideLaunchRoute(profileComplete: false, pausedAtStep: StepIds.risk), Routes.onboarding);
     });
   });
 

@@ -9,6 +9,7 @@
 @Tags(['golden'])
 library;
 
+import 'package:clock/clock.dart';
 import 'package:doji_app/core/theme/doji_theme.dart';
 import 'package:doji_app/features/onboarding/domain/onboarding_catalog.dart';
 import 'package:doji_app/features/onboarding/presentation/onboarding_screen.dart';
@@ -18,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/clocks.dart';
 import '../helpers/fakes.dart';
 import '../helpers/sample_profile.dart';
 
@@ -31,7 +33,17 @@ enum _Frame {
   final TargetPlatform platform;
 }
 
+/// On a fixed summer day: the ritual time and "30m pre-london" follow daylight
+/// saving, so the golden must not depend on the season it is run in.
 Future<void> _pumpStep(
+  WidgetTester tester,
+  _Frame frame,
+  String stepId, {
+  String? lastAnswered,
+  Future<void> Function()? arrange,
+}) => withClock(summerDay, () => _pump(tester, frame, stepId, lastAnswered: lastAnswered, arrange: arrange));
+
+Future<void> _pump(
   WidgetTester tester,
   _Frame frame,
   String stepId, {

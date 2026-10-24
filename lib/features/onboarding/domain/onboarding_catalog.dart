@@ -2,19 +2,23 @@
 // Onboarding.dc.html where the handoff has it; lines marked `// doji voice`
 // were written for answers the handoff doesn't show (it gives one example
 // reply per step). No buy/sell language, no promises, no invented stats.
+import '../../markets/domain/instrument_catalog.dart';
 import 'onboarding_step.dart';
 import 'risk.dart';
 import 'sessions.dart';
+import 'user_zone.dart';
 
 /// Answer shapes, by step id:
 /// - name: String
 /// - experience, style: String (option value)
-/// - markets, sessions, struggles: `List<String>`
+/// - markets (instrument symbols), sessions, struggles: `List<String>`
 /// - timeZone: {id: String, offsetMinutes: int} (detected, editable)
-/// - goal: {goal: String, propFirm: String?, propSize: int?}
+/// - goal: {goal: String, propFirm: String?, propSize: int?, propDailyLoss: num?,
+///   propMaxDrawdown: num?, propDrawdownType: fixed|trailing?, propTrailingBasis: balance|equity?,
+///   propTarget: num?}  (the prop* keys only for prop_challenge)
 /// - strategy: {raw: String?, template: String?, source: text|voice|template}
 /// - strategyParsed: {setup, timeframe, entry, stop, target}
-/// - risk: {riskPct: num, maxTrades: int, dailyLoss: num}
+/// - risk: {riskPct: num, maxTrades: int, dailyLoss: num, currency: USD|ZAR|EUR|GBP?}
 /// - coach: {voice: String, name: String?}
 /// - ritual: {time: 'HH:mm', notifications: granted|denied|deferred}
 /// - rules, compile: true · pledge: {pledgedAt: ISO-8601}
@@ -64,26 +68,10 @@ const styleOptions = [
   StepOption('undecided', 'not sure yet'),
 ];
 
-const marketOptions = [
-  StepOption('XAUUSD', 'XAUUSD', mono: true),
-  StepOption('EURUSD', 'EURUSD', mono: true),
-  StepOption('GBPUSD', 'GBPUSD', mono: true),
-  StepOption('USDJPY', 'USDJPY', mono: true),
-  StepOption('NAS100', 'NAS100', mono: true),
-  StepOption('US30', 'US30', mono: true),
-  StepOption('BTCUSD', 'BTCUSD', mono: true),
-];
-
-/// "Search matches broker aliases (GOLD, XAU/USD)."
-const marketAliases = <String, List<String>>{
-  'XAUUSD': ['GOLD', 'XAU/USD', 'XAU'],
-  'EURUSD': ['EUR/USD', 'EURO', 'FIBER'],
-  'GBPUSD': ['GBP/USD', 'CABLE', 'POUND'],
-  'USDJPY': ['USD/JPY', 'YEN', 'GOPHER'],
-  'NAS100': ['NASDAQ', 'US100', 'USTEC', 'NDX'],
-  'US30': ['DOW', 'DJ30', 'WS30', 'DJI'],
-  'BTCUSD': ['BITCOIN', 'BTC', 'BTC/USD', 'XBT'],
-};
+/// Every instrument the markets step offers (futures and stocks stay hidden
+/// until their `AssetClass.shownInUi` is switched on). Search matches symbols,
+/// names and broker aliases: see `instrumentMatches`.
+final marketOptions = [for (final i in visibleInstruments) StepOption(i.symbol, i.displayLabel, mono: true)];
 
 final sessionOptions = [for (final s in TradingSession.values) StepOption(s.key, s.label)];
 
@@ -134,17 +122,6 @@ String? _required(Object? v, String message) {
 
 // --- Replies -----------------------------------------------------------------
 
-const _marketNames = {
-  'XAUUSD': 'gold',
-  'NAS100': 'nasdaq',
-  'US30': 'the dow',
-  'BTCUSD': 'bitcoin',
-  'EURUSD': 'euro',
-  'GBPUSD': 'cable',
-  'USDJPY': 'yen',
-};
-const _fastMovers = {'XAUUSD', 'NAS100', 'US30', 'BTCUSD'};
-
 String _joinAnd(List<String> xs) =>
     xs.length <= 1 ? xs.join() : '${xs.sublist(0, xs.length - 1).join(', ')} and ${xs.last}';
 
@@ -152,8 +129,8 @@ String? marketsReply(Object? answer, Answers _) {
   final picked = answer is List ? answer.whereType<String>().toList() : const <String>[];
   if (picked.isEmpty) return null;
   if (picked.length > 3) return '${picked.length} markets. noted.'; // doji voice
-  final names = _joinAnd([for (final p in picked) _marketNames[p] ?? p.toLowerCase()]);
-  if (picked.every(_fastMovers.contains)) {
+  final names = _joinAnd([for (final p in picked) instrumentBySymbol(p)?.name ?? p.toLowerCase()]);
+  if (picked.every((p) => instrumentBySymbol(p)?.fastMover ?? false)) {
     final who = switch (picked.length) {
       1 => 'it moves',
       2 => 'both move',
@@ -167,10 +144,10 @@ String? marketsReply(Object? answer, Answers _) {
 String? sessionsReply(Object? answer, Answers answers) {
   final keys = answer is List ? answer.whereType<String>().toList() : const <String>[];
   if (keys.isEmpty) return null;
-  final offset = (A.mapNum(answers[StepIds.timeZone], 'offsetMinutes') ?? 0).round();
-  final first = firstSession(keys, offset);
+  final zone = userZoneFromAnswers(answers);
+  final first = firstSession(keys, zone);
   if (first == null) return "around your job. we'll fit the open to your day."; // doji voice
-  return "${first.label.toLowerCase()}, ${hhmm(first.localOpen(offset)!)} your time. i'll be there.";
+  return "${first.label.toLowerCase()}, ${hhmm(first.localOpen(zone)!)} your time. i'll be there.";
 }
 
 /// Doji's reply to the goal answer. The handoff defines the prop line; the
@@ -414,8 +391,7 @@ List<OnboardingStep> buildOnboardingSteps() => [
 
 /// "The Open time, defaulting to 30 minutes before their first session."
 List<StepOption> ritualOptions(Answers answers) {
-  final offset = (A.mapNum(answers[StepIds.timeZone], 'offsetMinutes') ?? 0).round();
-  final ref = openReferenceMinutes(A.list(answers, StepIds.sessions), offset);
+  final ref = openReferenceMinutes(A.list(answers, StepIds.sessions), userZoneFromAnswers(answers));
   return [
     StepOption(hhmm(ref - 30), hhmm(ref - 30), sub: '30m before', mono: true),
     StepOption(hhmm(ref - 15), hhmm(ref - 15), sub: '15m before', mono: true),

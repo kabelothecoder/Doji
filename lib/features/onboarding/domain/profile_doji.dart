@@ -1,7 +1,16 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'prop_rules.dart';
+
 part 'profile_doji.freezed.dart';
 part 'profile_doji.g.dart';
+
+/// Bumped when the stored shape changes without a migration: older saved
+/// profiles and half-finished onboarding are dropped and the user starts over.
+/// 2: `pairs` → `instruments`, `propFirm`/`propSize` → `prop` (PropRules).
+/// 3: sessions are real zones (`sydney`, `tokyo` replace `asia`); `accountCurrency`;
+///    PropRules gains `drawdownType` and `trailingBasis`.
+const int kOnboardingVersion = 3;
 
 /// The user's `profile.doji`: everything onboarding learns, pre-account.
 ///
@@ -20,9 +29,12 @@ abstract class ProfileDoji with _$ProfileDoji {
 
     /// scalper | day_trader | swing | undecided
     String? style,
-    @Default(<String>[]) List<String> pairs,
 
-    /// asia | london | new_york | around_job
+    /// Instrument symbols from the markets catalogue ('XAUUSD', 'R_75', 'BTCUSD'),
+    /// or the user's own custom symbols.
+    @Default(<String>[]) List<String> instruments,
+
+    /// sydney | tokyo | london | new_york | around_job
     @Default(<String>[]) List<String> sessions,
 
     /// IANA id when detected (e.g. Africa/Johannesburg).
@@ -31,8 +43,13 @@ abstract class ProfileDoji with _$ProfileDoji {
 
     /// prop_challenge | grow_account | consistent | make_it_my_job | learn
     String? goal,
-    String? propFirm,
-    int? propSize,
+
+    /// The prop challenge's own limits; only set when the goal is a prop challenge.
+    PropRules? prop,
+
+    /// USD | ZAR | EUR | GBP. The currency the account balance is held in;
+    /// position sizing converts into it.
+    @Default('USD') String accountCurrency,
 
     /// revenge | fomo | overtrading | hesitation | moving_stop | oversizing | bored
     @Default(<String>[]) List<String> struggles,
@@ -44,7 +61,7 @@ abstract class ProfileDoji with _$ProfileDoji {
     String? theOpenTime,
     bool? notificationsAllowed,
     DateTime? pledgedAt,
-    @Default(1) int onboardingVersion,
+    @Default(kOnboardingVersion) int onboardingVersion,
 
     /// Everyone starts at M1 · Impulsive.
     @Default('M1') String rank,
@@ -56,7 +73,7 @@ abstract class ProfileDoji with _$ProfileDoji {
 
   factory ProfileDoji.fromJson(Map<String, dynamic> json) => _$ProfileDojiFromJson(json);
 
-  static const int currentOnboardingVersion = 1;
+  static const int currentOnboardingVersion = kOnboardingVersion;
 
   bool get isComplete => completedAt != null;
 }

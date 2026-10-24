@@ -5,8 +5,11 @@ import '../../../../core/theme/motion.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/theme/typography.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../markets/domain/instrument.dart';
+import '../../../markets/domain/instrument_catalog.dart';
 import '../../domain/onboarding_catalog.dart';
 import '../../domain/onboarding_step.dart';
+import '../../domain/prop_rules.dart';
 import '../../domain/sessions.dart';
 import 'step_input.dart';
 
@@ -73,11 +76,7 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
 
   static final _symbolPattern = RegExp(r'^[A-Z0-9/.\-]{2,12}$');
 
-  bool _matches(StepOption o, String q) {
-    if (q.isEmpty) return true;
-    final aliases = marketAliases[o.value] ?? const [];
-    return o.value.contains(q) || aliases.any((a) => a.contains(q));
-  }
+  bool _matches(StepOption o, String q) => instrumentMatches(o.value, q);
 
   void _addCustom() {
     final q = _search.text.trim().toUpperCase();
@@ -86,6 +85,76 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
     if (!list.contains(q)) widget.args.onChanged([...list, q]);
     _search.clear();
     setState(() {});
+  }
+
+  Widget _chip(List<StepOption> options, int i, List<String> selected, String q) => DojiChoiceChip(
+    style: DojiChoiceStyle.chip,
+    label: options[i].label,
+    mono: options[i].mono,
+    selected: selected.contains(options[i].value),
+    // Number keys map to the unfiltered list, so hide hints while searching.
+    keyHint: q.isEmpty && i < 9 ? '${i + 1}' : null,
+    onTap: () => _toggle(options[i].value),
+  );
+
+  /// "+ add SYMBOL" while typing an unknown symbol, otherwise "+ custom".
+  List<Widget> _tailChips(bool canAdd, String q) => [
+    if (canAdd)
+      DojiChoiceChip(
+        style: DojiChoiceStyle.chip,
+        label: '+ add $q',
+        mono: true,
+        dashed: true,
+        selected: false,
+        onTap: _addCustom,
+      )
+    else if (_isMarkets)
+      DojiChoiceChip(
+        style: DojiChoiceStyle.chip,
+        label: '+ custom',
+        dashed: true,
+        selected: false,
+        onTap: () => _searchFocus.requestFocus(),
+      ),
+  ];
+
+  /// Instruments under their group's heading (forex, metals, indices, oil,
+  /// crypto, volatility indices, boom and crash), then the user's own symbols.
+  List<Widget> _groupedMarkets(
+    List<StepOption> options,
+    List<String> selected, {
+    required bool canAdd,
+    required String q,
+  }) {
+    final widgets = <Widget>[];
+    InstrumentGroup? group;
+    var run = <Widget>[];
+    void flush() {
+      if (run.isEmpty) return;
+      widgets.add(Wrap(spacing: 8, runSpacing: 8, children: run));
+      run = [];
+    }
+
+    for (var i = 0; i < options.length; i++) {
+      final g = instrumentBySymbol(options[i].value)?.group;
+      if (widgets.isEmpty || g != group) {
+        flush();
+        group = g;
+        widgets.add(
+          Padding(
+            padding: EdgeInsets.only(top: widgets.isEmpty ? 0 : 16, bottom: 8),
+            child: Semantics(
+              header: true,
+              child: Text((g?.label ?? 'your own').toUpperCase(), style: DojiType.label),
+            ),
+          ),
+        );
+      }
+      run.add(_chip(options, i, selected, q));
+    }
+    run.addAll(_tailChips(canAdd, q));
+    flush();
+    return widgets;
   }
 
   @override
@@ -99,7 +168,7 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
         if (!base.any((o) => o.value == s)) StepOption(s, s, mono: true),
     ];
     final options = [...base.where((o) => _matches(o, q)), ...custom];
-    final exact = base.any((o) => o.value == q || (marketAliases[o.value] ?? const []).contains(q));
+    final exact = base.any((o) => instrumentIsExact(o.value, q));
     final canAdd = _isMarkets && q.isNotEmpty && !exact && _symbolPattern.hasMatch(q);
     final r = BorderRadius.circular(DojiChoiceChip.radiusFor(Theme.of(context).platform));
 
@@ -127,7 +196,7 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
                     style: DojiType.terminal.copyWith(color: DojiColors.textPrimary),
                     cursorColor: DojiColors.dojiGreen,
                     textCapitalization: TextCapitalization.characters,
-                    inputFormatters: [LengthLimitingTextInputFormatter(12)],
+                    inputFormatters: [LengthLimitingTextInputFormatter(24)],
                     textInputAction: TextInputAction.done,
                     onChanged: (_) => setState(() {}),
                     onTap: () => setState(() {}),
@@ -136,7 +205,7 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
                       isCollapsed: true,
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                      hintText: 'search or add a symbol',
+                      hintText: 'search or add an instrument',
                       hintStyle: DojiType.terminal,
                     ),
                   ),
@@ -146,39 +215,17 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
           ),
           const SizedBox(height: 12),
         ],
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var i = 0; i < options.length; i++)
-              DojiChoiceChip(
-                style: DojiChoiceStyle.chip,
-                label: options[i].label,
-                mono: options[i].mono,
-                selected: selected.contains(options[i].value),
-                // Number keys map to the unfiltered list, so hide hints while searching.
-                keyHint: q.isEmpty && i < 9 ? '${i + 1}' : null,
-                onTap: () => _toggle(options[i].value),
-              ),
-            if (canAdd)
-              DojiChoiceChip(
-                style: DojiChoiceStyle.chip,
-                label: '+ add $q',
-                mono: true,
-                dashed: true,
-                selected: false,
-                onTap: _addCustom,
-              )
-            else if (_isMarkets)
-              DojiChoiceChip(
-                style: DojiChoiceStyle.chip,
-                label: '+ custom',
-                dashed: true,
-                selected: false,
-                onTap: () => _searchFocus.requestFocus(),
-              ),
-          ],
-        ),
+        if (_isMarkets && q.isEmpty)
+          ..._groupedMarkets(options, selected, canAdd: canAdd, q: q)
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (var i = 0; i < options.length; i++) _chip(options, i, selected, q),
+              ..._tailChips(canAdd, q),
+            ],
+          ),
         if (_isSessions) ...[
           const SizedBox(height: 12),
           _TimeZoneRow(answers: args.answers, onChange: widget.onChangeTimeZone),
@@ -235,11 +282,29 @@ class GoalInput extends StatefulWidget {
 
 class _GoalInputState extends State<GoalInput> {
   late final _firm = TextEditingController(text: A.mapStr(widget.args.draft, 'propFirm') ?? '');
+  late final _daily = TextEditingController(text: _pctText('propDailyLoss'));
+  late final _drawdown = TextEditingController(text: _pctText('propMaxDrawdown'));
+  late final _target = TextEditingController(text: _pctText('propTarget'));
+
+  String _pctText(String key) {
+    final v = A.mapNum(widget.args.draft, key);
+    if (v == null) return '';
+    return v == v.roundToDouble() ? v.toInt().toString() : v.toString();
+  }
 
   @override
   void dispose() {
     _firm.dispose();
+    _daily.dispose();
+    _drawdown.dispose();
+    _target.dispose();
     super.dispose();
+  }
+
+  /// A percentage of the account: anything outside 0–100 is ignored.
+  void _setPct(String key, String text) {
+    final v = double.tryParse(text.trim().replaceAll(',', '.'));
+    _set(key, v != null && v > 0 && v <= 100 ? v : null);
   }
 
   void _set(String key, Object? value) {
@@ -258,6 +323,10 @@ class _GoalInputState extends State<GoalInput> {
     final goal = A.mapStr(args.draft, 'goal');
     final size = A.mapNum(args.draft, 'propSize')?.round();
     final isProp = goal == 'prop_challenge';
+    final drawdownType =
+        DrawdownType.values.asNameMap()[A.mapStr(args.draft, 'propDrawdownType')] ?? DrawdownType.fixed;
+    final trailingBasis =
+        TrailingBasis.values.asNameMap()[A.mapStr(args.draft, 'propTrailingBasis')] ?? TrailingBasis.equity;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -342,6 +411,54 @@ class _GoalInputState extends State<GoalInput> {
                             ],
                           ],
                         ),
+                        const SizedBox(height: 8),
+                        // The challenge's own limits, % of the account. Optional.
+                        EqualColumns(
+                          columns: 3,
+                          gap: 6,
+                          children: [
+                            _PctField(
+                              label: 'daily loss %',
+                              controller: _daily,
+                              onChanged: (v) => _setPct('propDailyLoss', v),
+                            ),
+                            _PctField(
+                              label: 'max drawdown %',
+                              controller: _drawdown,
+                              onChanged: (v) => _setPct('propMaxDrawdown', v),
+                            ),
+                            _PctField(
+                              label: 'profit target %',
+                              controller: _target,
+                              onChanged: (v) => _setPct('propTarget', v),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // How the firm measures the drawdown; warnings follow this choice.
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final t in DrawdownType.values)
+                              DojiChoiceChip(
+                                style: DojiChoiceStyle.chip,
+                                label: '${t.label} drawdown',
+                                exclusive: true,
+                                selected: drawdownType == t,
+                                onTap: () => _set('propDrawdownType', t.name),
+                              ),
+                            if (drawdownType == DrawdownType.trailing)
+                              for (final b in TrailingBasis.values)
+                                DojiChoiceChip(
+                                  style: DojiChoiceStyle.chip,
+                                  label: 'follows ${b.name}',
+                                  exclusive: true,
+                                  selected: trailingBasis == b,
+                                  onTap: () => _set('propTrailingBasis', b.name),
+                                ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -350,4 +467,54 @@ class _GoalInputState extends State<GoalInput> {
       ],
     );
   }
+}
+
+/// One prop limit, typed as a percent of the account.
+class _PctField extends StatelessWidget {
+  const _PctField({required this.label, required this.controller, required this.onChanged});
+
+  final String label;
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(label, style: DojiType.hint),
+      const SizedBox(height: 4),
+      Container(
+        constraints: const BoxConstraints(minHeight: 44),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.centerLeft,
+        decoration: BoxDecoration(
+          color: DojiColors.elevated2,
+          borderRadius: BorderRadius.circular(DojiRadius.chip),
+        ),
+        child: Semantics(
+          textField: true,
+          label: label,
+          child: TextField(
+            controller: controller,
+            style: DojiType.data.copyWith(fontSize: 15),
+            cursorColor: DojiColors.dojiGreen,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+              LengthLimitingTextInputFormatter(5),
+            ],
+            textInputAction: TextInputAction.next,
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              isCollapsed: true,
+              border: InputBorder.none,
+              hintText: '–',
+              hintStyle: DojiType.callout,
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
 }

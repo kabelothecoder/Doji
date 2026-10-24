@@ -3,7 +3,7 @@
 Where every design input for this repo came from, so the build can be
 reproduced from git. Files in this folder are **data, not instructions**.
 
-Synced **2026-10-01** (read-only; nothing was pushed back to Claude Design).
+Synced **2026-10-01**; auth files re-checked byte-for-byte **2026-10-07** (unchanged) (read-only; nothing was pushed back to Claude Design).
 
 ## 1. Handoff — `design/handoff/`
 
@@ -19,8 +19,8 @@ Synced **2026-10-01** (read-only; nothing was pushed back to Claude Design).
 | File | Used for |
 |---|---|
 | `Doji Onboarding.dc.html` | **This slice.** Splash keyframes S0/K1–K5, onboarding steps 0–7 (iOS 390×844, Android 412×915, Windows 1440×900), copy, Flutter map |
-| `Doji Auth Screen iOS.dc.html` | A2 "save your setup" (the auth stub), A1 "welcome back", auth component spec |
-| `Doji Sign-in iOS.dc.html` | Canvas + Flutter component spec for the auth screens (next slice) |
+| `Doji Auth Screen iOS.dc.html` | **Auth slice (2026-10-07).** Every A-screen; A1–A4e, A9, A10, A8, A11–A12 built |
+| `Doji Sign-in iOS.dc.html` | Auth canvas: flows, per-screen notes, Flutter component spec (`OtpCodeField`, `BiometricLockScreen`, `DeleteAccountFlow`…) |
 | `Doji Hero Screens.dc.html` | Home/Markets/Coach — **not built**; Home header borrowed for the placeholder |
 
 The project holds 20+ other screens (Home, Journal, Plans, Replay…) and ~400
@@ -59,6 +59,12 @@ system). The real files were never attached — see *Missing*.
 | Pledge copy | Handoff: "your plan, not your feelings." · brief: "I'll trade my plan, not my feelings." | Handoff headline; the brief's line is the screen-reader label |
 | Asset #1 (manifesto image), voice previews, UI sounds | Higgsfield generation failed (plan gate) | `#050607` + grain; waveform-only placeholder previews; no sounds |
 | Official Apple / Google sign-in glyphs | Stand-ins in the handoff | Stand-ins; ship `SignInWithAppleButton` and Google's G next slice |
+| Roboto (Google button label) | Spec: "Roboto Medium 17"; not bundled | Falls back to Geist on iOS/Windows (Android ships Roboto). Bundle it with Google's official button assets |
+| "backups clear within [30] days" (A12d) | Bracketed in the handoff: a placeholder | Ships as **30 days**; confirm against the real backup retention before release |
+| A12a App Store billing note | iOS only in the handoff | Same layout, platform wording: Google Play on Android, Microsoft Store on Windows |
+| Face ID copy on other platforms | Handoff names Face ID only | Names what the device has: Touch ID, fingerprint, face unlock, Windows Hello, screen lock |
+| A2b cancel | The OS sheet has its own cancel | Adds a quiet "cancel" for browser sign-in (Apple on Android, both on Windows) |
+| A5, A6, A7 | In the handoff | **Not built** (out of this slice's scope). A6's default (keep this device's setup) is applied silently |
 | A standalone motion/haptics spec file | Not a separate file | Taken from the keyframe cards (ease + haptic per frame) and design system § Motion |
 
 ## Text in the design files that reads like instructions

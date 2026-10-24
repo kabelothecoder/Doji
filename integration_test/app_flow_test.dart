@@ -134,20 +134,25 @@ void main() {
     expect(find.text('GRID · DAY 1'), findsOneWidget);
     await tapText(tester, 'continue', settle: 800);
 
-    // Save your setup → continue without account → Home
+    // Save your setup → continue without account → plans → continue free → Home
     expect(find.text('save your setup.'), findsOneWidget);
     await tapText(tester, 'continue without account', settle: 900);
+    expect(find.text('your doji is configured.'), findsOneWidget);
+    await tapText(tester, 'continue free', settle: 900);
     expect(find.textContaining('sam.'), findsOneWidget);
     expect(find.text('Impulsive'), findsOneWidget);
 
     final saved = PrefsOnboardingRepository(prefs).loadProfile()!;
     expect(saved.pendingSync, isTrue);
-    expect(saved.pairs, ['XAUUSD', 'NAS100']);
+    expect(saved.instruments, ['XAUUSD', 'NAS100']);
     expect(saved.rules?.riskPerTrade, 1.0);
     expect(saved.pledgedAt, isNotNull);
 
-    // A relaunch now goes straight Home.
+    // A relaunch now goes straight Home, and the second visit offers app
+    // lock once (A8a). "not now" lands on Home and never asks again.
     await launch(tester, prefs);
+    expect(find.text('lock doji with Face ID.'), findsOneWidget);
+    await tapText(tester, 'not now', settle: 600);
     expect(find.textContaining('sam.'), findsOneWidget);
   });
 }

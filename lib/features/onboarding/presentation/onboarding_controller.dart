@@ -128,6 +128,9 @@ class OnboardingController extends Notifier<OnboardingState> {
   }
 
   Future<void> _detectTimeZone() async {
+    // Scheduled from build: the provider may be invalidated (sign-in, sign
+    // out) before this microtask runs.
+    if (!ref.mounted) return;
     final tz = await ref.read(timeZoneServiceProvider).detect();
     if (!ref.mounted || state.answers.containsKey(StepIds.timeZone)) return;
     state = state.copyWith(answers: _with(StepIds.timeZone, tz.toJson()));

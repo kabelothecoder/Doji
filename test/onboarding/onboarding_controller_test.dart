@@ -64,7 +64,7 @@ void main() {
       expect(st(c).progress, 0);
       await ctrl(c).submit('sam');
       expect(st(c).configLines, hasLength(1));
-      // 14 lines without a prop goal (the prop.size line only applies to prop).
+      // 14 lines without a prop goal (prop.size and prop.limits only apply to prop).
       expect(st(c).totalLines, 14);
       expect(st(c).progress, closeTo(1 / 14, 1e-9));
     });
@@ -139,14 +139,14 @@ void main() {
       expect((st(c).answers[StepIds.strategyParsed]! as Map)['setup'], contains('breakout'));
     });
 
-    test('prop.size only counts when the goal is a prop challenge', () async {
+    test('prop.size and prop.limits only count when the goal is a prop challenge', () async {
       final c = await make(resumeAt(StepIds.goal));
       await ctrl(c).submit({'goal': 'learn'});
       expect(st(c).totalLines, 14);
       await ctrl(c).editFromConfig(StepIds.goal);
       await ctrl(c).submit({'goal': 'prop_challenge', 'propSize': 50000});
-      expect(st(c).totalLines, 15);
-      expect(st(c).configLines.map((l) => l.keyName), contains('prop.size'));
+      expect(st(c).totalLines, 16);
+      expect(st(c).configLines.map((l) => l.keyName), containsAll(['prop.size', 'prop.limits']));
     });
   });
 

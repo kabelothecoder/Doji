@@ -16,6 +16,9 @@ abstract final class PlatformInfo {
           platform == TargetPlatform.macOS ||
           platform == TargetPlatform.linux);
 
+  /// "load your profile.doji on this phone" — copy stays true on Windows.
+  static String get deviceNoun => isDesktop ? 'computer' : 'phone';
+
   /// Haptics exist only on phones.
   static bool get hasHaptics => isIOS || isAndroid;
 }

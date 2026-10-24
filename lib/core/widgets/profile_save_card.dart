@@ -53,12 +53,21 @@ class ProfileSaveCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
+              // Wrap, not Row: at large text sizes the pill drops below.
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 6,
                 children: [
-                  const Icon(Icons.description_outlined, size: 18, color: DojiColors.dojiGreen),
-                  const SizedBox(width: 8),
-                  Text('profile.doji', style: mono.copyWith(fontSize: 13)),
-                  const Spacer(),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.description_outlined, size: 18, color: DojiColors.dojiGreen),
+                      const SizedBox(width: 8),
+                      Text('profile.doji', style: mono.copyWith(fontSize: 13)),
+                    ],
+                  ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(

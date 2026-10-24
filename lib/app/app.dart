@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/doji_theme.dart';
+import '../features/app_lock/presentation/app_lock_gate.dart';
 import 'router.dart';
 
 class DojiApp extends ConsumerWidget {
@@ -22,7 +23,7 @@ class DojiApp extends ConsumerWidget {
       routerConfig: ref.watch(routerProvider),
       builder: (context, child) => MediaQuery.withClampedTextScaling(
         maxScaleFactor: maxTextScale,
-        child: child ?? const SizedBox.shrink(),
+        child: AppLockGate(child: child ?? const SizedBox.shrink()),
       ),
     );
   }

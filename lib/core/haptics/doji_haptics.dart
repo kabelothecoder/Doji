@@ -20,6 +20,11 @@ class DojiHaptics {
     if (_enabled) await HapticFeedback.lightImpact();
   }
 
+  /// Medium impact: auth A9, on the last typed character of "authenticated".
+  Future<void> success() async {
+    if (_enabled) await HapticFeedback.mediumImpact();
+  }
+
   /// Heavy thud: pledge complete.
   Future<void> heavy() async {
     if (_enabled) await HapticFeedback.heavyImpact();

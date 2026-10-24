@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -16,7 +17,7 @@ class OnboardingSnapshot {
     this.skipped = const {},
     this.returnToStepId,
     this.lastAnsweredStepId,
-    this.version = 1,
+    this.version = kOnboardingVersion,
     this.updatedAt,
   });
 
@@ -85,7 +86,12 @@ class PrefsOnboardingRepository implements OnboardingRepository {
     final raw = _prefs.getString(snapshotKey);
     if (raw == null) return null;
     try {
-      return OnboardingSnapshot.fromJson(jsonDecode(raw));
+      final snapshot = OnboardingSnapshot.fromJson(jsonDecode(raw));
+      if (snapshot != null && snapshot.version < kOnboardingVersion) {
+        _dropStale();
+        return null;
+      }
+      return snapshot;
     } on FormatException {
       return null; // corrupt: start fresh rather than crash on launch
     }
@@ -103,7 +109,12 @@ class PrefsOnboardingRepository implements OnboardingRepository {
     final raw = _prefs.getString(profileKey);
     if (raw == null) return null;
     try {
-      return ProfileDoji.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      final profile = ProfileDoji.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      if (profile.onboardingVersion < kOnboardingVersion) {
+        _dropStale();
+        return null;
+      }
+      return profile;
     } on Object {
       return null;
     }
@@ -111,6 +122,10 @@ class PrefsOnboardingRepository implements OnboardingRepository {
 
   @override
   Future<void> saveProfile(ProfileDoji profile) => _prefs.setString(profileKey, jsonEncode(profile.toJson()));
+
+  /// Saved by an older build whose shape changed without a migration: forget
+  /// everything, the user starts over.
+  void _dropStale() => unawaited(clearAll());
 
   @override
   Future<void> clearAll() async {

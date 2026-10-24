@@ -1,25 +1,51 @@
-/// Trading sessions and their opens, in minutes after 00:00 UTC.
-///
-/// APPROXIMATION: fixed UTC opens (Tokyo 09:00 JST, London 08:00 BST,
-/// New York 08:00 EDT). DST shifts are not modelled yet; the handoff example
-/// (London 09:00 at UTC+2) matches. TODO(next-slice): use a tz database.
-enum TradingSession {
-  asia('asia', 'Asia', 0),
-  london('london', 'London', 7 * 60),
-  newYork('new_york', 'New York', 12 * 60),
-  aroundJob('around_job', 'around my job', null);
+import 'package:clock/clock.dart';
+import 'package:timezone/timezone.dart' as tz;
 
-  const TradingSession(this.key, this.label, this.openUtcMinutes);
+import '../../markets/domain/time_zones.dart';
+
+/// The trader's own "when I trade" preference: the big session opens, each in
+/// its city's real time zone, so daylight saving moves them for you
+/// (London 08:00 is 07:00 UTC in summer and 08:00 UTC in winter).
+///
+/// Nominal opens: Sydney 07:00, Tokyo 09:00, London 08:00, New York 08:00 local.
+/// What a market is doing right now is `MarketHours`' job, not this enum's.
+enum TradingSession {
+  sydney('sydney', 'Sydney', TimeZones.sydney, 7 * 60),
+  tokyo('tokyo', 'Tokyo', TimeZones.tokyo, 9 * 60),
+  london('london', 'London', TimeZones.london, 8 * 60),
+  newYork('new_york', 'New York', TimeZones.newYork, 8 * 60),
+  aroundJob('around_job', 'around my job', null, null);
+
+  const TradingSession(this.key, this.label, this.zoneId, this.openLocalMinutes);
 
   final String key;
   final String label;
-  final int? openUtcMinutes;
+
+  /// IANA zone of the session's city; null for "around my job".
+  final String? zoneId;
+
+  /// Open, in minutes after midnight in [zoneId].
+  final int? openLocalMinutes;
 
   static TradingSession? fromKey(String key) => TradingSession.values.where((s) => s.key == key).firstOrNull;
 
-  /// Local minutes after midnight for [offsetMinutes] (UTC offset).
-  int? localOpen(int offsetMinutes) =>
-      openUtcMinutes == null ? null : (openUtcMinutes! + offsetMinutes) % (24 * 60);
+  /// The instant this session opens on the calendar day of [now] in its own
+  /// city; null for "around my job".
+  DateTime? openInstant([DateTime? now]) {
+    final id = zoneId, minutes = openLocalMinutes;
+    if (id == null || minutes == null) return null;
+    final location = TimeZones.find(id);
+    if (location == null) return null;
+    final day = TimeZones.inZone(now ?? clock.now(), location);
+    return tz.TZDateTime(location, day.year, day.month, day.day, minutes ~/ 60, minutes % 60).toUtc();
+  }
+
+  /// When it opens on the clock of [zone]: minutes after local midnight, on
+  /// the day of [now] (default: today). Null for "around my job".
+  int? localOpen(UserZone zone, [DateTime? now]) {
+    final open = openInstant(now);
+    return open == null ? null : zone.minuteOfDayAt(open);
+  }
 }
 
 String hhmm(int minutes) {
@@ -36,20 +62,20 @@ String utcLabel(int offsetMinutes) {
   return 'UTC$sign$h${m == 0 ? '' : ':${m.toString().padLeft(2, '0')}'}';
 }
 
-/// The session whose open comes first in the user's local day, ignoring
-/// "around my job" (it has no fixed open).
-TradingSession? firstSession(List<String> keys, int offsetMinutes) {
+/// The session whose open comes first in the trader's day, ignoring "around
+/// my job" (it has no fixed open).
+TradingSession? firstSession(List<String> keys, UserZone zone, [DateTime? now]) {
   final fixed =
       keys
           .map(TradingSession.fromKey)
           .whereType<TradingSession>()
-          .where((s) => s.openUtcMinutes != null)
+          .where((s) => s.openLocalMinutes != null)
           .toList()
-        ..sort((a, b) => a.localOpen(offsetMinutes)!.compareTo(b.localOpen(offsetMinutes)!));
+        ..sort((a, b) => a.localOpen(zone, now)!.compareTo(b.localOpen(zone, now)!));
   return fixed.firstOrNull;
 }
 
-/// Reference time for The Open: the first session's local open, or 08:00
-/// local when the user only trades around their job.
-int openReferenceMinutes(List<String> keys, int offsetMinutes) =>
-    firstSession(keys, offsetMinutes)?.localOpen(offsetMinutes) ?? 8 * 60;
+/// Reference time for The Open: the first session's open on the trader's
+/// clock, or 08:00 when they only trade around their job.
+int openReferenceMinutes(List<String> keys, UserZone zone, [DateTime? now]) =>
+    firstSession(keys, zone, now)?.localOpen(zone, now) ?? 8 * 60;

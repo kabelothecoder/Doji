@@ -116,13 +116,15 @@ void main() {
     expect(c.read(onboardingControllerProvider).currentId, StepIds.markets);
     expect(c.read(onboardingControllerProvider).answers[StepIds.style], 'day_trader');
 
-    await tester.sendKeyEvent(LogicalKeyboardKey.digit1); // XAUUSD
+    await tester.sendKeyEvent(
+      LogicalKeyboardKey.digit1,
+    ); // first instrument: EURUSD (forex is the first group)
     await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await tester.pump();
     await tester.pump();
     expect(c.read(onboardingControllerProvider).currentId, StepIds.sessions);
-    expect(c.read(onboardingControllerProvider).answers[StepIds.markets], ['XAUUSD']);
+    expect(c.read(onboardingControllerProvider).answers[StepIds.markets], ['EURUSD']);
 
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await tester.pump();

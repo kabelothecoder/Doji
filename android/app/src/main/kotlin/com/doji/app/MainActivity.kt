@@ -1,5 +1,6 @@
 package com.doji.app
 
-import io.flutter.embedding.android.FlutterActivity
+// local_auth (app lock) needs a FragmentActivity for BiometricPrompt.
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+class MainActivity : FlutterFragmentActivity()

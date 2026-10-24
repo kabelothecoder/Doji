@@ -6,9 +6,12 @@ list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   connectivity_plus
   flutter_timezone
+  local_auth_windows
   permission_handler_windows
+  screen_retriever_windows
   speech_to_text_windows
   url_launcher_windows
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

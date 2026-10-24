@@ -19,6 +19,17 @@ enum DojiButtonVariant {
 
   /// Tilt-orange fill (`.caution`).
   caution,
+
+  /// Primary-text fill, bg-coloured label. Auth A11 "sign out": not
+  /// destructive to data, so neutral white rather than orange.
+  neutral,
+
+  /// Transparent, separator hairline, primary label. Auth "use another
+  /// method", "done".
+  outline,
+
+  /// Transparent, tilt-orange hairline and label. Auth A12a "continue".
+  cautionOutline,
 }
 
 enum DojiButtonSize {
@@ -84,6 +95,9 @@ class DojiButton extends StatelessWidget {
       ),
       DojiButtonVariant.ghost => (Colors.transparent, DojiColors.dojiGreen, null),
       DojiButtonVariant.caution => (DojiColors.tiltOrange, DojiColors.bg, null),
+      DojiButtonVariant.neutral => (DojiColors.textPrimary, DojiColors.bg, null),
+      DojiButtonVariant.outline => (Colors.transparent, DojiColors.textPrimary, DojiColors.separator),
+      DojiButtonVariant.cautionOutline => (Colors.transparent, DojiColors.tiltOrange, DojiColors.tiltOrange),
     };
     final isQuiet = variant == DojiButtonVariant.text || variant == DojiButtonVariant.ghost;
     final style = (isQuiet || size == DojiButtonSize.small ? DojiType.callout : DojiType.button).copyWith(
@@ -144,6 +158,8 @@ class DojiIconButton extends StatelessWidget {
     this.size,
     this.background,
     this.foreground,
+    this.outlined = true,
+    this.iconSize = 22,
   });
 
   final IconData icon;
@@ -157,6 +173,10 @@ class DojiIconButton extends StatelessWidget {
   final double? size;
   final Color? background;
   final Color? foreground;
+
+  /// Separator ring. Off for the bare chevron / close in auth headers.
+  final bool outlined;
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
@@ -176,9 +196,9 @@ class DojiIconButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: bg,
             shape: BoxShape.circle,
-            border: filled ? null : Border.all(color: DojiColors.separator),
+            border: filled || !outlined ? null : Border.all(color: DojiColors.separator),
           ),
-          child: Icon(icon, size: 22, color: fg),
+          child: Icon(icon, size: iconSize, color: fg),
         ),
       ),
     );

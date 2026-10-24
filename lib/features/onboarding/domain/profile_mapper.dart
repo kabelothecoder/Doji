@@ -1,6 +1,8 @@
+import '../../markets/domain/currency.dart';
 import 'onboarding_catalog.dart';
 import 'onboarding_step.dart';
 import 'profile_doji.dart';
+import 'prop_rules.dart';
 
 /// Builds the typed profile from raw answers. Pure: safe to call on every
 /// rebuild, and the single place that knows each answer's shape.
@@ -32,13 +34,14 @@ ProfileDoji profileFromAnswers(Answers a) {
     name: A.str(a, StepIds.name)?.trim(),
     experience: A.str(a, StepIds.experience),
     style: A.str(a, StepIds.style),
-    pairs: A.list(a, StepIds.markets),
+    instruments: A.list(a, StepIds.markets),
     sessions: A.list(a, StepIds.sessions),
     timeZone: A.mapStr(tz, 'id'),
     utcOffsetMinutes: A.mapNum(tz, 'offsetMinutes')?.round(),
     goal: A.mapStr(goal, 'goal'),
-    propFirm: A.mapStr(goal, 'propFirm'),
-    propSize: A.mapNum(goal, 'propSize')?.round(),
+    prop: _propRules(goal),
+    accountCurrency:
+        AccountCurrency.fromCode(A.mapStr(risk, 'currency'))?.code ?? AccountCurrency.fallback.code,
     struggles: A.list(a, StepIds.struggles),
     strategy: strategy is Map || parsedStrategy != null
         ? StrategyProfile(
@@ -60,4 +63,21 @@ ProfileDoji profileFromAnswers(Answers a) {
     notificationsAllowed: notifications == null ? null : notifications == 'granted',
     pledgedAt: pledgedAt == null ? null : DateTime.tryParse(pledgedAt),
   );
+}
+
+/// The prop limits typed on the goal step. Only for a prop challenge, and
+/// null when the user entered none of them.
+PropRules? _propRules(Object? goal) {
+  if (A.mapStr(goal, 'goal') != 'prop_challenge') return null;
+  final rules = PropRules(
+    firm: A.mapStr(goal, 'propFirm'),
+    accountSize: A.mapNum(goal, 'propSize')?.round(),
+    dailyLossLimitPct: A.mapNum(goal, 'propDailyLoss')?.toDouble(),
+    maxDrawdownPct: A.mapNum(goal, 'propMaxDrawdown')?.toDouble(),
+    drawdownType: DrawdownType.values.asNameMap()[A.mapStr(goal, 'propDrawdownType')] ?? DrawdownType.fixed,
+    trailingBasis:
+        TrailingBasis.values.asNameMap()[A.mapStr(goal, 'propTrailingBasis')] ?? TrailingBasis.equity,
+    profitTargetPct: A.mapNum(goal, 'propTarget')?.toDouble(),
+  );
+  return rules.isEmpty ? null : rules;
 }

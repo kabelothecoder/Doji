@@ -8,6 +8,7 @@ import '../../../../core/widgets/widgets.dart';
 import '../../domain/onboarding_catalog.dart';
 import '../../domain/onboarding_step.dart';
 import '../../domain/sessions.dart';
+import '../../domain/user_zone.dart';
 import 'step_input.dart';
 
 /// Handoff 5a: `VoiceCard(onPlay) × 3`, plus the coach name from the brief
@@ -103,8 +104,10 @@ class RitualInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final options = args.step.resolveOptions(args.answers);
     final time = A.mapStr(args.draft, 'time');
-    final offset = (A.mapNum(args.answers[StepIds.timeZone], 'offsetMinutes') ?? 0).round();
-    final session = firstSession(A.list(args.answers, StepIds.sessions), offset)?.label.toLowerCase();
+    final session = firstSession(
+      A.list(args.answers, StepIds.sessions),
+      userZoneFromAnswers(args.answers),
+    )?.label.toLowerCase();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,

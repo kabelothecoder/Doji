@@ -1,5 +1,8 @@
 import 'package:doji_app/core/haptics/doji_haptics.dart';
 import 'package:doji_app/core/platform/connectivity.dart';
+import 'package:doji_app/features/app_lock/data/biometric_auth.dart';
+import 'package:doji_app/features/app_lock/domain/biometric_kind.dart';
+import 'package:doji_app/features/auth/data/fake_auth_repository.dart';
 import 'package:doji_app/features/onboarding/data/device_services.dart';
 import 'package:doji_app/features/onboarding/data/mock_strategy_parser.dart';
 import 'package:doji_app/features/onboarding/data/onboarding_repository.dart';
@@ -42,11 +45,52 @@ class RecordingHaptics extends DojiHaptics {
   Future<void> light() async => events.add('light');
 
   @override
+  Future<void> success() async => events.add('success');
+
+  @override
   Future<void> heavy() async => events.add('heavy');
 }
 
+/// Face ID that answers [result] (or [results] in order) without a prompt.
+class FakeBiometricAuth implements BiometricAuth {
+  FakeBiometricAuth({
+    this.kind = BiometricKind.faceId,
+    this.result = BiometricResult.success,
+    List<BiometricResult>? results,
+  }) : _queue = [...?results];
+
+  BiometricKind? kind;
+  BiometricResult result;
+  final List<BiometricResult> _queue;
+  final calls = <({String reason, bool allowFallback})>[];
+
+  @override
+  Future<BiometricKind?> availableKind() async => kind;
+
+  @override
+  Future<BiometricResult> authenticate({required String reason, bool allowFallback = false}) async {
+    calls.add((reason: reason, allowFallback: allowFallback));
+    return _queue.isNotEmpty ? _queue.removeAt(0) : result;
+  }
+}
+
+/// [FakeAuthRepository] with test latencies (short, but long enough to see
+/// the waiting states).
+FakeAuthRepository testAuthRepository(SharedPreferences prefs, {bool Function()? isOnline}) =>
+    FakeAuthRepository(
+      prefs,
+      isOnline: isOnline,
+      sheetLatency: const Duration(milliseconds: 100),
+      networkLatency: const Duration(milliseconds: 50),
+    );
+
 /// Everything platform-specific replaced with deterministic fakes.
-List<Override> testOverrides(SharedPreferences prefs, {RecordingHaptics? haptics}) => [
+List<Override> testOverrides(
+  SharedPreferences prefs, {
+  RecordingHaptics? haptics,
+  FakeBiometricAuth? biometric,
+  bool Function()? isOnline,
+}) => [
   sharedPreferencesProvider.overrideWithValue(prefs),
   timeZoneServiceProvider.overrideWithValue(const FakeTimeZoneService()),
   strategyParserProvider.overrideWithValue(const MockStrategyParser(latency: Duration.zero)),
@@ -54,4 +98,6 @@ List<Override> testOverrides(SharedPreferences prefs, {RecordingHaptics? haptics
   voiceInputProvider.overrideWithValue(const UnavailableVoiceInput()),
   isOnlineProvider.overrideWith((ref) => Stream.value(true)),
   hapticsProvider.overrideWithValue(haptics ?? RecordingHaptics()),
+  biometricAuthProvider.overrideWithValue(biometric ?? FakeBiometricAuth()),
+  authRepositoryProvider.overrideWithValue(testAuthRepository(prefs, isOnline: isOnline)),
 ];

@@ -43,6 +43,8 @@
 		</array>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
+		<key>NSFaceIDUsageDescription</key>
+		<string>unlock doji and keep your journal private</string>
 		<key>NSMicrophoneUsageDescription</key>
 		<string>doji listens only while the mic is on, to write down your strategy in your own words.</string>
 		<key>NSSpeechRecognitionUsageDescription</key>

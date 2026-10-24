@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/theme/typography.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../markets/domain/currency.dart';
 import '../../domain/onboarding_catalog.dart';
 import '../../domain/onboarding_step.dart';
 import '../../domain/risk.dart';
@@ -25,6 +26,7 @@ class RiskInput extends StatelessWidget {
     final maxTrades = A.mapNum(args.draft, 'maxTrades') ?? 3;
     final dailyLoss = A.mapNum(args.draft, 'dailyLoss') ?? 2;
     final note = riskNote(risk);
+    final currency = AccountCurrency.fromCode(A.mapStr(args.draft, 'currency')) ?? AccountCurrency.fallback;
 
     final chips = [
       for (var i = 0; i < riskOptions.length; i++)
@@ -101,6 +103,26 @@ class RiskInput extends StatelessWidget {
           const SizedBox(height: 12),
           steppers[1],
         ],
+        SizedBox(height: args.wide ? 14 : 12),
+        // The currency the balance is held in: sizing converts into it.
+        Text('ACCOUNT CURRENCY', style: DojiType.label.copyWith(letterSpacing: 0.5)),
+        const SizedBox(height: 8),
+        EqualColumns(
+          columns: 4,
+          gap: args.wide ? 10 : 8,
+          children: [
+            for (final c in AccountCurrency.values)
+              DojiChoiceChip(
+                label: c.code,
+                mono: true,
+                center: true,
+                exclusive: true,
+                minHeight: 48,
+                selected: currency == c,
+                onTap: () => _set({'currency': c.code}),
+              ),
+          ],
+        ),
       ],
     );
   }

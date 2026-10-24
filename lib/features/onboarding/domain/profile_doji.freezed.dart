@@ -17,10 +17,15 @@ mixin _$ProfileDoji {
 
  String? get name;/// lt_6m | 6_24m | 2_5y | 5y_plus
  String? get experience;/// scalper | day_trader | swing | undecided
- String? get style; List<String> get pairs;/// asia | london | new_york | around_job
+ String? get style;/// Instrument symbols from the markets catalogue ('XAUUSD', 'R_75', 'BTCUSD'),
+/// or the user's own custom symbols.
+ List<String> get instruments;/// asia | london | new_york | around_job
  List<String> get sessions;/// IANA id when detected (e.g. Africa/Johannesburg).
  String? get timeZone; int? get utcOffsetMinutes;/// prop_challenge | grow_account | consistent | make_it_my_job | learn
- String? get goal; String? get propFirm; int? get propSize;/// revenge | fomo | overtrading | hesitation | moving_stop | oversizing | bored
+ String? get goal;/// The prop challenge's own limits; only set when the goal is a prop challenge.
+ PropRules? get prop;/// USD | ZAR | EUR | GBP. The currency the account balance is held in;
+/// position sizing converts into it.
+ String get accountCurrency;/// revenge | fomo | overtrading | hesitation | moving_stop | oversizing | bored
  List<String> get struggles; StrategyProfile? get strategy; TradingRules? get rules; CoachProfile? get coach;/// "The Open" ritual time, local HH:mm.
  String? get theOpenTime; bool? get notificationsAllowed; DateTime? get pledgedAt; int get onboardingVersion;/// Everyone starts at M1 · Impulsive.
  String get rank;/// Kept on device only ("continue without account"); sync when signed in.
@@ -37,16 +42,16 @@ $ProfileDojiCopyWith<ProfileDoji> get copyWith => _$ProfileDojiCopyWithImpl<Prof
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileDoji&&(identical(other.name, name) || other.name == name)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.style, style) || other.style == style)&&const DeepCollectionEquality().equals(other.pairs, pairs)&&const DeepCollectionEquality().equals(other.sessions, sessions)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.utcOffsetMinutes, utcOffsetMinutes) || other.utcOffsetMinutes == utcOffsetMinutes)&&(identical(other.goal, goal) || other.goal == goal)&&(identical(other.propFirm, propFirm) || other.propFirm == propFirm)&&(identical(other.propSize, propSize) || other.propSize == propSize)&&const DeepCollectionEquality().equals(other.struggles, struggles)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.coach, coach) || other.coach == coach)&&(identical(other.theOpenTime, theOpenTime) || other.theOpenTime == theOpenTime)&&(identical(other.notificationsAllowed, notificationsAllowed) || other.notificationsAllowed == notificationsAllowed)&&(identical(other.pledgedAt, pledgedAt) || other.pledgedAt == pledgedAt)&&(identical(other.onboardingVersion, onboardingVersion) || other.onboardingVersion == onboardingVersion)&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.pendingSync, pendingSync) || other.pendingSync == pendingSync)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileDoji&&(identical(other.name, name) || other.name == name)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.style, style) || other.style == style)&&const DeepCollectionEquality().equals(other.instruments, instruments)&&const DeepCollectionEquality().equals(other.sessions, sessions)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.utcOffsetMinutes, utcOffsetMinutes) || other.utcOffsetMinutes == utcOffsetMinutes)&&(identical(other.goal, goal) || other.goal == goal)&&(identical(other.prop, prop) || other.prop == prop)&&(identical(other.accountCurrency, accountCurrency) || other.accountCurrency == accountCurrency)&&const DeepCollectionEquality().equals(other.struggles, struggles)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.coach, coach) || other.coach == coach)&&(identical(other.theOpenTime, theOpenTime) || other.theOpenTime == theOpenTime)&&(identical(other.notificationsAllowed, notificationsAllowed) || other.notificationsAllowed == notificationsAllowed)&&(identical(other.pledgedAt, pledgedAt) || other.pledgedAt == pledgedAt)&&(identical(other.onboardingVersion, onboardingVersion) || other.onboardingVersion == onboardingVersion)&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.pendingSync, pendingSync) || other.pendingSync == pendingSync)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,name,experience,style,const DeepCollectionEquality().hash(pairs),const DeepCollectionEquality().hash(sessions),timeZone,utcOffsetMinutes,goal,propFirm,propSize,const DeepCollectionEquality().hash(struggles),strategy,rules,coach,theOpenTime,notificationsAllowed,pledgedAt,onboardingVersion,rank,pendingSync,completedAt]);
+int get hashCode => Object.hashAll([runtimeType,name,experience,style,const DeepCollectionEquality().hash(instruments),const DeepCollectionEquality().hash(sessions),timeZone,utcOffsetMinutes,goal,prop,accountCurrency,const DeepCollectionEquality().hash(struggles),strategy,rules,coach,theOpenTime,notificationsAllowed,pledgedAt,onboardingVersion,rank,pendingSync,completedAt]);
 
 @override
 String toString() {
-  return 'ProfileDoji(name: $name, experience: $experience, style: $style, pairs: $pairs, sessions: $sessions, timeZone: $timeZone, utcOffsetMinutes: $utcOffsetMinutes, goal: $goal, propFirm: $propFirm, propSize: $propSize, struggles: $struggles, strategy: $strategy, rules: $rules, coach: $coach, theOpenTime: $theOpenTime, notificationsAllowed: $notificationsAllowed, pledgedAt: $pledgedAt, onboardingVersion: $onboardingVersion, rank: $rank, pendingSync: $pendingSync, completedAt: $completedAt)';
+  return 'ProfileDoji(name: $name, experience: $experience, style: $style, instruments: $instruments, sessions: $sessions, timeZone: $timeZone, utcOffsetMinutes: $utcOffsetMinutes, goal: $goal, prop: $prop, accountCurrency: $accountCurrency, struggles: $struggles, strategy: $strategy, rules: $rules, coach: $coach, theOpenTime: $theOpenTime, notificationsAllowed: $notificationsAllowed, pledgedAt: $pledgedAt, onboardingVersion: $onboardingVersion, rank: $rank, pendingSync: $pendingSync, completedAt: $completedAt)';
 }
 
 
@@ -57,11 +62,11 @@ abstract mixin class $ProfileDojiCopyWith<$Res>  {
   factory $ProfileDojiCopyWith(ProfileDoji value, $Res Function(ProfileDoji) _then) = _$ProfileDojiCopyWithImpl;
 @useResult
 $Res call({
- String? name, String? experience, String? style, List<String> pairs, List<String> sessions, String? timeZone, int? utcOffsetMinutes, String? goal, String? propFirm, int? propSize, List<String> struggles, StrategyProfile? strategy, TradingRules? rules, CoachProfile? coach, String? theOpenTime, bool? notificationsAllowed, DateTime? pledgedAt, int onboardingVersion, String rank, bool pendingSync, DateTime? completedAt
+ String? name, String? experience, String? style, List<String> instruments, List<String> sessions, String? timeZone, int? utcOffsetMinutes, String? goal, PropRules? prop, String accountCurrency, List<String> struggles, StrategyProfile? strategy, TradingRules? rules, CoachProfile? coach, String? theOpenTime, bool? notificationsAllowed, DateTime? pledgedAt, int onboardingVersion, String rank, bool pendingSync, DateTime? completedAt
 });
 
 
-$StrategyProfileCopyWith<$Res>? get strategy;$TradingRulesCopyWith<$Res>? get rules;$CoachProfileCopyWith<$Res>? get coach;
+$PropRulesCopyWith<$Res>? get prop;$StrategyProfileCopyWith<$Res>? get strategy;$TradingRulesCopyWith<$Res>? get rules;$CoachProfileCopyWith<$Res>? get coach;
 
 }
 /// @nodoc
@@ -74,19 +79,19 @@ class _$ProfileDojiCopyWithImpl<$Res>
 
 /// Create a copy of ProfileDoji
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = freezed,Object? experience = freezed,Object? style = freezed,Object? pairs = null,Object? sessions = null,Object? timeZone = freezed,Object? utcOffsetMinutes = freezed,Object? goal = freezed,Object? propFirm = freezed,Object? propSize = freezed,Object? struggles = null,Object? strategy = freezed,Object? rules = freezed,Object? coach = freezed,Object? theOpenTime = freezed,Object? notificationsAllowed = freezed,Object? pledgedAt = freezed,Object? onboardingVersion = null,Object? rank = null,Object? pendingSync = null,Object? completedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = freezed,Object? experience = freezed,Object? style = freezed,Object? instruments = null,Object? sessions = null,Object? timeZone = freezed,Object? utcOffsetMinutes = freezed,Object? goal = freezed,Object? prop = freezed,Object? accountCurrency = null,Object? struggles = null,Object? strategy = freezed,Object? rules = freezed,Object? coach = freezed,Object? theOpenTime = freezed,Object? notificationsAllowed = freezed,Object? pledgedAt = freezed,Object? onboardingVersion = null,Object? rank = null,Object? pendingSync = null,Object? completedAt = freezed,}) {
   return _then(_self.copyWith(
 name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,experience: freezed == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
 as String?,style: freezed == style ? _self.style : style // ignore: cast_nullable_to_non_nullable
-as String?,pairs: null == pairs ? _self.pairs : pairs // ignore: cast_nullable_to_non_nullable
+as String?,instruments: null == instruments ? _self.instruments : instruments // ignore: cast_nullable_to_non_nullable
 as List<String>,sessions: null == sessions ? _self.sessions : sessions // ignore: cast_nullable_to_non_nullable
 as List<String>,timeZone: freezed == timeZone ? _self.timeZone : timeZone // ignore: cast_nullable_to_non_nullable
 as String?,utcOffsetMinutes: freezed == utcOffsetMinutes ? _self.utcOffsetMinutes : utcOffsetMinutes // ignore: cast_nullable_to_non_nullable
 as int?,goal: freezed == goal ? _self.goal : goal // ignore: cast_nullable_to_non_nullable
-as String?,propFirm: freezed == propFirm ? _self.propFirm : propFirm // ignore: cast_nullable_to_non_nullable
-as String?,propSize: freezed == propSize ? _self.propSize : propSize // ignore: cast_nullable_to_non_nullable
-as int?,struggles: null == struggles ? _self.struggles : struggles // ignore: cast_nullable_to_non_nullable
+as String?,prop: freezed == prop ? _self.prop : prop // ignore: cast_nullable_to_non_nullable
+as PropRules?,accountCurrency: null == accountCurrency ? _self.accountCurrency : accountCurrency // ignore: cast_nullable_to_non_nullable
+as String,struggles: null == struggles ? _self.struggles : struggles // ignore: cast_nullable_to_non_nullable
 as List<String>,strategy: freezed == strategy ? _self.strategy : strategy // ignore: cast_nullable_to_non_nullable
 as StrategyProfile?,rules: freezed == rules ? _self.rules : rules // ignore: cast_nullable_to_non_nullable
 as TradingRules?,coach: freezed == coach ? _self.coach : coach // ignore: cast_nullable_to_non_nullable
@@ -101,6 +106,18 @@ as DateTime?,
   ));
 }
 /// Create a copy of ProfileDoji
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PropRulesCopyWith<$Res>? get prop {
+    if (_self.prop == null) {
+    return null;
+  }
+
+  return $PropRulesCopyWith<$Res>(_self.prop!, (value) {
+    return _then(_self.copyWith(prop: value));
+  });
+}/// Create a copy of ProfileDoji
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -218,10 +235,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? name,  String? experience,  String? style,  List<String> pairs,  List<String> sessions,  String? timeZone,  int? utcOffsetMinutes,  String? goal,  String? propFirm,  int? propSize,  List<String> struggles,  StrategyProfile? strategy,  TradingRules? rules,  CoachProfile? coach,  String? theOpenTime,  bool? notificationsAllowed,  DateTime? pledgedAt,  int onboardingVersion,  String rank,  bool pendingSync,  DateTime? completedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? name,  String? experience,  String? style,  List<String> instruments,  List<String> sessions,  String? timeZone,  int? utcOffsetMinutes,  String? goal,  PropRules? prop,  String accountCurrency,  List<String> struggles,  StrategyProfile? strategy,  TradingRules? rules,  CoachProfile? coach,  String? theOpenTime,  bool? notificationsAllowed,  DateTime? pledgedAt,  int onboardingVersion,  String rank,  bool pendingSync,  DateTime? completedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProfileDoji() when $default != null:
-return $default(_that.name,_that.experience,_that.style,_that.pairs,_that.sessions,_that.timeZone,_that.utcOffsetMinutes,_that.goal,_that.propFirm,_that.propSize,_that.struggles,_that.strategy,_that.rules,_that.coach,_that.theOpenTime,_that.notificationsAllowed,_that.pledgedAt,_that.onboardingVersion,_that.rank,_that.pendingSync,_that.completedAt);case _:
+return $default(_that.name,_that.experience,_that.style,_that.instruments,_that.sessions,_that.timeZone,_that.utcOffsetMinutes,_that.goal,_that.prop,_that.accountCurrency,_that.struggles,_that.strategy,_that.rules,_that.coach,_that.theOpenTime,_that.notificationsAllowed,_that.pledgedAt,_that.onboardingVersion,_that.rank,_that.pendingSync,_that.completedAt);case _:
   return orElse();
 
 }
@@ -239,10 +256,10 @@ return $default(_that.name,_that.experience,_that.style,_that.pairs,_that.sessio
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? name,  String? experience,  String? style,  List<String> pairs,  List<String> sessions,  String? timeZone,  int? utcOffsetMinutes,  String? goal,  String? propFirm,  int? propSize,  List<String> struggles,  StrategyProfile? strategy,  TradingRules? rules,  CoachProfile? coach,  String? theOpenTime,  bool? notificationsAllowed,  DateTime? pledgedAt,  int onboardingVersion,  String rank,  bool pendingSync,  DateTime? completedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? name,  String? experience,  String? style,  List<String> instruments,  List<String> sessions,  String? timeZone,  int? utcOffsetMinutes,  String? goal,  PropRules? prop,  String accountCurrency,  List<String> struggles,  StrategyProfile? strategy,  TradingRules? rules,  CoachProfile? coach,  String? theOpenTime,  bool? notificationsAllowed,  DateTime? pledgedAt,  int onboardingVersion,  String rank,  bool pendingSync,  DateTime? completedAt)  $default,) {final _that = this;
 switch (_that) {
 case _ProfileDoji():
-return $default(_that.name,_that.experience,_that.style,_that.pairs,_that.sessions,_that.timeZone,_that.utcOffsetMinutes,_that.goal,_that.propFirm,_that.propSize,_that.struggles,_that.strategy,_that.rules,_that.coach,_that.theOpenTime,_that.notificationsAllowed,_that.pledgedAt,_that.onboardingVersion,_that.rank,_that.pendingSync,_that.completedAt);case _:
+return $default(_that.name,_that.experience,_that.style,_that.instruments,_that.sessions,_that.timeZone,_that.utcOffsetMinutes,_that.goal,_that.prop,_that.accountCurrency,_that.struggles,_that.strategy,_that.rules,_that.coach,_that.theOpenTime,_that.notificationsAllowed,_that.pledgedAt,_that.onboardingVersion,_that.rank,_that.pendingSync,_that.completedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -259,10 +276,10 @@ return $default(_that.name,_that.experience,_that.style,_that.pairs,_that.sessio
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? name,  String? experience,  String? style,  List<String> pairs,  List<String> sessions,  String? timeZone,  int? utcOffsetMinutes,  String? goal,  String? propFirm,  int? propSize,  List<String> struggles,  StrategyProfile? strategy,  TradingRules? rules,  CoachProfile? coach,  String? theOpenTime,  bool? notificationsAllowed,  DateTime? pledgedAt,  int onboardingVersion,  String rank,  bool pendingSync,  DateTime? completedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? name,  String? experience,  String? style,  List<String> instruments,  List<String> sessions,  String? timeZone,  int? utcOffsetMinutes,  String? goal,  PropRules? prop,  String accountCurrency,  List<String> struggles,  StrategyProfile? strategy,  TradingRules? rules,  CoachProfile? coach,  String? theOpenTime,  bool? notificationsAllowed,  DateTime? pledgedAt,  int onboardingVersion,  String rank,  bool pendingSync,  DateTime? completedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ProfileDoji() when $default != null:
-return $default(_that.name,_that.experience,_that.style,_that.pairs,_that.sessions,_that.timeZone,_that.utcOffsetMinutes,_that.goal,_that.propFirm,_that.propSize,_that.struggles,_that.strategy,_that.rules,_that.coach,_that.theOpenTime,_that.notificationsAllowed,_that.pledgedAt,_that.onboardingVersion,_that.rank,_that.pendingSync,_that.completedAt);case _:
+return $default(_that.name,_that.experience,_that.style,_that.instruments,_that.sessions,_that.timeZone,_that.utcOffsetMinutes,_that.goal,_that.prop,_that.accountCurrency,_that.struggles,_that.strategy,_that.rules,_that.coach,_that.theOpenTime,_that.notificationsAllowed,_that.pledgedAt,_that.onboardingVersion,_that.rank,_that.pendingSync,_that.completedAt);case _:
   return null;
 
 }
@@ -274,7 +291,7 @@ return $default(_that.name,_that.experience,_that.style,_that.pairs,_that.sessio
 @JsonSerializable()
 
 class _ProfileDoji extends ProfileDoji {
-  const _ProfileDoji({this.name, this.experience, this.style, final  List<String> pairs = const <String>[], final  List<String> sessions = const <String>[], this.timeZone, this.utcOffsetMinutes, this.goal, this.propFirm, this.propSize, final  List<String> struggles = const <String>[], this.strategy, this.rules, this.coach, this.theOpenTime, this.notificationsAllowed, this.pledgedAt, this.onboardingVersion = 1, this.rank = 'M1', this.pendingSync = false, this.completedAt}): _pairs = pairs,_sessions = sessions,_struggles = struggles,super._();
+  const _ProfileDoji({this.name, this.experience, this.style, final  List<String> instruments = const <String>[], final  List<String> sessions = const <String>[], this.timeZone, this.utcOffsetMinutes, this.goal, this.prop, this.accountCurrency = 'USD', final  List<String> struggles = const <String>[], this.strategy, this.rules, this.coach, this.theOpenTime, this.notificationsAllowed, this.pledgedAt, this.onboardingVersion = kOnboardingVersion, this.rank = 'M1', this.pendingSync = false, this.completedAt}): _instruments = instruments,_sessions = sessions,_struggles = struggles,super._();
   factory _ProfileDoji.fromJson(Map<String, dynamic> json) => _$ProfileDojiFromJson(json);
 
 @override final  String? name;
@@ -282,11 +299,15 @@ class _ProfileDoji extends ProfileDoji {
 @override final  String? experience;
 /// scalper | day_trader | swing | undecided
 @override final  String? style;
- final  List<String> _pairs;
-@override@JsonKey() List<String> get pairs {
-  if (_pairs is EqualUnmodifiableListView) return _pairs;
+/// Instrument symbols from the markets catalogue ('XAUUSD', 'R_75', 'BTCUSD'),
+/// or the user's own custom symbols.
+ final  List<String> _instruments;
+/// Instrument symbols from the markets catalogue ('XAUUSD', 'R_75', 'BTCUSD'),
+/// or the user's own custom symbols.
+@override@JsonKey() List<String> get instruments {
+  if (_instruments is EqualUnmodifiableListView) return _instruments;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_pairs);
+  return EqualUnmodifiableListView(_instruments);
 }
 
 /// asia | london | new_york | around_job
@@ -303,8 +324,11 @@ class _ProfileDoji extends ProfileDoji {
 @override final  int? utcOffsetMinutes;
 /// prop_challenge | grow_account | consistent | make_it_my_job | learn
 @override final  String? goal;
-@override final  String? propFirm;
-@override final  int? propSize;
+/// The prop challenge's own limits; only set when the goal is a prop challenge.
+@override final  PropRules? prop;
+/// USD | ZAR | EUR | GBP. The currency the account balance is held in;
+/// position sizing converts into it.
+@override@JsonKey() final  String accountCurrency;
 /// revenge | fomo | overtrading | hesitation | moving_stop | oversizing | bored
  final  List<String> _struggles;
 /// revenge | fomo | overtrading | hesitation | moving_stop | oversizing | bored
@@ -341,16 +365,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileDoji&&(identical(other.name, name) || other.name == name)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.style, style) || other.style == style)&&const DeepCollectionEquality().equals(other._pairs, _pairs)&&const DeepCollectionEquality().equals(other._sessions, _sessions)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.utcOffsetMinutes, utcOffsetMinutes) || other.utcOffsetMinutes == utcOffsetMinutes)&&(identical(other.goal, goal) || other.goal == goal)&&(identical(other.propFirm, propFirm) || other.propFirm == propFirm)&&(identical(other.propSize, propSize) || other.propSize == propSize)&&const DeepCollectionEquality().equals(other._struggles, _struggles)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.coach, coach) || other.coach == coach)&&(identical(other.theOpenTime, theOpenTime) || other.theOpenTime == theOpenTime)&&(identical(other.notificationsAllowed, notificationsAllowed) || other.notificationsAllowed == notificationsAllowed)&&(identical(other.pledgedAt, pledgedAt) || other.pledgedAt == pledgedAt)&&(identical(other.onboardingVersion, onboardingVersion) || other.onboardingVersion == onboardingVersion)&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.pendingSync, pendingSync) || other.pendingSync == pendingSync)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileDoji&&(identical(other.name, name) || other.name == name)&&(identical(other.experience, experience) || other.experience == experience)&&(identical(other.style, style) || other.style == style)&&const DeepCollectionEquality().equals(other._instruments, _instruments)&&const DeepCollectionEquality().equals(other._sessions, _sessions)&&(identical(other.timeZone, timeZone) || other.timeZone == timeZone)&&(identical(other.utcOffsetMinutes, utcOffsetMinutes) || other.utcOffsetMinutes == utcOffsetMinutes)&&(identical(other.goal, goal) || other.goal == goal)&&(identical(other.prop, prop) || other.prop == prop)&&(identical(other.accountCurrency, accountCurrency) || other.accountCurrency == accountCurrency)&&const DeepCollectionEquality().equals(other._struggles, _struggles)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.coach, coach) || other.coach == coach)&&(identical(other.theOpenTime, theOpenTime) || other.theOpenTime == theOpenTime)&&(identical(other.notificationsAllowed, notificationsAllowed) || other.notificationsAllowed == notificationsAllowed)&&(identical(other.pledgedAt, pledgedAt) || other.pledgedAt == pledgedAt)&&(identical(other.onboardingVersion, onboardingVersion) || other.onboardingVersion == onboardingVersion)&&(identical(other.rank, rank) || other.rank == rank)&&(identical(other.pendingSync, pendingSync) || other.pendingSync == pendingSync)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,name,experience,style,const DeepCollectionEquality().hash(_pairs),const DeepCollectionEquality().hash(_sessions),timeZone,utcOffsetMinutes,goal,propFirm,propSize,const DeepCollectionEquality().hash(_struggles),strategy,rules,coach,theOpenTime,notificationsAllowed,pledgedAt,onboardingVersion,rank,pendingSync,completedAt]);
+int get hashCode => Object.hashAll([runtimeType,name,experience,style,const DeepCollectionEquality().hash(_instruments),const DeepCollectionEquality().hash(_sessions),timeZone,utcOffsetMinutes,goal,prop,accountCurrency,const DeepCollectionEquality().hash(_struggles),strategy,rules,coach,theOpenTime,notificationsAllowed,pledgedAt,onboardingVersion,rank,pendingSync,completedAt]);
 
 @override
 String toString() {
-  return 'ProfileDoji(name: $name, experience: $experience, style: $style, pairs: $pairs, sessions: $sessions, timeZone: $timeZone, utcOffsetMinutes: $utcOffsetMinutes, goal: $goal, propFirm: $propFirm, propSize: $propSize, struggles: $struggles, strategy: $strategy, rules: $rules, coach: $coach, theOpenTime: $theOpenTime, notificationsAllowed: $notificationsAllowed, pledgedAt: $pledgedAt, onboardingVersion: $onboardingVersion, rank: $rank, pendingSync: $pendingSync, completedAt: $completedAt)';
+  return 'ProfileDoji(name: $name, experience: $experience, style: $style, instruments: $instruments, sessions: $sessions, timeZone: $timeZone, utcOffsetMinutes: $utcOffsetMinutes, goal: $goal, prop: $prop, accountCurrency: $accountCurrency, struggles: $struggles, strategy: $strategy, rules: $rules, coach: $coach, theOpenTime: $theOpenTime, notificationsAllowed: $notificationsAllowed, pledgedAt: $pledgedAt, onboardingVersion: $onboardingVersion, rank: $rank, pendingSync: $pendingSync, completedAt: $completedAt)';
 }
 
 
@@ -361,11 +385,11 @@ abstract mixin class _$ProfileDojiCopyWith<$Res> implements $ProfileDojiCopyWith
   factory _$ProfileDojiCopyWith(_ProfileDoji value, $Res Function(_ProfileDoji) _then) = __$ProfileDojiCopyWithImpl;
 @override @useResult
 $Res call({
- String? name, String? experience, String? style, List<String> pairs, List<String> sessions, String? timeZone, int? utcOffsetMinutes, String? goal, String? propFirm, int? propSize, List<String> struggles, StrategyProfile? strategy, TradingRules? rules, CoachProfile? coach, String? theOpenTime, bool? notificationsAllowed, DateTime? pledgedAt, int onboardingVersion, String rank, bool pendingSync, DateTime? completedAt
+ String? name, String? experience, String? style, List<String> instruments, List<String> sessions, String? timeZone, int? utcOffsetMinutes, String? goal, PropRules? prop, String accountCurrency, List<String> struggles, StrategyProfile? strategy, TradingRules? rules, CoachProfile? coach, String? theOpenTime, bool? notificationsAllowed, DateTime? pledgedAt, int onboardingVersion, String rank, bool pendingSync, DateTime? completedAt
 });
 
 
-@override $StrategyProfileCopyWith<$Res>? get strategy;@override $TradingRulesCopyWith<$Res>? get rules;@override $CoachProfileCopyWith<$Res>? get coach;
+@override $PropRulesCopyWith<$Res>? get prop;@override $StrategyProfileCopyWith<$Res>? get strategy;@override $TradingRulesCopyWith<$Res>? get rules;@override $CoachProfileCopyWith<$Res>? get coach;
 
 }
 /// @nodoc
@@ -378,19 +402,19 @@ class __$ProfileDojiCopyWithImpl<$Res>
 
 /// Create a copy of ProfileDoji
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = freezed,Object? experience = freezed,Object? style = freezed,Object? pairs = null,Object? sessions = null,Object? timeZone = freezed,Object? utcOffsetMinutes = freezed,Object? goal = freezed,Object? propFirm = freezed,Object? propSize = freezed,Object? struggles = null,Object? strategy = freezed,Object? rules = freezed,Object? coach = freezed,Object? theOpenTime = freezed,Object? notificationsAllowed = freezed,Object? pledgedAt = freezed,Object? onboardingVersion = null,Object? rank = null,Object? pendingSync = null,Object? completedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = freezed,Object? experience = freezed,Object? style = freezed,Object? instruments = null,Object? sessions = null,Object? timeZone = freezed,Object? utcOffsetMinutes = freezed,Object? goal = freezed,Object? prop = freezed,Object? accountCurrency = null,Object? struggles = null,Object? strategy = freezed,Object? rules = freezed,Object? coach = freezed,Object? theOpenTime = freezed,Object? notificationsAllowed = freezed,Object? pledgedAt = freezed,Object? onboardingVersion = null,Object? rank = null,Object? pendingSync = null,Object? completedAt = freezed,}) {
   return _then(_ProfileDoji(
 name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,experience: freezed == experience ? _self.experience : experience // ignore: cast_nullable_to_non_nullable
 as String?,style: freezed == style ? _self.style : style // ignore: cast_nullable_to_non_nullable
-as String?,pairs: null == pairs ? _self._pairs : pairs // ignore: cast_nullable_to_non_nullable
+as String?,instruments: null == instruments ? _self._instruments : instruments // ignore: cast_nullable_to_non_nullable
 as List<String>,sessions: null == sessions ? _self._sessions : sessions // ignore: cast_nullable_to_non_nullable
 as List<String>,timeZone: freezed == timeZone ? _self.timeZone : timeZone // ignore: cast_nullable_to_non_nullable
 as String?,utcOffsetMinutes: freezed == utcOffsetMinutes ? _self.utcOffsetMinutes : utcOffsetMinutes // ignore: cast_nullable_to_non_nullable
 as int?,goal: freezed == goal ? _self.goal : goal // ignore: cast_nullable_to_non_nullable
-as String?,propFirm: freezed == propFirm ? _self.propFirm : propFirm // ignore: cast_nullable_to_non_nullable
-as String?,propSize: freezed == propSize ? _self.propSize : propSize // ignore: cast_nullable_to_non_nullable
-as int?,struggles: null == struggles ? _self._struggles : struggles // ignore: cast_nullable_to_non_nullable
+as String?,prop: freezed == prop ? _self.prop : prop // ignore: cast_nullable_to_non_nullable
+as PropRules?,accountCurrency: null == accountCurrency ? _self.accountCurrency : accountCurrency // ignore: cast_nullable_to_non_nullable
+as String,struggles: null == struggles ? _self._struggles : struggles // ignore: cast_nullable_to_non_nullable
 as List<String>,strategy: freezed == strategy ? _self.strategy : strategy // ignore: cast_nullable_to_non_nullable
 as StrategyProfile?,rules: freezed == rules ? _self.rules : rules // ignore: cast_nullable_to_non_nullable
 as TradingRules?,coach: freezed == coach ? _self.coach : coach // ignore: cast_nullable_to_non_nullable
@@ -406,6 +430,18 @@ as DateTime?,
 }
 
 /// Create a copy of ProfileDoji
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PropRulesCopyWith<$Res>? get prop {
+    if (_self.prop == null) {
+    return null;
+  }
+
+  return $PropRulesCopyWith<$Res>(_self.prop!, (value) {
+    return _then(_self.copyWith(prop: value));
+  });
+}/// Create a copy of ProfileDoji
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

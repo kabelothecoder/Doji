@@ -30,6 +30,10 @@ class DojiTextField extends StatefulWidget {
     this.textCapitalization = TextCapitalization.none,
     this.inputFormatters,
     this.trailing,
+    this.textStyle,
+    this.accent = DojiColors.dojiGreen,
+    this.autocorrect = true,
+    this.enableSuggestions = true,
   });
 
   final TextEditingController controller;
@@ -52,6 +56,14 @@ class DojiTextField extends StatefulWidget {
   final TextCapitalization textCapitalization;
   final List<TextInputFormatter>? inputFormatters;
   final Widget? trailing;
+
+  /// Overrides the 22 / 17 answer style (auth email 19, delete-confirm mono).
+  final TextStyle? textStyle;
+
+  /// Focused border and caret. Tilt-orange on the delete confirmation.
+  final Color accent;
+  final bool autocorrect;
+  final bool enableSuggestions;
 
   @override
   State<DojiTextField> createState() => _DojiTextFieldState();
@@ -81,9 +93,9 @@ class _DojiTextFieldState extends State<DojiTextField> {
     final border = widget.hasError
         ? DojiColors.tiltOrange
         : _focus.hasFocus
-        ? DojiColors.dojiGreen
+        ? widget.accent
         : DojiColors.separator;
-    final style = widget.large ? DojiType.answer : DojiType.body;
+    final style = widget.textStyle ?? (widget.large ? DojiType.answer : DojiType.body);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -110,7 +122,9 @@ class _DojiTextFieldState extends State<DojiTextField> {
                     maxLines: widget.maxLines,
                     minLines: widget.minLines,
                     style: style,
-                    cursorColor: DojiColors.dojiGreen,
+                    cursorColor: widget.accent,
+                    autocorrect: widget.autocorrect,
+                    enableSuggestions: widget.enableSuggestions,
                     cursorWidth: 2,
                     textInputAction: widget.textInputAction,
                     keyboardType: widget.keyboardType,

@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import '../../../core/widgets/config_panel.dart';
 import 'onboarding_catalog.dart';
 import 'onboarding_step.dart';
@@ -5,6 +7,7 @@ import 'profile_doji.dart';
 import 'profile_mapper.dart';
 import 'risk.dart';
 import 'sessions.dart';
+import 'user_zone.dart';
 
 /// One line of profile.doji: which step owns it, whether it applies, and how
 /// to print its value.
@@ -42,6 +45,8 @@ String _underscored(int n) {
 
 String _pct1(double v) => '${v.toStringAsFixed(1)}%';
 
+bool _isProp(Answers a) => A.mapStr(a[StepIds.goal], 'goal') == 'prop_challenge';
+
 final List<_Spec> _specs = [
   _Spec('name', StepIds.name, (a, p) => p.name == null ? null : _lit('"${p.name}"')),
   _Spec(
@@ -50,20 +55,35 @@ final List<_Spec> _specs = [
     (a, p) => p.experience == null ? null : _sym(_experienceShort[p.experience] ?? p.experience!),
   ),
   _Spec('style', StepIds.style, (a, p) => p.style == null ? null : _sym(p.style!)),
-  _Spec('markets', StepIds.markets, (a, p) => p.pairs.isEmpty ? null : _sym(_list(p.pairs))),
+  _Spec('markets', StepIds.markets, (a, p) => p.instruments.isEmpty ? null : _sym(_list(p.instruments))),
   _Spec('sessions', StepIds.sessions, (a, p) {
     if (p.sessions.isEmpty) return null;
-    final tz = p.utcOffsetMinutes == null ? '' : '  # ${utcLabel(p.utcOffsetMinutes!)}';
+    // The offset today, so a zone with daylight saving reads right all year.
+    final tz = p.utcOffsetMinutes == null
+        ? ''
+        : '  # ${utcLabel(userZoneFromProfile(p).offsetMinutesAt(clock.now()))}';
     return _sym(_list(p.sessions), tz);
   }),
   _Spec('goal', StepIds.goal, (a, p) => p.goal == null ? null : _sym(p.goal!)),
   _Spec('prop.size', StepIds.goal, (a, p) {
-    final firm = p.propFirm == null ? '' : '  # ${p.propFirm!.toLowerCase()}';
-    if (p.propSize == null) {
+    final firm = p.prop?.firm == null ? '' : '  # ${p.prop!.firm!.toLowerCase()}';
+    final size = p.prop?.accountSize;
+    if (size == null) {
       return (value: 'null', tone: ConfigValueTone.muted, comment: firm.isEmpty ? '  # optional' : firm);
     }
-    return _lit(_underscored(p.propSize!), firm);
-  }, applies: (a) => A.mapStr(a[StepIds.goal], 'goal') == 'prop_challenge'),
+    return _lit(_underscored(size), firm);
+  }, applies: _isProp),
+  _Spec('prop.limits', StepIds.goal, (a, p) {
+    final r = p.prop;
+    if (r == null || (r.dailyLossLimitPct == null && r.maxDrawdownPct == null && r.profitTargetPct == null)) {
+      return (value: 'null', tone: ConfigValueTone.muted, comment: '  # optional');
+    }
+    String f(double? v) => v == null ? '-' : _pct1(v);
+    return _lit(
+      '${f(r.dailyLossLimitPct)} / ${f(r.maxDrawdownPct)} / ${f(r.profitTargetPct)}',
+      '  # daily loss / ${r.drawdownLabel} drawdown / target',
+    );
+  }, applies: _isProp),
   _Spec('struggles', StepIds.struggles, (a, p) => p.struggles.isEmpty ? null : _sym(_list(p.struggles))),
   _Spec(
     'strategy',
@@ -110,7 +130,7 @@ final List<_Spec> _specs = [
     if (t == null) return null;
     final opts = ritualOptions(a);
     final sub = opts.where((o) => o.value == t).firstOrNull?.sub;
-    final session = firstSession(p.sessions, p.utcOffsetMinutes ?? 0)?.label.toLowerCase();
+    final session = firstSession(p.sessions, userZoneFromProfile(p))?.label.toLowerCase();
     final when = switch (sub) {
       '30m before' => '30m pre-${session ?? 'session'}',
       '15m before' => '15m pre-${session ?? 'session'}',
