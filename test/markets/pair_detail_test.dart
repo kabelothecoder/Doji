@@ -110,8 +110,8 @@ void main() {
         // The list is lazy: check each section's content while it is on screen.
         if (label.startsWith('02')) expect(find.text('london breakout of the asian range'), findsOneWidget);
         if (label.startsWith('03')) {
-          await _scrollTo(tester, find.bySemanticsLabel('No high-impact news within 15 min, met'));
-          expect(find.bySemanticsLabel('No high-impact news within 15 min, met'), findsOneWidget);
+          await _scrollTo(tester, find.bySemanticsLabel('No high-impact news within 30 min, not met'));
+          expect(find.bySemanticsLabel('No high-impact news within 30 min, not met'), findsOneWidget);
         }
       }
       await _scrollTo(tester, find.text('Measured against your strategy. Not financial advice.'));
@@ -168,13 +168,13 @@ void main() {
       final h = await _open(tester);
       await _scrollTo(tester, find.text('remind me'));
       expect(find.text('after the news window closes'), findsOneWidget);
-      expect(find.text('14:45'), findsOneWidget);
+      expect(find.text('15:00'), findsOneWidget);
       await h.tapText('remind me');
       final r = h.reminders.scheduled.single;
-      expect(r.at, DateTime.utc(2026, 7, 15, 12, 45));
+      expect(r.at, DateTime.utc(2026, 7, 15, 13));
       expect(r.title, 'check EUR/USD again');
       expect(find.text('reminder set'), findsOneWidget);
-      expect(find.textContaining('doji will remind you at 14:45.'), findsOneWidget);
+      expect(find.textContaining('doji will remind you at 15:00.'), findsOneWidget);
     });
   }, variant: ios);
 

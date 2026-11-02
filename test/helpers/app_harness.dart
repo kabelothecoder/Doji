@@ -5,6 +5,7 @@ import 'package:doji_app/app/router.dart';
 import 'package:doji_app/core/widgets/auth_method_button.dart';
 import 'package:doji_app/features/auth/data/fake_auth_repository.dart';
 import 'package:doji_app/features/auth/domain/auth_repository.dart';
+import 'package:doji_app/features/markets/domain/market_data.dart';
 import 'package:doji_app/features/onboarding/data/onboarding_repository.dart';
 import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,7 @@ class AppHarness {
     FakeBiometricAuth? biometric,
     FakeVoiceInput? voice,
     FakeReminders? reminders,
+    MarketData? market,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -77,6 +79,7 @@ class AppHarness {
           isOnline: () => h.online,
           voice: voice,
           reminders: notes,
+          market: market,
         ),
         routerProvider.overrideWith((ref) {
           final r = buildRouter(initialLocation: at);

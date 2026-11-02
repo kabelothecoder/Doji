@@ -39,9 +39,11 @@ lib/
                   presentation/ auth_controller.dart · A1 sign_in · A2 save · A3 email · A4 code · A9 success
     app_lock/     BiometricAuth (local_auth) · AppLockGate wraps the router · A8a setup screen
     markets/      domain/ instrument.dart · instrument_catalog.dart · market_hours.dart · risk_sizing.dart ·
-                  candle · market_data · news · market_status · strategy_reading · pair_brief · brief_allowance
+                  candle · market_data · news · market_status · strategy_reading · pair_brief · brief_allowance ·
+                  strategy_state
                   data/ fake_market_data (SAMPLE prices) · sample_news_calendar · fake_brief · fake_brief_chat ·
-                  brief_allowance_repository · presentation/ pair_detail_screen (1b) · brief_chat_sheet · widgets/
+                  brief_allowance_repository · presentation/ markets_screen (list) · market_search_screen ·
+                  pair_detail_screen (1b) · markets_controller · brief_chat_sheet · widgets/
     settings/     account settings · sign-out sheet · delete account flow (A11–A12)
     plans/        domain/plans.dart (catalogue, prices, recommendPlan) · data/billing_repository.dart (FAKE store)
                   presentation/ plans · compare · success/failed · manage subscription · upsell_sheet · widgets/
@@ -55,7 +57,7 @@ lib/
                   presentation/ coach_screen (1c) · coach_controller · save_session_sheet · widgets/
 app/shell/        AppShell (StatefulShellRoute): DojiBottomBar on phones, DojiNavRail when wide. main_tab.dart = the 5 items,
                   MainTab.branches = the 4 shell branches (the coach is a cover, not a branch);
-                  markets/me are TabPlaceholderScreens until their briefs (markets 1b is built; its list is not)
+                  me is a TabPlaceholderScreen until its brief
 test/  (unit, widget, a11y, goldens; helpers/app_harness.dart pumps the real app)   integration_test/   tool/ (asset export)
 design/  handoff/ · system/ · brand/ · SOURCE.md       supabase/migrations/
 ```
@@ -169,15 +171,40 @@ as Markets 1b (`pairBriefProvider`); "open the brief" goes to 1b. The doji score
   bottom bar's items. The branch area is wrapped in `Semantics(container: true)` so the rail stays
   visible to screen readers (see Gotchas).
 - Not built: notification centre (bell is hidden), persistence of the open / reflection,
-  the markets list and the me tab.
+  and the me tab.
+
+## Markets list (sample prices for now)
+
+Source: `design/handoff/Doji Core Tabs.dc.html` › 01, drawn in `Doji Markets Phone.dc.html`.
+`MarketsScreen` is the markets tab (`/markets`); `MarketSearchScreen` (`/markets/search`) keeps
+the tab bar. Owner decisions (2026-10-24) are in `design/SOURCE.md` › Missing or contradictory.
+
+- **Watchlist** rows (`WatchlistRow`): symbol, name, session badge (`sessionBadgeText`), sample
+  price, and `StrategyStateBadge` from the brief's own conditions (`StrategyState.of`): met = all
+  met, forming = at least half met, waiting = fewer than half. A count of rules, never a call.
+- "MEASURED AGAINST" shows the parsed setup, no version; not a button (no strategy manager).
+- **Search**: tabs all · forex · metals · indices · crypto · synthetics (`SearchClass`); oil shows
+  under all. Add / remove saves profile.doji at once (`toggleWatchlist`, shared with 1b's
+  bookmark; removing the last asks). Added = white fill + check, not green.
+- **Wide** (`isWideLayout` and ≥ 760px of content): the list (380) beside 1b as a second pane
+  (`PairDetailScreen(embedded: true)`: no back, no Esc). Nothing opens until a row is picked
+  (`marketsSelectionProvider`), so the free plan's one brief a day is never spent for the trader.
+  Narrower, a row pushes 1b as on phones.
+- Not built (owner decision): ask doji, the strategy manager / editor / versions, the chart image
+  attach in the pair chat.
 
 ## Markets 1b, pair detail (sample prices for now)
 
-Source: `design/handoff/Doji Hero Screens.dc.html` › 1b. `PairDetailScreen` at
-`/markets/pair/:symbol` (`Routes.pairDetail`), full screen with the floating `BriefChatBar`
-instead of the tab bar; reached from Home's brief card and the rail. The **markets list** is not
-built: its design ("Doji Core Tabs") is not synced yet, and the list will embed 1b as a second pane
-on wide screens.
+Source: `design/handoff/Doji Hero Screens.dc.html` › 1b, plus Doji Core Tabs › 01b's states.
+`PairDetailScreen` at `/markets/pair/:symbol` (`Routes.pairDetail`), full screen with the floating
+`BriefChatBar` instead of the tab bar; reached from the markets list, Home's brief card and the
+rail. On wide screens it is the list's second pane.
+
+- **States** (Core Tabs › 01b): loading (cursor lines on the chart and the brief), market closed
+  (chart at 40% + "market closed · opens …"), feed error ("price feed not responding." + try
+  again, which asks for the quote, bars and brief again), no strategy yet (a card in place of
+  01/02/04; conditions and check-again still show). The design's "build my strategy" button is
+  not built: a strategy can't be edited after onboarding yet.
 
 - **Boundaries**, each with one FAKE implementation: `MarketData` (`FakeMarketData`: a smooth,
   deterministic sample path per instrument, so timeframes agree; bars only while the market is
@@ -186,7 +213,7 @@ on wide screens.
   (`FakeBriefChat`). Every price on screen says "sample prices · not a live feed".
 - **The brief is measured, then written.** Conditions (`EntryCondition`, met | notMet | waiting) come
   from the session clock, the journal (`CoachContext`: trades vs max, the stricter loss limit), the
-  news window (`kNewsBufferMinutes` = 15 either side) and, for a london break of the Asian range
+  news window (`kNewsBufferMinutes` = 30 either side) and, for a london break of the Asian range
   (`StrategyReading`), the candles: the range (Tokyo open → London open), the break, the first
   close back beyond the broken level. Any other strategy's entry stays "waiting" and the brief says
   to check it on the trader's own chart. 01/02/04/05 are written from those facts; it never says
@@ -205,7 +232,7 @@ on wide screens.
   desugaring and the two scheduled-notification receivers (in the manifest).
 - **Watchlist** = `profile.doji › instruments`: the bookmark adds/removes and saves at once
   (removing the last one asks); Home and the journal re-read the profile.
-- Not built: the list, live prices (TODOs in `MarketData`), a real calendar, `SupabaseBrief` /
+- Not built: live prices (TODOs in `MarketData`), a real calendar, `SupabaseBrief` /
   the `ai-brief` edge function, server-side metering of the free brief, persisting reminders
   across launches (the button forgets; the OS keeps the notification), the rail's news.
 

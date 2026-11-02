@@ -171,7 +171,7 @@ void main() {
       final h = await AppHarness.pump(tester, at: Routes.home, seed: seedProfile());
       await h.tap(find.bySemanticsLabel('markets'));
       expect(h.location, Routes.markets);
-      expect(find.textContaining('markets arrives in a later build.'), findsOneWidget);
+      expect(find.text('MEASURED AGAINST'), findsOneWidget);
 
       await h.tap(find.bySemanticsLabel('me'));
       await h.tapText('account and settings');

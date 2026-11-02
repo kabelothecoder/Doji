@@ -9,6 +9,7 @@ import 'package:doji_app/features/markets/data/fake_brief.dart';
 import 'package:doji_app/features/markets/data/fake_brief_chat.dart';
 import 'package:doji_app/features/markets/data/fake_market_data.dart';
 import 'package:doji_app/features/markets/data/sample_news_calendar.dart';
+import 'package:doji_app/features/markets/domain/market_data.dart';
 import 'package:doji_app/features/onboarding/data/device_services.dart';
 import 'package:doji_app/features/onboarding/data/mock_strategy_parser.dart';
 import 'package:doji_app/features/onboarding/data/onboarding_repository.dart';
@@ -148,6 +149,7 @@ List<Override> testOverrides(
   bool Function()? isOnline,
   VoiceInput? voice,
   Reminders? reminders,
+  MarketData? market,
 }) => [
   sharedPreferencesProvider.overrideWithValue(prefs),
   timeZoneServiceProvider.overrideWithValue(const FakeTimeZoneService()),
@@ -159,7 +161,7 @@ List<Override> testOverrides(
   hapticsProvider.overrideWithValue(haptics ?? RecordingHaptics()),
   biometricAuthProvider.overrideWithValue(biometric ?? FakeBiometricAuth()),
   authRepositoryProvider.overrideWithValue(testAuthRepository(prefs, isOnline: isOnline)),
-  marketDataProvider.overrideWithValue(const FakeMarketData(latency: Duration.zero)),
+  marketDataProvider.overrideWithValue(market ?? const FakeMarketData(latency: Duration.zero)),
   briefSourceProvider.overrideWith(
     (ref) => FakeBrief(
       market: ref.watch(marketDataProvider),

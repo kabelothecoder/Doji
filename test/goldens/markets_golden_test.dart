@@ -1,6 +1,8 @@
 // Goldens for Markets 1b, pair detail (design/handoff/Doji Hero Screens.dc.html
 // › 1b) on iPhone 390 × 844: the top (price, chart), the brief scrolled to its
-// conditions, and the free plan's locked brief.
+// conditions, and the free plan's locked brief. Then the markets list
+// (Doji Core Tabs › 01): the watchlist, search on synthetics, and Windows
+// with 1b as the second pane.
 //
 //   flutter test test/goldens --update-goldens   # after an intended change
 //
@@ -80,4 +82,27 @@ void main() {
       await _match('1b_locked_phone');
     });
   }, variant: ios);
+
+  testWidgets('markets list · watchlist', (tester) async {
+    await withClock(summerDay, () async {
+      await AppHarness.pump(tester, at: Routes.markets, seed: _seed());
+      await _match('list_phone');
+    });
+  }, variant: ios);
+
+  testWidgets('markets list · search, synthetics', (tester) async {
+    await withClock(summerDay, () async {
+      final h = await AppHarness.pump(tester, at: Routes.marketSearch, seed: _seed());
+      await h.tapText('synthetics');
+      await _match('search_phone');
+    });
+  }, variant: ios);
+
+  testWidgets('markets list · windows, 1b as the second pane', (tester) async {
+    await withClock(summerDay, () async {
+      final h = await AppHarness.pump(tester, at: Routes.markets, seed: _seed(), size: const Size(1440, 900));
+      await h.tap(find.text('EUR/USD').first);
+      await _match('list_windows');
+    });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
 }

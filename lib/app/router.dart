@@ -18,6 +18,8 @@ import '../features/journal/presentation/journal_screen.dart';
 import '../features/journal/presentation/manual_trade_screen.dart';
 import '../features/journal/presentation/trade_detail_screen.dart';
 import '../features/journal/presentation/trades_screen.dart';
+import '../features/markets/presentation/market_search_screen.dart';
+import '../features/markets/presentation/markets_screen.dart';
 import '../features/markets/presentation/pair_detail_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/plans/domain/plans.dart';
@@ -86,13 +88,16 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
                   child: switch (tab) {
                     MainTab.home => const HomeScreen(),
                     MainTab.journal => const JournalScreen(),
+                    MainTab.markets => const MarketsScreen(),
                     _ => TabPlaceholderScreen(tab: tab),
                   },
                 ),
-                // The trades list keeps the tab bar (design: trades shows the tabs).
+                // The trades list and market search keep the tab bar (as drawn).
                 routes: [
                   if (tab == MainTab.journal)
                     GoRoute(path: 'trades', builder: (c, s) => const TradesScreen()),
+                  if (tab == MainTab.markets)
+                    GoRoute(path: 'search', builder: (c, s) => const MarketSearchScreen()),
                 ],
               ),
             ],

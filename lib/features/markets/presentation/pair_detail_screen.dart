@@ -23,8 +23,10 @@ import '../domain/market_data.dart';
 import '../domain/market_format.dart';
 import '../domain/market_status.dart';
 import '../domain/pair_brief.dart';
+import '../domain/strategy_reading.dart';
 import '../domain/time_zones.dart';
 import 'brief_chat_sheet.dart';
+import 'markets_controller.dart';
 import 'pair_detail_controller.dart';
 import 'widgets/brief_chat_bar.dart';
 import 'widgets/brief_section.dart';
@@ -42,10 +44,16 @@ import 'widgets/timeframe_tabs.dart';
 /// [SampleNewsCalendar]) and say so on screen. On the free plan the brief's
 /// written sections show for one instrument a day; the conditions and the
 /// chart always show. Windows: Esc goes back.
+///
+/// States (Doji Core Tabs › 01b): loading (a cursor), market closed (the
+/// chart dimmed, when it opens), feed error (try again) and no strategy yet.
 class PairDetailScreen extends ConsumerStatefulWidget {
-  const PairDetailScreen({super.key, required this.symbol});
+  const PairDetailScreen({super.key, required this.symbol, this.embedded = false});
 
   final String symbol;
+
+  /// The markets list's second pane on wide screens: no back button and no Esc.
+  final bool embedded;
 
   @override
   ConsumerState<PairDetailScreen> createState() => _PairDetailScreenState();
@@ -73,20 +81,13 @@ class _PairDetailScreenState extends ConsumerState<PairDetailScreen> {
 
   void _back() => context.canPop() ? context.pop() : context.go(Routes.home);
 
-  Future<void> _toggleWatch() async {
-    final list = ref.read(watchlistProvider);
-    final watching = list.any((s) => s.toUpperCase() == _symbol.toUpperCase());
-    if (watching && list.length == 1) {
-      final ok = await showDojiAlert(
-        context,
-        title: 'remove your last market?',
-        message: 'your watchlist will be empty. home falls back to gold and euro until you add one.',
-        destructiveLabel: 'remove',
-      );
-      if (!ok || !mounted) return;
-    }
-    await ref.read(watchlistProvider.notifier).toggle(_symbol);
-    unawaited(ref.read(hapticsProvider).light());
+  Future<void> _toggleWatch() => toggleWatchlist(context, ref, _symbol);
+
+  /// After a feed error: ask for the price, the bars and the brief again.
+  void _retry() {
+    ref.invalidate(pairQuoteProvider(_symbol));
+    ref.invalidate(pairCandlesProvider((_symbol, ref.read(pairTimeframeProvider(_symbol)))));
+    ref.invalidate(pairBriefProvider(_symbol));
   }
 
   Future<void> _remind(CheckAgain check) async {
@@ -118,11 +119,12 @@ class _PairDetailScreenState extends ConsumerState<PairDetailScreen> {
     final zone = userZoneFromProfile(ref.watch(marketsProfileProvider));
     final reminderAt = ref.watch(briefRemindersProvider)[symbol];
     final scale = MediaQuery.textScalerOf(context).scale(1);
+    final setup = ref.watch(marketsProfileProvider).strategy?.parsed?.setup?.trim();
 
     final children = <Widget>[
-      _Header(name: name, watching: watching, onBack: _back, onWatch: _toggleWatch),
+      _Header(name: name, watching: watching, onBack: widget.embedded ? null : _back, onWatch: _toggleWatch),
       _PriceBlock(symbol: symbol, quote: quote, brief: brief.value, zone: zone),
-      _ChartCard(symbol: symbol, name: name, brief: brief.value),
+      _ChartCard(symbol: symbol, name: name, brief: brief.value, onRetry: _retry),
       _BriefHeader(updatedAt: brief.value?.updatedAt, zone: zone),
       ...switch (brief) {
         AsyncData(:final value) => _briefSections(value, access, zone, reminderAt),
@@ -136,14 +138,19 @@ class _PairDetailScreenState extends ConsumerState<PairDetailScreen> {
             onPressed: () => ref.invalidate(pairBriefProvider(symbol)),
           ),
         ],
-        _ => [const TerminalLine('measuring against your strategy', cursor: true)],
+        _ => [
+          TerminalLine(
+            'reading the market against ${setup == null || setup.isEmpty ? 'your rules' : setup}',
+            cursor: true,
+          ),
+        ],
       },
     ];
 
     return CallbackShortcuts(
-      bindings: {const SingleActivator(LogicalKeyboardKey.escape): _back},
+      bindings: {if (!widget.embedded) const SingleActivator(LogicalKeyboardKey.escape): _back},
       child: Focus(
-        autofocus: PlatformInfo.isDesktop,
+        autofocus: PlatformInfo.isDesktop && !widget.embedded,
         child: Scaffold(
           backgroundColor: DojiColors.bg,
           body: Stack(
@@ -222,6 +229,10 @@ class _PairDetailScreenState extends ConsumerState<PairDetailScreen> {
         height: 1.4,
       ),
     );
+    // No strategy yet: the rules are still measured; nothing is written.
+    if (StrategyReading.of(ref.read(marketsProfileProvider).strategy?.parsed).kind == StrategyKind.none) {
+      return [const _NoStrategyCard(), conditions, checkCard, ?reminderNote, disclaimer];
+    }
     if (!access.unlocked) {
       return [
         _LockedBrief(usedOn: access.usedOn, onUnlock: () => _ask()),
@@ -268,7 +279,9 @@ class _Header extends StatelessWidget {
 
   final String name;
   final bool watching;
-  final VoidCallback onBack;
+
+  /// Null in the wide layout's pane: the list is beside it.
+  final VoidCallback? onBack;
   final VoidCallback onWatch;
 
   @override
@@ -284,12 +297,14 @@ class _Header extends StatelessWidget {
     );
     return Row(
       children: [
-        _GlassButton(
-          icon: PlatformInfo.isIOS ? Icons.arrow_back_ios_new_rounded : Icons.arrow_back_rounded,
-          semanticLabel: 'back',
-          onPressed: onBack,
-        ),
-        SizedBox(width: android ? 12 : 8),
+        if (onBack case final back?) ...[
+          _GlassButton(
+            icon: PlatformInfo.isIOS ? Icons.arrow_back_ios_new_rounded : Icons.arrow_back_rounded,
+            semanticLabel: 'back',
+            onPressed: back,
+          ),
+          SizedBox(width: android ? 12 : 8),
+        ],
         Expanded(child: title),
         const SizedBox(width: 8),
         _GlassButton(
@@ -381,11 +396,16 @@ class _PriceBlock extends StatelessWidget {
     }
     final price = q == null ? '—' : formatPrice(q.price, q.decimals);
     final change = q == null ? '' : formatChange(q.changePct);
+    final spoken = q != null
+        ? '$name $price, $change today, sample price'
+        : quote.hasError
+        ? '$name, price feed not responding'
+        : '$name, loading price';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Semantics(
-          label: q == null ? '$name, loading price' : '$name $price, $change today, sample price',
+          label: spoken,
           child: ExcludeSemantics(
             child: Wrap(
               crossAxisAlignment: WrapCrossAlignment.end,
@@ -466,17 +486,26 @@ class _Pill extends StatelessWidget {
 
 /// Timeframe control, the chart and its time axis, on elevated-1.
 class _ChartCard extends ConsumerWidget {
-  const _ChartCard({required this.symbol, required this.name, required this.brief});
+  const _ChartCard({required this.symbol, required this.name, required this.brief, required this.onRetry});
 
   final String symbol;
   final String name;
   final PairBrief? brief;
 
+  /// Feed error: ask again.
+  final VoidCallback onRetry;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tf = ref.watch(pairTimeframeProvider(symbol));
     final candles = ref.watch(pairCandlesProvider((symbol, tf)));
-    final decimals = ref.watch(pairQuoteProvider(symbol)).value?.decimals ?? 2;
+    final quote = ref.watch(pairQuoteProvider(symbol));
+    final decimals = quote.value?.decimals ?? 2;
+    final now = brief?.updatedAt ?? clock.now().toUtc();
+    final closed = switch (MarketStatus.of(instrumentBySymbol(symbol), now)) {
+      MarketClosed(:final opensAt) => (opensAt: opensAt),
+      _ => null,
+    };
     final zone = userZoneFromProfile(ref.watch(marketsProfileProvider));
     final levels = brief?.levels;
     final news = brief?.nextNews;
@@ -502,26 +531,46 @@ class _ChartCard extends ConsumerWidget {
         children: [
           TimeframeTabs(selected: tf, onChanged: ref.read(pairTimeframeProvider(symbol).notifier).set),
           const SizedBox(height: 12),
-          switch (candles) {
-            AsyncData(:final value) when value.isEmpty => SizedBox(
-              height: 200,
-              child: Center(
-                child: Text('no chart for $name yet', style: DojiType.callout, textAlign: TextAlign.center),
+          if (candles.hasError || quote.hasError)
+            _FeedError(onRetry: onRetry)
+          else
+            switch (candles) {
+              AsyncData(:final value) when value.isEmpty => SizedBox(
+                height: 200,
+                child: Center(
+                  child: Text('no chart for $name yet', style: DojiType.callout, textAlign: TextAlign.center),
+                ),
               ),
-            ),
-            AsyncData(:final value) => PairChart(
-              candles: value,
-              timeframe: tf,
-              decimals: decimals,
-              levels: levels,
-              news: news,
-              semanticLabel: label,
-            ),
-            _ => const SizedBox(
-              height: 200,
-              child: Center(child: TerminalLine('loading the chart', liveRegion: false)),
-            ),
-          },
+              AsyncData(:final value) when closed != null => Stack(
+                alignment: Alignment.center,
+                children: [
+                  Opacity(
+                    opacity: 0.4,
+                    child: PairChart(
+                      candles: value,
+                      timeframe: tf,
+                      decimals: decimals,
+                      levels: levels,
+                      news: news,
+                      semanticLabel: '$label, market closed',
+                    ),
+                  ),
+                  _ClosedTag(opensAt: closed.opensAt, zone: zone, now: now),
+                ],
+              ),
+              AsyncData(:final value) => PairChart(
+                candles: value,
+                timeframe: tf,
+                decimals: decimals,
+                levels: levels,
+                news: news,
+                semanticLabel: label,
+              ),
+              _ => SizedBox(
+                height: 200,
+                child: Center(child: TerminalLine('loading $name', cursor: true, liveRegion: false)),
+              ),
+            },
           if (times.isNotEmpty) ...[
             const SizedBox(height: 8),
             ExcludeSemantics(
@@ -736,4 +785,89 @@ class _LockedBrief extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Doji Core Tabs › 01b "feed error": in place of the chart.
+class _FeedError extends StatelessWidget {
+  const _FeedError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 200),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const TerminalLine('price feed not responding.', tone: TerminalTone.tilt),
+        const SizedBox(height: 12),
+        DojiButton(
+          label: 'try again',
+          variant: DojiButtonVariant.outline,
+          size: DojiButtonSize.small,
+          expand: false,
+          onPressed: onRetry,
+        ),
+      ],
+    ),
+  );
+}
+
+/// Doji Core Tabs › 01b "market closed": over the dimmed chart.
+class _ClosedTag extends StatelessWidget {
+  const _ClosedTag({required this.opensAt, required this.zone, required this.now});
+
+  final DateTime? opensAt;
+  final UserZone zone;
+  final DateTime now;
+
+  @override
+  Widget build(BuildContext context) {
+    final at = opensAt;
+    return ExcludeSemantics(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: DojiColors.elevated2.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(DojiRadius.chip),
+          border: Border.all(color: DojiColors.separator),
+        ),
+        child: Text(
+          at == null ? 'market closed' : 'market closed · opens ${clockDayTime(zone, at, now: now)}',
+          style: DojiType.hint.copyWith(fontSize: 13, color: DojiColors.textPrimary),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+}
+
+/// Doji Core Tabs › 01b "no strategy yet": in place of the written brief.
+/// The rules below it are still measured.
+/// TODO(next-slice): "build my strategy" once a strategy can be edited after
+/// onboarding (the strategy editor is not built).
+class _NoStrategyCard extends StatelessWidget {
+  const _NoStrategyCard();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(
+      color: DojiColors.elevated1,
+      borderRadius: BorderRadius.circular(DojiRadius.card),
+      border: Border.all(color: DojiColors.separator),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const TerminalLine('no strategy yet.', tone: TerminalTone.primary, cursor: true, liveRegion: false),
+        const SizedBox(height: 10),
+        Text(
+          'the brief measures this market against your strategy. describe it once, in your own words, and it '
+          'fills in here. until then, doji checks your rules.',
+          style: DojiType.callout,
+        ),
+      ],
+    ),
+  );
 }

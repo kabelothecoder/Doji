@@ -105,7 +105,8 @@ void main() {
       // 08:30 and 14:00 New York on a Wednesday.
       expect(usd.map((e) => e.at), [DateTime.utc(2026, 7, 15, 12, 30), DateTime.utc(2026, 7, 15, 18)]);
       expect(usd.first.covers(DateTime.utc(2026, 7, 15, 12, 20)), isTrue);
-      expect(usd.first.covers(DateTime.utc(2026, 7, 15, 12, 45)), isFalse);
+      expect(usd.first.covers(DateTime.utc(2026, 7, 15, 12, 55)), isTrue);
+      expect(usd.first.covers(DateTime.utc(2026, 7, 15, 13)), isFalse);
     });
 
     test('what moves what', () {

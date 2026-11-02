@@ -116,7 +116,7 @@ void main() {
         "Today's loss under your 2% limit": ConditionStatus.met,
         'Price breaks the Asian range high or low': ConditionStatus.waiting,
         'M15 candle closes back beyond the broken level': ConditionStatus.waiting,
-        'No high-impact news within 15 min': ConditionStatus.met,
+        'No high-impact news within 30 min': ConditionStatus.met,
       });
       expect(b.strategy, contains('the asian range is still forming'));
       expect(b.checkAgain!.at, utc(7));
@@ -140,7 +140,7 @@ void main() {
     });
 
     test('everything in place: the brief says so and leaves the decision with the trader', () async {
-      final b = await _brief(utc(12));
+      final b = await _brief(utc(11, 45));
       expect(b.conditions.every((c) => c.met), isTrue, reason: '${_statuses(b)}');
       expect(
         b.strategy,
@@ -149,23 +149,23 @@ void main() {
       // The 12:30 UTC release is within the hour: check again after its window.
       expect(
         b.riskNote,
-        'high-impact news at 14:30. your rules say no entries 15 min either side. '
+        'high-impact news at 14:30. your rules say no entries 30 min either side. '
         'if a setup forms after, risk stays at 3%.',
       );
-      expect(b.checkAgain!.at, utc(12, 45));
+      expect(b.checkAgain!.at, utc(13));
       expect(b.checkAgain!.why, 'after the news window closes');
       expect(b.nextNews!.at, utc(12, 30));
     });
 
     test('inside the news window: not met, and the setup waits for it', () async {
       final b = await _brief(utc(12, 20));
-      expect(_statuses(b)['No high-impact news within 15 min'], ConditionStatus.notMet);
+      expect(_statuses(b)['No high-impact news within 30 min'], ConditionStatus.notMet);
       expect(
         b.strategy,
         contains("your setup has formed, but the news window says not now. that's the plan working."),
       );
-      expect(b.riskNote, startsWith('high-impact news window until 14:45.'));
-      expect(b.checkAgain!.at, utc(12, 45));
+      expect(b.riskNote, startsWith('high-impact news window until 15:00.'));
+      expect(b.checkAgain!.at, utc(13));
     });
 
     test('after the London close: this setup is done for today', () async {
@@ -211,7 +211,7 @@ void main() {
       'London session is open',
       'Trades today under your max of 3',
       "Today's loss under your 2% limit",
-      'No high-impact news within 15 min',
+      'No high-impact news within 30 min',
     ]);
     expect(b.followUps, isNot(contains('what counts as a retest?')));
   });
@@ -245,7 +245,7 @@ void main() {
             now: utc(12),
           ),
         );
-    expect(b.conditions.map((c) => c.text), isNot(contains('No high-impact news within 15 min')));
+    expect(b.conditions.map((c) => c.text), isNot(contains('No high-impact news within 30 min')));
     expect(b.context, startsWith("Volatility 75 runs around the clock on deriv's own generator"));
     expect(b.riskNote, "synthetic indices don't follow the news calendar. risk stays at 3%.");
     expect(b.nextNews, isNull);
@@ -278,7 +278,7 @@ void main() {
       final (b, r) = await setup(utc(12));
       expect(
         FakeBriefChat.replyFor(b, r, 'explain the risk note'),
-        'big releases can move price fast and widen spreads, so your rule keeps you out 15 min either side of '
+        'big releases can move price fast and widen spreads, so your rule keeps you out 30 min either side of '
         '14:30. outside that window, risk stays at 3% a trade, the same as any trade.',
       );
     });

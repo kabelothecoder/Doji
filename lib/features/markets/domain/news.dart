@@ -3,7 +3,7 @@ import 'instrument.dart';
 /// Minutes either side of high-impact news when the trader's rules say no
 /// entries. Home's rules list says the same.
 /// TODO(next-slice): a setting, stored in profile.doji › rules.
-const int kNewsBufferMinutes = 15;
+const int kNewsBufferMinutes = 30;
 
 /// One high-impact release.
 class NewsEvent {

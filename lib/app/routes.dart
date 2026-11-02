@@ -24,6 +24,9 @@ abstract final class Routes {
   static String tradeDetail(String id, {bool review = false}) =>
       '/journal/trade/${Uri.encodeComponent(id)}${review ? '?review=1' : ''}';
 
+  // Markets list (design: Doji Core Tabs › 01): search keeps the tab bar.
+  static const marketSearch = '/markets/search';
+
   // Markets (design: Doji Hero Screens 1b): one instrument's chart and brief,
   // full screen with the floating ask bar instead of the tab bar.
   static const pairDetailPattern = '/markets/pair/:symbol';
