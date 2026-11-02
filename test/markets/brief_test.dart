@@ -13,6 +13,9 @@ import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../journal/journal_fixtures.dart';
+import 'package:doji_app/features/accounts/domain/condition_eval.dart';
+
+import '../helpers/sample_profile.dart';
 
 /// Wednesday 15 July 2026 (summer): Tokyo opens 00:00 UTC, London 07:00 UTC,
 /// the sample USD release is 08:30 New York = 12:30 UTC. Johannesburg is UTC+2.
@@ -26,13 +29,13 @@ const _strategy = StrategyProfile(
   ),
 );
 
-const _profile = ProfileDoji(
+final _profile = profileWith(
   name: 'sam',
   sessions: ['london'],
   timeZone: 'Africa/Johannesburg',
   utcOffsetMinutes: 120,
   strategy: _strategy,
-  rules: TradingRules(riskPerTrade: 3, maxTradesPerDay: 3, dailyLossLimit: 2),
+  rules: const TradingRules(riskPerTrade: 3, maxTradesPerDay: 3, dailyLossLimit: 2),
 );
 
 /// M15 bars: an Asian range of 1.08000–1.08300, a break up at 08:00 UTC and
@@ -94,7 +97,7 @@ class _StubMarket implements MarketData {
 
 Future<PairBrief> _brief(
   DateTime now, {
-  ProfileDoji profile = _profile,
+  ProfileDoji? profile,
   List<Trade> trades = const [],
   String symbol = 'EURUSD',
   MarketData? market,
@@ -102,7 +105,12 @@ Future<PairBrief> _brief(
   market: market ?? _StubMarket(),
   news: const SampleNewsCalendar(),
   latency: Duration.zero,
-).brief(BriefRequest(symbol: symbol, profile: profile, trades: trades, now: now));
+).brief(BriefRequest(symbol: symbol, profile: profile ?? _profile, trades: trades, now: now));
+
+/// [_profile] with another strategy, and that strategy's default conditions
+/// (null = no strategy: the rules only).
+ProfileDoji _withStrategy(StrategyProfile? s) =>
+    _profile.withActive((a) => a.copyWith(strategy: s?.copyWith(conditions: defaultConditions(s.parsed))));
 
 Map<String, ConditionStatus> _statuses(PairBrief b) => {for (final c in b.conditions) c.text: c.status};
 
@@ -203,7 +211,7 @@ void main() {
   });
 
   test('no strategy described: rules only, and it says so', () async {
-    final b = await _brief(utc(12), profile: _profile.copyWith(strategy: null));
+    final b = await _brief(utc(12), profile: _withStrategy(null));
     expect(b.strategyName, isNull);
     expect(b.strategy, startsWith("you haven't described a strategy yet"));
     expect(b.levels, isNull);
@@ -219,32 +227,24 @@ void main() {
   test('a strategy doji cannot read from the chart: the entry waits, check your own chart', () async {
     final b = await _brief(
       utc(12),
-      profile: _profile.copyWith(
-        strategy: const StrategyProfile(
+      profile: _withStrategy(
+        const StrategyProfile(
           parsed: ParsedStrategy(setup: 'order block mitigation', timeframe: 'H1', entry: 'engulfing close'),
         ),
       ),
     );
-    expect(_statuses(b)['Your entry: engulfing close (H1)'], ConditionStatus.waiting);
+    expect(_statuses(b)['Your entry: engulfing close (H1) · check on your chart'], ConditionStatus.waiting);
     expect(b.strategy, contains("doji can't read this setup from the chart yet"));
     expect(b.checkAgain!.why, anyOf('at the next H1 close', 'after the news window closes'));
     expect(b.followUps, contains('what does my entry need?'));
   });
 
   test('synthetic indices: no news condition, and the context says why', () async {
-    final b =
-        await const FakeBrief(
-          market: FakeMarketData(latency: Duration.zero),
-          news: SampleNewsCalendar(),
-          latency: Duration.zero,
-        ).brief(
-          BriefRequest(
-            symbol: 'R_75',
-            profile: _profile.copyWith(strategy: null),
-            trades: const [],
-            now: utc(12),
-          ),
-        );
+    final b = await const FakeBrief(
+      market: FakeMarketData(latency: Duration.zero),
+      news: SampleNewsCalendar(),
+      latency: Duration.zero,
+    ).brief(BriefRequest(symbol: 'R_75', profile: _withStrategy(null), trades: const [], now: utc(12)));
     expect(b.conditions.map((c) => c.text), isNot(contains('No high-impact news within 30 min')));
     expect(b.context, startsWith("Volatility 75 runs around the clock on deriv's own generator"));
     expect(b.riskNote, "synthetic indices don't follow the news calendar. risk stays at 3%.");
@@ -293,7 +293,7 @@ void main() {
   test('copy rules: nothing the brief or its chat says is a call, signal or promise', () async {
     final lines = <String>[];
     for (final now in [utc(6), utc(8, 30), utc(12), utc(12, 20), utc(17), DateTime.utc(2026, 7, 18, 12)]) {
-      for (final profile in [_profile, _profile.copyWith(strategy: null)]) {
+      for (final profile in [_profile, _withStrategy(null)]) {
         final b = await _brief(now, profile: profile);
         final r = BriefRequest(symbol: 'EURUSD', profile: profile, trades: const [], now: now);
         lines

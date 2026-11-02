@@ -47,6 +47,14 @@ abstract final class Routes {
   static const settings = '/settings';
   static const appLock = '/settings/app-lock';
   static const deleteAccount = '/settings/delete';
+
+  /// Trading accounts and their strategies (not the sign-in account).
+  static const accounts = '/settings/accounts';
+  static const accountEditorPattern = '/settings/accounts/:id';
+
+  /// [strategy] scrolls the editor to the strategy (from MEASURED AGAINST).
+  static String accountEditor(String id, {bool strategy = false}) =>
+      '/settings/accounts/${Uri.encodeComponent(id)}${strategy ? '?section=strategy' : ''}';
   static const deleteConfirm = '/settings/delete/confirm';
   static const accountDeleted = '/account-deleted';
 

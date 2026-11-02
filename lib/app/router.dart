@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/accounts/presentation/account_editor_screen.dart';
+import '../features/accounts/presentation/accounts_screen.dart';
+
 import '../core/theme/motion.dart';
 import '../features/app_lock/presentation/app_lock_setup_screen.dart';
 import '../features/auth/presentation/auth_controller.dart';
@@ -124,6 +127,14 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
     GoRoute(path: Routes.closeDay, builder: (c, s) => const CloseDayScreen()),
     GoRoute(path: Routes.settings, builder: (c, s) => const SettingsScreen()),
     GoRoute(path: Routes.appLock, builder: (c, s) => const AppLockSetupScreen()),
+    GoRoute(path: Routes.accounts, builder: (c, s) => const AccountsScreen()),
+    GoRoute(
+      path: Routes.accountEditorPattern,
+      builder: (c, s) => AccountEditorScreen(
+        accountId: s.pathParameters['id']!,
+        scrollToStrategy: s.uri.queryParameters['section'] == 'strategy',
+      ),
+    ),
     GoRoute(path: Routes.deleteAccount, builder: (c, s) => const DeleteExplainScreen()),
     GoRoute(path: Routes.deleteConfirm, builder: (c, s) => const DeleteConfirmScreen()),
     GoRoute(

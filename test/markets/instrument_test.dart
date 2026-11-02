@@ -255,7 +255,7 @@ void main() {
     // A 100,000 account that went up and then gave some back.
     const state = AccountState(balance: 101000, equity: 101500, peakBalance: 103000, peakEquity: 104000);
     PropRules rules(DrawdownType type, [TrailingBasis basis = TrailingBasis.equity]) =>
-        PropRules(accountSize: 100000, maxDrawdownPct: 10, drawdownType: type, trailingBasis: basis);
+        PropRules(maxDrawdownPct: 10, drawdownType: type, trailingBasis: basis);
 
     DrawdownStatus status(PropRules r, [AccountState s = state]) =>
         PropDrawdown.evaluate(r, accountSize: 100000, state: s)!;
@@ -401,14 +401,11 @@ void main() {
       final p = profileFromAnswers({...answersBefore(StepIds.compile), StepIds.goal: goal});
       expect(
         p.prop,
-        const PropRules(
-          firm: 'My Firm',
-          accountSize: 100000,
-          dailyLossLimitPct: 5,
-          maxDrawdownPct: 10,
-          profitTargetPct: 8,
-        ),
+        const PropRules(firm: 'My Firm', dailyLossLimitPct: 5, maxDrawdownPct: 10, profitTargetPct: 8),
       );
+      // The size lives on the account (startingSize), never on the prop rules.
+      expect(p.activeAccount!.prop!.toJson().containsKey('accountSize'), isFalse);
+      expect(p.startingSize, 100000);
     });
 
     test('limits are optional; nothing entered means no PropRules', () {
@@ -457,9 +454,12 @@ void main() {
   group('profile shape (reset, no migration)', () {
     test('the old keys are gone from the stored JSON', () {
       final json = profileFromAnswers(answersBefore(StepIds.compile)).toJson();
-      expect(json.containsKey('instruments'), isTrue);
-      expect(json.containsKey('prop'), isTrue);
-      for (final old in ['pairs', 'propFirm', 'propSize']) {
+      final account = (jsonDecode(jsonEncode(json['accounts'])) as List).single as Map;
+      expect(account.containsKey('instruments'), isTrue);
+      // Only a size was given, so there are no prop rules.
+      expect(account['prop'], isNull);
+      expect(account['startingSize'], 50000);
+      for (final old in ['pairs', 'propFirm', 'propSize', 'instruments', 'prop', 'rules', 'strategy']) {
         expect(json.containsKey(old), isFalse, reason: old);
       }
       expect(json['onboardingVersion'], kOnboardingVersion);
@@ -513,7 +513,7 @@ void main() {
     test('current-version data is kept', () async {
       final r = await repo({
         PrefsOnboardingRepository.profileKey: jsonEncode(
-          const ProfileDoji(name: 'sam', instruments: ['R_75']).toJson(),
+          profileWith(name: 'sam', instruments: ['R_75']).toJson(),
         ),
         ...resumeAt(StepIds.sessions),
       });

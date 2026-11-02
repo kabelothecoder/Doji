@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 mixin _$PropRules {
 
 /// Free text, shown as a comment in profile.doji.
- String? get firm; int? get accountSize;/// Most you may lose in one day, % of the account.
+ String? get firm;/// Most you may lose in one day, % of the account.
  double? get dailyLossLimitPct;/// Most the account may fall, % of the account. How it is measured is
 /// [drawdownType] (and [trailingBasis] when trailing).
  double? get maxDrawdownPct;/// Static unless the user says otherwise.
@@ -36,16 +36,16 @@ $PropRulesCopyWith<PropRules> get copyWith => _$PropRulesCopyWithImpl<PropRules>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PropRules&&(identical(other.firm, firm) || other.firm == firm)&&(identical(other.accountSize, accountSize) || other.accountSize == accountSize)&&(identical(other.dailyLossLimitPct, dailyLossLimitPct) || other.dailyLossLimitPct == dailyLossLimitPct)&&(identical(other.maxDrawdownPct, maxDrawdownPct) || other.maxDrawdownPct == maxDrawdownPct)&&(identical(other.drawdownType, drawdownType) || other.drawdownType == drawdownType)&&(identical(other.trailingBasis, trailingBasis) || other.trailingBasis == trailingBasis)&&(identical(other.profitTargetPct, profitTargetPct) || other.profitTargetPct == profitTargetPct));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PropRules&&(identical(other.firm, firm) || other.firm == firm)&&(identical(other.dailyLossLimitPct, dailyLossLimitPct) || other.dailyLossLimitPct == dailyLossLimitPct)&&(identical(other.maxDrawdownPct, maxDrawdownPct) || other.maxDrawdownPct == maxDrawdownPct)&&(identical(other.drawdownType, drawdownType) || other.drawdownType == drawdownType)&&(identical(other.trailingBasis, trailingBasis) || other.trailingBasis == trailingBasis)&&(identical(other.profitTargetPct, profitTargetPct) || other.profitTargetPct == profitTargetPct));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,firm,accountSize,dailyLossLimitPct,maxDrawdownPct,drawdownType,trailingBasis,profitTargetPct);
+int get hashCode => Object.hash(runtimeType,firm,dailyLossLimitPct,maxDrawdownPct,drawdownType,trailingBasis,profitTargetPct);
 
 @override
 String toString() {
-  return 'PropRules(firm: $firm, accountSize: $accountSize, dailyLossLimitPct: $dailyLossLimitPct, maxDrawdownPct: $maxDrawdownPct, drawdownType: $drawdownType, trailingBasis: $trailingBasis, profitTargetPct: $profitTargetPct)';
+  return 'PropRules(firm: $firm, dailyLossLimitPct: $dailyLossLimitPct, maxDrawdownPct: $maxDrawdownPct, drawdownType: $drawdownType, trailingBasis: $trailingBasis, profitTargetPct: $profitTargetPct)';
 }
 
 
@@ -56,7 +56,7 @@ abstract mixin class $PropRulesCopyWith<$Res>  {
   factory $PropRulesCopyWith(PropRules value, $Res Function(PropRules) _then) = _$PropRulesCopyWithImpl;
 @useResult
 $Res call({
- String? firm, int? accountSize, double? dailyLossLimitPct, double? maxDrawdownPct, DrawdownType drawdownType, TrailingBasis trailingBasis, double? profitTargetPct
+ String? firm, double? dailyLossLimitPct, double? maxDrawdownPct, DrawdownType drawdownType, TrailingBasis trailingBasis, double? profitTargetPct
 });
 
 
@@ -73,11 +73,10 @@ class _$PropRulesCopyWithImpl<$Res>
 
 /// Create a copy of PropRules
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? firm = freezed,Object? accountSize = freezed,Object? dailyLossLimitPct = freezed,Object? maxDrawdownPct = freezed,Object? drawdownType = null,Object? trailingBasis = null,Object? profitTargetPct = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? firm = freezed,Object? dailyLossLimitPct = freezed,Object? maxDrawdownPct = freezed,Object? drawdownType = null,Object? trailingBasis = null,Object? profitTargetPct = freezed,}) {
   return _then(_self.copyWith(
 firm: freezed == firm ? _self.firm : firm // ignore: cast_nullable_to_non_nullable
-as String?,accountSize: freezed == accountSize ? _self.accountSize : accountSize // ignore: cast_nullable_to_non_nullable
-as int?,dailyLossLimitPct: freezed == dailyLossLimitPct ? _self.dailyLossLimitPct : dailyLossLimitPct // ignore: cast_nullable_to_non_nullable
+as String?,dailyLossLimitPct: freezed == dailyLossLimitPct ? _self.dailyLossLimitPct : dailyLossLimitPct // ignore: cast_nullable_to_non_nullable
 as double?,maxDrawdownPct: freezed == maxDrawdownPct ? _self.maxDrawdownPct : maxDrawdownPct // ignore: cast_nullable_to_non_nullable
 as double?,drawdownType: null == drawdownType ? _self.drawdownType : drawdownType // ignore: cast_nullable_to_non_nullable
 as DrawdownType,trailingBasis: null == trailingBasis ? _self.trailingBasis : trailingBasis // ignore: cast_nullable_to_non_nullable
@@ -167,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? firm,  int? accountSize,  double? dailyLossLimitPct,  double? maxDrawdownPct,  DrawdownType drawdownType,  TrailingBasis trailingBasis,  double? profitTargetPct)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? firm,  double? dailyLossLimitPct,  double? maxDrawdownPct,  DrawdownType drawdownType,  TrailingBasis trailingBasis,  double? profitTargetPct)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PropRules() when $default != null:
-return $default(_that.firm,_that.accountSize,_that.dailyLossLimitPct,_that.maxDrawdownPct,_that.drawdownType,_that.trailingBasis,_that.profitTargetPct);case _:
+return $default(_that.firm,_that.dailyLossLimitPct,_that.maxDrawdownPct,_that.drawdownType,_that.trailingBasis,_that.profitTargetPct);case _:
   return orElse();
 
 }
@@ -188,10 +187,10 @@ return $default(_that.firm,_that.accountSize,_that.dailyLossLimitPct,_that.maxDr
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? firm,  int? accountSize,  double? dailyLossLimitPct,  double? maxDrawdownPct,  DrawdownType drawdownType,  TrailingBasis trailingBasis,  double? profitTargetPct)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? firm,  double? dailyLossLimitPct,  double? maxDrawdownPct,  DrawdownType drawdownType,  TrailingBasis trailingBasis,  double? profitTargetPct)  $default,) {final _that = this;
 switch (_that) {
 case _PropRules():
-return $default(_that.firm,_that.accountSize,_that.dailyLossLimitPct,_that.maxDrawdownPct,_that.drawdownType,_that.trailingBasis,_that.profitTargetPct);case _:
+return $default(_that.firm,_that.dailyLossLimitPct,_that.maxDrawdownPct,_that.drawdownType,_that.trailingBasis,_that.profitTargetPct);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +207,10 @@ return $default(_that.firm,_that.accountSize,_that.dailyLossLimitPct,_that.maxDr
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? firm,  int? accountSize,  double? dailyLossLimitPct,  double? maxDrawdownPct,  DrawdownType drawdownType,  TrailingBasis trailingBasis,  double? profitTargetPct)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? firm,  double? dailyLossLimitPct,  double? maxDrawdownPct,  DrawdownType drawdownType,  TrailingBasis trailingBasis,  double? profitTargetPct)?  $default,) {final _that = this;
 switch (_that) {
 case _PropRules() when $default != null:
-return $default(_that.firm,_that.accountSize,_that.dailyLossLimitPct,_that.maxDrawdownPct,_that.drawdownType,_that.trailingBasis,_that.profitTargetPct);case _:
+return $default(_that.firm,_that.dailyLossLimitPct,_that.maxDrawdownPct,_that.drawdownType,_that.trailingBasis,_that.profitTargetPct);case _:
   return null;
 
 }
@@ -223,12 +222,11 @@ return $default(_that.firm,_that.accountSize,_that.dailyLossLimitPct,_that.maxDr
 @JsonSerializable()
 
 class _PropRules extends PropRules {
-  const _PropRules({this.firm, this.accountSize, this.dailyLossLimitPct, this.maxDrawdownPct, this.drawdownType = DrawdownType.fixed, this.trailingBasis = TrailingBasis.equity, this.profitTargetPct}): super._();
+  const _PropRules({this.firm, this.dailyLossLimitPct, this.maxDrawdownPct, this.drawdownType = DrawdownType.fixed, this.trailingBasis = TrailingBasis.equity, this.profitTargetPct}): super._();
   factory _PropRules.fromJson(Map<String, dynamic> json) => _$PropRulesFromJson(json);
 
 /// Free text, shown as a comment in profile.doji.
 @override final  String? firm;
-@override final  int? accountSize;
 /// Most you may lose in one day, % of the account.
 @override final  double? dailyLossLimitPct;
 /// Most the account may fall, % of the account. How it is measured is
@@ -255,16 +253,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PropRules&&(identical(other.firm, firm) || other.firm == firm)&&(identical(other.accountSize, accountSize) || other.accountSize == accountSize)&&(identical(other.dailyLossLimitPct, dailyLossLimitPct) || other.dailyLossLimitPct == dailyLossLimitPct)&&(identical(other.maxDrawdownPct, maxDrawdownPct) || other.maxDrawdownPct == maxDrawdownPct)&&(identical(other.drawdownType, drawdownType) || other.drawdownType == drawdownType)&&(identical(other.trailingBasis, trailingBasis) || other.trailingBasis == trailingBasis)&&(identical(other.profitTargetPct, profitTargetPct) || other.profitTargetPct == profitTargetPct));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PropRules&&(identical(other.firm, firm) || other.firm == firm)&&(identical(other.dailyLossLimitPct, dailyLossLimitPct) || other.dailyLossLimitPct == dailyLossLimitPct)&&(identical(other.maxDrawdownPct, maxDrawdownPct) || other.maxDrawdownPct == maxDrawdownPct)&&(identical(other.drawdownType, drawdownType) || other.drawdownType == drawdownType)&&(identical(other.trailingBasis, trailingBasis) || other.trailingBasis == trailingBasis)&&(identical(other.profitTargetPct, profitTargetPct) || other.profitTargetPct == profitTargetPct));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,firm,accountSize,dailyLossLimitPct,maxDrawdownPct,drawdownType,trailingBasis,profitTargetPct);
+int get hashCode => Object.hash(runtimeType,firm,dailyLossLimitPct,maxDrawdownPct,drawdownType,trailingBasis,profitTargetPct);
 
 @override
 String toString() {
-  return 'PropRules(firm: $firm, accountSize: $accountSize, dailyLossLimitPct: $dailyLossLimitPct, maxDrawdownPct: $maxDrawdownPct, drawdownType: $drawdownType, trailingBasis: $trailingBasis, profitTargetPct: $profitTargetPct)';
+  return 'PropRules(firm: $firm, dailyLossLimitPct: $dailyLossLimitPct, maxDrawdownPct: $maxDrawdownPct, drawdownType: $drawdownType, trailingBasis: $trailingBasis, profitTargetPct: $profitTargetPct)';
 }
 
 
@@ -275,7 +273,7 @@ abstract mixin class _$PropRulesCopyWith<$Res> implements $PropRulesCopyWith<$Re
   factory _$PropRulesCopyWith(_PropRules value, $Res Function(_PropRules) _then) = __$PropRulesCopyWithImpl;
 @override @useResult
 $Res call({
- String? firm, int? accountSize, double? dailyLossLimitPct, double? maxDrawdownPct, DrawdownType drawdownType, TrailingBasis trailingBasis, double? profitTargetPct
+ String? firm, double? dailyLossLimitPct, double? maxDrawdownPct, DrawdownType drawdownType, TrailingBasis trailingBasis, double? profitTargetPct
 });
 
 
@@ -292,11 +290,10 @@ class __$PropRulesCopyWithImpl<$Res>
 
 /// Create a copy of PropRules
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? firm = freezed,Object? accountSize = freezed,Object? dailyLossLimitPct = freezed,Object? maxDrawdownPct = freezed,Object? drawdownType = null,Object? trailingBasis = null,Object? profitTargetPct = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? firm = freezed,Object? dailyLossLimitPct = freezed,Object? maxDrawdownPct = freezed,Object? drawdownType = null,Object? trailingBasis = null,Object? profitTargetPct = freezed,}) {
   return _then(_PropRules(
 firm: freezed == firm ? _self.firm : firm // ignore: cast_nullable_to_non_nullable
-as String?,accountSize: freezed == accountSize ? _self.accountSize : accountSize // ignore: cast_nullable_to_non_nullable
-as int?,dailyLossLimitPct: freezed == dailyLossLimitPct ? _self.dailyLossLimitPct : dailyLossLimitPct // ignore: cast_nullable_to_non_nullable
+as String?,dailyLossLimitPct: freezed == dailyLossLimitPct ? _self.dailyLossLimitPct : dailyLossLimitPct // ignore: cast_nullable_to_non_nullable
 as double?,maxDrawdownPct: freezed == maxDrawdownPct ? _self.maxDrawdownPct : maxDrawdownPct // ignore: cast_nullable_to_non_nullable
 as double?,drawdownType: null == drawdownType ? _self.drawdownType : drawdownType // ignore: cast_nullable_to_non_nullable
 as DrawdownType,trailingBasis: null == trailingBasis ? _self.trailingBasis : trailingBasis // ignore: cast_nullable_to_non_nullable

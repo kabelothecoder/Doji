@@ -20,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/app_harness.dart';
+import '../helpers/sample_profile.dart';
 import '../helpers/clocks.dart';
 
 const _strategy = StrategyProfile(
@@ -34,7 +35,7 @@ Map<String, Object> _seed({
   List<String> instruments = const ['EURUSD', 'XAUUSD'],
   StrategyProfile? strategy = _strategy,
 }) => seedProfile(
-  profile: ProfileDoji(
+  profile: profileWith(
     name: 'sam',
     instruments: instruments,
     sessions: const ['london'],
@@ -48,7 +49,9 @@ Map<String, Object> _seed({
 );
 
 List<String> _watchlist(AppHarness h) => List<String>.from(
-  (jsonDecode(h.prefs.getString(PrefsOnboardingRepository.profileKey)!) as Map)['instruments'] as List,
+  ProfileDoji.fromJson(
+    jsonDecode(h.prefs.getString(PrefsOnboardingRepository.profileKey)!) as Map<String, dynamic>,
+  ).instruments,
 );
 
 /// A Saturday: the FX week is closed.

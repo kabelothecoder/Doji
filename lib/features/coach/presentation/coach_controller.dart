@@ -136,7 +136,7 @@ class CoachController extends Notifier<CoachState> {
     final voiceIn = ref.read(voiceInputProvider);
     ref.onDispose(voiceIn.stop);
     final profile = ref.read(onboardingRepositoryProvider).loadProfile() ?? const ProfileDoji();
-    _context = CoachContext.from(profile, trades: ref.read(journalControllerProvider), now: clock.now());
+    _context = CoachContext.from(profile, trades: ref.read(activeAccountTradesProvider), now: clock.now());
     final reason = !voiceIn.mightBeAvailable
         ? TextReason.device
         : includesVoiceCoach(ref.read(entitlementProvider).plan)

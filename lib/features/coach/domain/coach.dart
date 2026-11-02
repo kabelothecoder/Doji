@@ -104,10 +104,7 @@ class CoachContext {
       struggles: p.struggles,
       tradesToday: day.count,
       lossStreak: day.lossStreak,
-      lossTodayPct: day.lossPercent(
-        accountSize: p.prop?.accountSize?.toDouble(),
-        riskPerTradePct: rules?.riskPerTrade ?? 1.0,
-      ),
+      lossTodayPct: day.lossPercent(accountSize: p.startingSize, riskPerTradePct: rules?.riskPerTrade ?? 1.0),
     );
   }
 }

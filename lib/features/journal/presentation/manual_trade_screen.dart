@@ -207,6 +207,7 @@ class _ManualTradeScreenState extends ConsumerState<ManualTradeScreen> {
       size: d.size!,
       pnl: d.pnl!,
       riskMoney: d.risk,
+      accountId: ref.read(journalProfileProvider).activeAccount?.id,
     );
     unawaited(ref.read(hapticsProvider).light());
     await ref.read(journalControllerProvider.notifier).add(trade);

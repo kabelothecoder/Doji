@@ -5,6 +5,7 @@ import 'package:doji_app/app/routes.dart';
 import 'package:doji_app/features/app_lock/data/app_lock_repository.dart';
 import 'package:doji_app/features/app_lock/data/biometric_auth.dart';
 import 'package:doji_app/features/onboarding/domain/onboarding_catalog.dart';
+import 'package:doji_app/features/onboarding/domain/profile_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -22,6 +23,8 @@ final _screens = <String, Map<String, Object>>{
   Routes.settings: _signedIn,
   Routes.appLock: _signedIn,
   Routes.deleteAccount: _signedIn,
+  Routes.accounts: _signedIn,
+  Routes.accountEditor(kFirstAccountId): _signedIn,
   Routes.deleteConfirm: _signedIn,
   Routes.accountDeleted: const {},
 };

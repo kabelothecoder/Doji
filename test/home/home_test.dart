@@ -6,11 +6,11 @@ import 'package:doji_app/app/shell/doji_nav_rail.dart';
 import 'package:doji_app/core/widgets/widgets.dart';
 import 'package:doji_app/features/home/domain/home_models.dart';
 import 'package:doji_app/features/markets/presentation/pair_detail_controller.dart';
-import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/app_harness.dart';
+import '../helpers/sample_profile.dart';
 import '../journal/journal_fixtures.dart';
 
 /// A fixed morning, so "evening" never depends on when the suite runs.
@@ -18,7 +18,7 @@ final _morning = Clock.fixed(DateTime(2026, 10, 8, 10));
 final _evening = Clock.fixed(DateTime(2026, 10, 8, 19));
 
 Map<String, Object> _dayZeroSeed() => seedProfile(
-  profile: ProfileDoji(
+  profile: profileWith(
     name: 'sam',
     instruments: const ['XAUUSD', 'NAS100'],
     pledgedAt: DateTime(2026, 10, 8, 9),

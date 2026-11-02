@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../accounts/domain/condition_eval.dart';
+import '../../accounts/domain/trading_account.dart';
 import '../../onboarding/domain/sessions.dart';
 import '../../onboarding/domain/user_zone.dart';
 import '../domain/candle.dart';
@@ -69,7 +71,10 @@ class FakeBrief implements BriefSource {
     final soon = upcoming != null && upcoming.at.difference(now) <= _newsHorizon ? upcoming : null;
 
     // --- the london break, measured -----------------------------------------
-    final lb = reading.kind == StrategyKind.londonBreak && instrument != null && status.isOpen
+    final measuresRange =
+        r.profile.strategy?.conditions.any((x) => x.kind == ConditionKind.rangeBreak) ??
+        reading.kind == StrategyKind.londonBreak;
+    final lb = measuresRange && instrument != null && status.isOpen
         ? await _londonBreak(r.symbol, reading.timeframe, now)
         : null;
 
@@ -80,114 +85,30 @@ class FakeBrief implements BriefSource {
     final limitHit = limit != null && c.lossTodayPct > 0 && c.lossTodayPct >= limit;
     final dayDone = maxHit || limitHit;
 
-    // --- 03 · conditions ----------------------------------------------------
-    final conditions = <EntryCondition>[];
-    TradingSession? waitingSession;
-    DateTime? sessionOpensAt;
-    if (!status.isOpen) {
-      conditions.add(const EntryCondition('The market is open', ConditionStatus.notMet));
-    } else {
-      final sessions = reading.kind == StrategyKind.londonBreak
-          ? const [TradingSession.london]
-          : r.profile.sessions
-                .map(TradingSession.fromKey)
-                .whereType<TradingSession>()
-                .where((s) => s.zoneId != null)
-                .toList();
-      if (sessions.isEmpty) {
-        // No session preference ("around my job", or none): the market itself.
-        conditions.add(const EntryCondition('The market is open', ConditionStatus.met));
-      } else {
-        final open = sessions.where((s) => s.isOpenAt(now)).firstOrNull;
-        if (open != null) {
-          conditions.add(EntryCondition('${open.label} session is open', ConditionStatus.met));
-        } else {
-          final next = [for (final s in sessions) (s, s.nextOpenAfter(now))]
-            ..removeWhere((e) => e.$2 == null)
-            ..sort((a, b) => a.$2!.compareTo(b.$2!));
-          final s = next.isEmpty ? sessions.first : next.first.$1;
-          final over = lb?.londonOver ?? false;
-          conditions.add(
-            EntryCondition(
-              '${s.label} session is open',
-              over ? ConditionStatus.notMet : ConditionStatus.waiting,
-            ),
-          );
-          if (!over && next.isNotEmpty) {
-            waitingSession = s;
-            sessionOpensAt = next.first.$2;
-          }
-        }
-      }
-    }
-    if (max != null) {
-      conditions.add(
-        EntryCondition(
-          'Trades today under your max of $max',
-          maxHit ? ConditionStatus.notMet : ConditionStatus.met,
-        ),
-      );
-    }
-    if (limit != null) {
-      conditions.add(
-        EntryCondition(
-          "Today's loss under your ${_n(limit)}% limit",
-          limitHit ? ConditionStatus.notMet : ConditionStatus.met,
-        ),
-      );
-    }
+    // --- 03 · conditions: the account's own, measured --------------------
+    final strategyConditions = r.profile.strategy?.conditions ?? defaultConditions(null);
+    final measured = measureConditions(
+      strategyConditions,
+      ConditionFacts(
+        now: now,
+        marketOpen: status.isOpen,
+        traderSessions: r.profile.sessions,
+        tradesToday: c.tradesToday,
+        lossTodayPct: c.lossTodayPct,
+        maxTradesPerDay: max,
+        dailyLossLimitPct: limit,
+        rangeBroke: lb?.breakAt != null,
+        closedBack: lb?.retestAt != null,
+        rangeOver: lb?.londonOver ?? false,
+        newsKnown: currencies.isNotEmpty,
+        newsInWindow: inWindow != null,
+        timeframeLabel: reading.timeframe.label,
+      ),
+    );
     final tf = reading.timeframe;
-    switch (reading.kind) {
-      case StrategyKind.londonBreak:
-        final broke = lb?.breakAt != null;
-        final over = lb?.londonOver ?? false;
-        conditions.add(
-          EntryCondition(
-            'Price breaks the Asian range high or low',
-            broke
-                ? ConditionStatus.met
-                : over || !status.isOpen
-                ? ConditionStatus.notMet
-                : ConditionStatus.waiting,
-          ),
-        );
-        if (reading.retest) {
-          conditions.add(
-            EntryCondition(
-              '${tf.label} candle closes back beyond the broken level',
-              lb?.retestAt != null
-                  ? ConditionStatus.met
-                  : over || !status.isOpen
-                  ? ConditionStatus.notMet
-                  : ConditionStatus.waiting,
-            ),
-          );
-        } else if (reading.entry != null) {
-          conditions.add(
-            EntryCondition('Your entry: ${reading.entry} (${tf.label})', ConditionStatus.waiting),
-          );
-        }
-      case StrategyKind.other:
-        final what = reading.entry ?? reading.setup;
-        if (what != null) {
-          conditions.add(
-            EntryCondition(
-              'Your ${reading.entry != null ? 'entry' : 'setup'}: $what (${tf.label})',
-              ConditionStatus.waiting,
-            ),
-          );
-        }
-      case StrategyKind.none:
-        break;
-    }
-    if (currencies.isNotEmpty) {
-      conditions.add(
-        EntryCondition(
-          'No high-impact news within $kNewsBufferMinutes min',
-          inWindow == null ? ConditionStatus.met : ConditionStatus.notMet,
-        ),
-      );
-    }
+    final conditions = measured.conditions;
+    final waitingSession = measured.waitingSession;
+    final sessionOpensAt = measured.sessionOpensAt;
 
     // --- 01 · market context ------------------------------------------------
     final context = <String>[];

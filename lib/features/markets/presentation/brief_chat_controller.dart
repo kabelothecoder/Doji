@@ -109,7 +109,7 @@ class BriefChatController extends Notifier<BriefChatState> {
     final request = BriefRequest(
       symbol: symbol,
       profile: ref.read(marketsProfileProvider),
-      trades: ref.read(journalControllerProvider),
+      trades: ref.read(activeAccountTradesProvider),
       now: clock.now(),
     );
     final answer = await ref.read(briefChatProvider).reply(brief, request, history, words);

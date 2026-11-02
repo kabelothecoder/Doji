@@ -93,7 +93,7 @@ final homeControllerProvider = NotifierProvider<HomeController, HomeState>(HomeC
 /// drawdown come from the journal.
 final homeSnapshotProvider = Provider.autoDispose<HomeSnapshot>((ref) {
   final profile = ref.watch(homeProfileProvider);
-  final trades = ref.watch(journalControllerProvider);
+  final trades = ref.watch(activeAccountTradesProvider);
   return HomeSnapshot.fromJournal(profile, trades: trades, now: clock.now().toUtc());
 });
 

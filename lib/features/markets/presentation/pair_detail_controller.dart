@@ -38,7 +38,7 @@ final pairCandlesProvider = FutureProvider.autoDispose.family<List<Candle>, (Str
 BriefRequest briefRequest(Ref ref, String symbol) => BriefRequest(
   symbol: symbol,
   profile: ref.watch(marketsProfileProvider),
-  trades: ref.watch(journalControllerProvider),
+  trades: ref.watch(activeAccountTradesProvider),
   now: clock.now(),
 );
 
@@ -126,7 +126,7 @@ class Watchlist extends Notifier<List<String>> {
     final next = has
         ? profile.instruments.where((s) => s.toUpperCase() != symbol.toUpperCase()).toList()
         : [...profile.instruments, symbol];
-    await repo.saveProfile(profile.copyWith(instruments: next));
+    await repo.saveProfile(profile.withActive((a) => a.copyWith(instruments: next)));
     // Everything that read the old profile reads it again.
     ref.invalidate(marketsProfileProvider);
     ref.invalidate(homeProfileProvider);

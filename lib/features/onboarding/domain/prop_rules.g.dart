@@ -8,7 +8,6 @@ part of 'prop_rules.dart';
 
 _PropRules _$PropRulesFromJson(Map<String, dynamic> json) => _PropRules(
   firm: json['firm'] as String?,
-  accountSize: (json['accountSize'] as num?)?.toInt(),
   dailyLossLimitPct: (json['dailyLossLimitPct'] as num?)?.toDouble(),
   maxDrawdownPct: (json['maxDrawdownPct'] as num?)?.toDouble(),
   drawdownType: $enumDecodeNullable(_$DrawdownTypeEnumMap, json['drawdownType']) ?? DrawdownType.fixed,
@@ -18,7 +17,6 @@ _PropRules _$PropRulesFromJson(Map<String, dynamic> json) => _PropRules(
 
 Map<String, dynamic> _$PropRulesToJson(_PropRules instance) => <String, dynamic>{
   'firm': ?instance.firm,
-  'accountSize': ?instance.accountSize,
   'dailyLossLimitPct': ?instance.dailyLossLimitPct,
   'maxDrawdownPct': ?instance.maxDrawdownPct,
   'drawdownType': _$DrawdownTypeEnumMap[instance.drawdownType]!,

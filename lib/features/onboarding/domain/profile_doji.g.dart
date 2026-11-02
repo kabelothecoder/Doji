@@ -10,18 +10,17 @@ _ProfileDoji _$ProfileDojiFromJson(Map<String, dynamic> json) => _ProfileDoji(
   name: json['name'] as String?,
   experience: json['experience'] as String?,
   style: json['style'] as String?,
-  instruments: (json['instruments'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
   sessions: (json['sessions'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
   timeZone: json['timeZone'] as String?,
   utcOffsetMinutes: (json['utcOffsetMinutes'] as num?)?.toInt(),
   goal: json['goal'] as String?,
-  prop: json['prop'] == null ? null : PropRules.fromJson(json['prop'] as Map<String, dynamic>),
-  accountCurrency: json['accountCurrency'] as String? ?? 'USD',
   struggles: (json['struggles'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
-  strategy: json['strategy'] == null
-      ? null
-      : StrategyProfile.fromJson(json['strategy'] as Map<String, dynamic>),
-  rules: json['rules'] == null ? null : TradingRules.fromJson(json['rules'] as Map<String, dynamic>),
+  accounts:
+      (json['accounts'] as List<dynamic>?)
+          ?.map((e) => TradingAccount.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <TradingAccount>[],
+  activeAccountId: json['activeAccountId'] as String?,
   coach: json['coach'] == null ? null : CoachProfile.fromJson(json['coach'] as Map<String, dynamic>),
   theOpenTime: json['theOpenTime'] as String?,
   notificationsAllowed: json['notificationsAllowed'] as bool?,
@@ -36,16 +35,13 @@ Map<String, dynamic> _$ProfileDojiToJson(_ProfileDoji instance) => <String, dyna
   'name': ?instance.name,
   'experience': ?instance.experience,
   'style': ?instance.style,
-  'instruments': instance.instruments,
   'sessions': instance.sessions,
   'timeZone': ?instance.timeZone,
   'utcOffsetMinutes': ?instance.utcOffsetMinutes,
   'goal': ?instance.goal,
-  'prop': ?instance.prop?.toJson(),
-  'accountCurrency': instance.accountCurrency,
   'struggles': instance.struggles,
-  'strategy': ?instance.strategy?.toJson(),
-  'rules': ?instance.rules?.toJson(),
+  'accounts': instance.accounts.map((e) => e.toJson()).toList(),
+  'activeAccountId': ?instance.activeAccountId,
   'coach': ?instance.coach?.toJson(),
   'theOpenTime': ?instance.theOpenTime,
   'notificationsAllowed': ?instance.notificationsAllowed,
@@ -61,6 +57,11 @@ _StrategyProfile _$StrategyProfileFromJson(Map<String, dynamic> json) => _Strate
   template: json['template'] as String?,
   source: json['source'] as String?,
   parsed: json['parsed'] == null ? null : ParsedStrategy.fromJson(json['parsed'] as Map<String, dynamic>),
+  conditions:
+      (json['conditions'] as List<dynamic>?)
+          ?.map((e) => StrategyCondition.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <StrategyCondition>[],
 );
 
 Map<String, dynamic> _$StrategyProfileToJson(_StrategyProfile instance) => <String, dynamic>{
@@ -68,6 +69,7 @@ Map<String, dynamic> _$StrategyProfileToJson(_StrategyProfile instance) => <Stri
   'template': ?instance.template,
   'source': ?instance.source,
   'parsed': ?instance.parsed?.toJson(),
+  'conditions': instance.conditions.map((e) => e.toJson()).toList(),
 };
 
 _ParsedStrategy _$ParsedStrategyFromJson(Map<String, dynamic> json) => _ParsedStrategy(

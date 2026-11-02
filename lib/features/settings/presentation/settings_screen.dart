@@ -29,7 +29,9 @@ class SettingsScreen extends ConsumerWidget {
     final user = ref.watch(authSessionProvider);
     final lock = ref.watch(appLockControllerProvider);
     final plan = ref.watch(entitlementProvider).plan;
-    final voice = ref.watch(onboardingRepositoryProvider).loadProfile()?.coach?.voice;
+    final profile = ref.watch(onboardingRepositoryProvider).loadProfile();
+    final voice = profile?.coach?.voice;
+    final activeAccount = profile?.activeAccount;
     void back() => context.canPop() ? context.pop() : context.go(Routes.home);
 
     final lockValue = switch (lock) {
@@ -57,6 +59,12 @@ class SettingsScreen extends ConsumerWidget {
               onTap: lock.kind == null ? null : () => unawaited(context.push(Routes.appLock)),
             ),
             if (voice != null) _Row(label: 'coach voice', value: _voices[voice] ?? voice),
+            if (activeAccount != null)
+              _Row(
+                label: 'accounts and strategies',
+                value: activeAccount.name,
+                onTap: () => unawaited(context.push(Routes.accounts)),
+              ),
           ],
         ),
         const SizedBox(height: 20),

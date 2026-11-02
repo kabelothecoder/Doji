@@ -88,9 +88,9 @@ class HomeSnapshot {
     final rules = p.rules;
     final prop = p.prop;
     final day = DaySummary.of(trades, now ?? DateTime.now());
-    // Only a prop challenge states the account size, so only it has a real
-    // drawdown; without a size doji shows no meter instead of inventing one.
-    final accountSize = prop?.accountSize?.toDouble();
+    // The account's starting size is the one base for loss % and the drawdown;
+    // without a size doji shows no meter instead of inventing one.
+    final accountSize = p.startingSize;
     final lossPct = day.lossPercent(accountSize: accountSize, riskPerTradePct: rules?.riskPerTrade ?? 1.0);
     final maxTrades = rules?.maxTradesPerDay ?? 3;
     // The stricter of the user's own daily loss limit and the prop firm's.

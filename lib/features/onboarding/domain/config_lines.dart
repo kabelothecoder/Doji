@@ -67,7 +67,7 @@ final List<_Spec> _specs = [
   _Spec('goal', StepIds.goal, (a, p) => p.goal == null ? null : _sym(p.goal!)),
   _Spec('prop.size', StepIds.goal, (a, p) {
     final firm = p.prop?.firm == null ? '' : '  # ${p.prop!.firm!.toLowerCase()}';
-    final size = p.prop?.accountSize;
+    final size = p.startingSize?.round();
     if (size == null) {
       return (value: 'null', tone: ConfigValueTone.muted, comment: firm.isEmpty ? '  # optional' : firm);
     }

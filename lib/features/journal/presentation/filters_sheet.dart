@@ -29,15 +29,17 @@ class FiltersSheet extends ConsumerWidget {
   const FiltersSheet({super.key});
 
   /// What each group offers: fixed lists, or what the journal actually holds.
-  List<String> _options(FilterGroup g, List<String> symbols, List<String> setups) => switch (g) {
-    FilterGroup.pair => symbols,
-    FilterGroup.setup => setups,
-    FilterGroup.session => [...kSessionNames, ...kOffHours],
-    FilterGroup.weekday => kWeekdayNames,
-    FilterGroup.tag => kMistakeTags,
-    FilterGroup.grade => [for (final g in ProcessGrade.values) g.letter],
-    FilterGroup.result => const ['win', 'loss'],
-  };
+  List<String> _options(FilterGroup g, List<String> symbols, List<String> setups, List<String> accounts) =>
+      switch (g) {
+        FilterGroup.account => accounts,
+        FilterGroup.pair => symbols,
+        FilterGroup.setup => setups,
+        FilterGroup.session => [...kSessionNames, ...kOffHours],
+        FilterGroup.weekday => kWeekdayNames,
+        FilterGroup.tag => kMistakeTags,
+        FilterGroup.grade => [for (final g in ProcessGrade.values) g.letter],
+        FilterGroup.result => const ['win', 'loss'],
+      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,6 +48,7 @@ class FiltersSheet extends ConsumerWidget {
     final filter = view.filter;
     final symbols = {for (final t in trades) t.symbol}.toList()..sort();
     final setups = {for (final t in trades) ?t.setup}.toList()..sort();
+    final accounts = {for (final a in ref.watch(journalProfileProvider).accounts) a.id: a.name};
     final shown = filter.apply(trades).length;
     final notifier = ref.read(journalViewProvider.notifier);
 
@@ -106,7 +109,7 @@ class FiltersSheet extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           for (final g in FilterGroup.values)
-                            if (_options(g, symbols, setups).isNotEmpty) ...[
+                            if (_options(g, symbols, setups, accounts.keys.toList()).isNotEmpty) ...[
                               const SizedBox(height: 14),
                               Semantics(
                                 header: true,
@@ -120,9 +123,13 @@ class FiltersSheet extends ConsumerWidget {
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: [
-                                  for (final o in _options(g, symbols, setups))
+                                  for (final o in _options(g, symbols, setups, accounts.keys.toList()))
                                     DojiChoiceChip(
-                                      label: g == FilterGroup.pair ? instrumentLabel(o) : o,
+                                      label: switch (g) {
+                                        FilterGroup.pair => instrumentLabel(o),
+                                        FilterGroup.account => accounts[o] ?? o,
+                                        _ => o,
+                                      },
                                       selected: filter.of(g).contains(o),
                                       mono: g.mono,
                                       style: DojiChoiceStyle.chip,

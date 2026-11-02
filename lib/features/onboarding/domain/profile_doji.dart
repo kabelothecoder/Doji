@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../accounts/domain/trading_account.dart';
 import 'prop_rules.dart';
 
 part 'profile_doji.freezed.dart';
@@ -10,7 +11,10 @@ part 'profile_doji.g.dart';
 /// 2: `pairs` → `instruments`, `propFirm`/`propSize` → `prop` (PropRules).
 /// 3: sessions are real zones (`sydney`, `tokyo` replace `asia`); `accountCurrency`;
 ///    PropRules gains `drawdownType` and `trailingBasis`.
-const int kOnboardingVersion = 3;
+/// 4: instruments, accountCurrency, prop, strategy and rules move into
+///    `accounts` (TradingAccount); PropRules loses accountSize (the account's
+///    startingSize is the only size); strategies gain conditions.
+const int kOnboardingVersion = 4;
 
 /// The user's `profile.doji`: everything onboarding learns, pre-account.
 ///
@@ -30,10 +34,6 @@ abstract class ProfileDoji with _$ProfileDoji {
     /// scalper | day_trader | swing | undecided
     String? style,
 
-    /// Instrument symbols from the markets catalogue ('XAUUSD', 'R_75', 'BTCUSD'),
-    /// or the user's own custom symbols.
-    @Default(<String>[]) List<String> instruments,
-
     /// sydney | tokyo | london | new_york | around_job
     @Default(<String>[]) List<String> sessions,
 
@@ -44,17 +44,15 @@ abstract class ProfileDoji with _$ProfileDoji {
     /// prop_challenge | grow_account | consistent | make_it_my_job | learn
     String? goal,
 
-    /// The prop challenge's own limits; only set when the goal is a prop challenge.
-    PropRules? prop,
-
-    /// USD | ZAR | EUR | GBP. The currency the account balance is held in;
-    /// position sizing converts into it.
-    @Default('USD') String accountCurrency,
-
     /// revenge | fomo | overtrading | hesitation | moving_stop | oversizing | bored
     @Default(<String>[]) List<String> struggles,
-    StrategyProfile? strategy,
-    TradingRules? rules,
+
+    /// The trader's accounts, each with its own rules and strategy. Onboarding
+    /// creates the first one.
+    @Default(<TradingAccount>[]) List<TradingAccount> accounts,
+
+    /// The account everything reads. Falls back to the first one.
+    String? activeAccountId,
     CoachProfile? coach,
 
     /// "The Open" ritual time, local HH:mm.
@@ -76,6 +74,44 @@ abstract class ProfileDoji with _$ProfileDoji {
   static const int currentOnboardingVersion = kOnboardingVersion;
 
   bool get isComplete => completedAt != null;
+
+  /// The active account, else the first, else null (onboarding not done).
+  TradingAccount? get activeAccount =>
+      accounts.where((a) => a.id == activeAccountId).firstOrNull ?? accounts.firstOrNull;
+
+  // Read-only views of the active account, so readers need not know about accounts.
+  List<String> get instruments => activeAccount?.instruments ?? const [];
+  PropRules? get prop => activeAccount?.prop;
+  String get accountCurrency => activeAccount?.accountCurrency ?? 'USD';
+  StrategyProfile? get strategy => activeAccount?.strategy;
+  TradingRules? get rules => activeAccount?.rules;
+  double? get startingSize => activeAccount?.startingSize;
+
+  /// This profile with the active account changed by [f]. No-op without accounts.
+  ProfileDoji withActive(TradingAccount Function(TradingAccount a) f) {
+    final active = activeAccount;
+    return active == null ? this : upsertAccount(f(active));
+  }
+
+  /// Replaces the account with the same id, or adds it.
+  ProfileDoji upsertAccount(TradingAccount account) {
+    final i = accounts.indexWhere((a) => a.id == account.id);
+    final next = [...accounts];
+    i < 0 ? next.add(account) : next[i] = account;
+    return copyWith(accounts: next);
+  }
+
+  ProfileDoji switchAccount(String id) =>
+      accounts.any((a) => a.id == id) ? copyWith(activeAccountId: id) : this;
+
+  /// Removes an account. The last one stays: a trader always has one. Removing
+  /// the active one makes the first remaining one active.
+  ProfileDoji removeAccount(String id) {
+    if (accounts.length <= 1) return this;
+    final next = accounts.where((a) => a.id != id).toList();
+    final activeId = activeAccount?.id == id ? next.first.id : activeAccountId;
+    return copyWith(accounts: next, activeAccountId: activeId);
+  }
 }
 
 @freezed
@@ -90,6 +126,10 @@ abstract class StrategyProfile with _$StrategyProfile {
     /// text | voice | template
     String? source,
     ParsedStrategy? parsed,
+
+    /// What doji measures, in order. Anything it cannot measure is a manual
+    /// condition ("check on your chart").
+    @Default(<StrategyCondition>[]) List<StrategyCondition> conditions,
   }) = _StrategyProfile;
 
   factory StrategyProfile.fromJson(Map<String, dynamic> json) => _$StrategyProfileFromJson(json);

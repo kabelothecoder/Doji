@@ -84,9 +84,26 @@ class JournalViewState {
 
 const Object _keep = Object();
 
+/// The trades taken on the active account (Home, the brief, the coach, the rail).
+final activeAccountTradesProvider = Provider.autoDispose<List<Trade>>((ref) {
+  final id = ref.watch(journalProfileProvider.select((p) => p.activeAccount?.id));
+  return [
+    for (final t in ref.watch(journalControllerProvider))
+      if (t.accountId == id) t,
+  ];
+});
+
 class JournalView extends Notifier<JournalViewState> {
+  /// Opens on the active account; clearing the filters shows all accounts.
   @override
-  JournalViewState build() => const JournalViewState();
+  JournalViewState build() {
+    final id = ref.read(journalProfileProvider).activeAccount?.id;
+    return JournalViewState(
+      filter: TradeFilter({
+        if (id != null) FilterGroup.account: {id},
+      }),
+    );
+  }
 
   void setPeriod(JournalPeriod p) => state = state.copyWith(period: p, selectedDay: null);
   void setUnit(ResultUnit u) => state = state.copyWith(unit: u);
@@ -100,7 +117,8 @@ final journalViewProvider = NotifierProvider<JournalView, JournalViewState>(Jour
 
 /// Trades inside the chosen period, newest first.
 final periodTradesProvider = Provider.autoDispose<List<Trade>>((ref) {
-  final trades = ref.watch(journalControllerProvider);
+  final account = ref.watch(journalViewProvider.select((v) => v.filter.accountOnly));
+  final trades = account.apply(ref.watch(journalControllerProvider));
   final period = ref.watch(journalViewProvider.select((v) => v.period));
   final now = clock.now();
   return [

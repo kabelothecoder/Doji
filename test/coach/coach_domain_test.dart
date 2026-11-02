@@ -13,6 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../journal/journal_fixtures.dart';
+import '../helpers/sample_profile.dart';
 
 /// A trader with a parsed strategy and rules, on a rough morning.
 const _full = CoachContext(
@@ -169,13 +170,14 @@ void main() {
 
   group('CoachContext.from', () {
     test("profile.doji and today's journal: the stricter limit, the streak, today's loss", () {
-      const profile = ProfileDoji(
+      final profile = profileWith(
         name: 'sam',
-        strategy: StrategyProfile(
+        strategy: const StrategyProfile(
           parsed: ParsedStrategy(setup: 'london break', entry: 'M15 retest'),
         ),
-        rules: TradingRules(riskPerTrade: 1, maxTradesPerDay: 3, dailyLossLimit: 2),
-        prop: PropRules(accountSize: 100000, dailyLossLimitPct: 1),
+        rules: const TradingRules(riskPerTrade: 1, maxTradesPerDay: 3, dailyLossLimit: 2),
+        prop: const PropRules(dailyLossLimitPct: 1),
+        startingSize: 100000,
       );
       final c = CoachContext.from(
         profile,
@@ -195,8 +197,8 @@ void main() {
     });
 
     test('blank strategy fields read as unknown', () {
-      const profile = ProfileDoji(
-        strategy: StrategyProfile(parsed: ParsedStrategy(entry: '  ')),
+      final profile = profileWith(
+        strategy: const StrategyProfile(parsed: ParsedStrategy(entry: '  ')),
       );
       expect(CoachContext.from(profile, trades: const [], now: journalNow).entry, isNull);
     });

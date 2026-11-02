@@ -98,7 +98,13 @@ class _Watchlist extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 16),
-        _MeasuredAgainst(setup: setup == null || setup.isEmpty ? null : setup),
+        _MeasuredAgainst(
+          setup: setup == null || setup.isEmpty ? null : setup,
+          onPressed: switch (ref.watch(marketsProfileProvider).activeAccount?.id) {
+            final id? => () => context.push(Routes.accountEditor(id, strategy: true)),
+            null => null,
+          },
+        ),
         const SizedBox(height: 16),
         if (symbols.isEmpty) ...[
           const TerminalLine('your watchlist is empty.', liveRegion: false),
@@ -140,16 +146,19 @@ class _Watchlist extends ConsumerWidget {
 }
 
 /// "MEASURED AGAINST [setup]": what every state on the list is counted
-/// against. Not a button until the strategy manager exists.
+/// against. Opens the active account's editor at its strategy.
 class _MeasuredAgainst extends StatelessWidget {
-  const _MeasuredAgainst({required this.setup});
+  const _MeasuredAgainst({required this.setup, required this.onPressed});
 
   final String? setup;
+  final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    container: true,
-    label: setup == null ? 'measured against your rules, no strategy yet' : 'measured against $setup',
+  Widget build(BuildContext context) => DojiPressable(
+    onPressed: onPressed,
+    borderRadius: BorderRadius.circular(DojiRadius.card),
+    semanticLabel: setup == null ? 'measured against your rules, no strategy yet' : 'measured against $setup',
+    semanticHint: 'edit your strategy',
     child: ExcludeSemantics(
       child: Container(
         constraints: const BoxConstraints(minHeight: 56),
@@ -159,16 +168,23 @@ class _MeasuredAgainst extends StatelessWidget {
           borderRadius: BorderRadius.circular(DojiRadius.card),
           border: Border.all(color: DojiColors.separator),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
-            Text('MEASURED AGAINST', style: DojiType.label.copyWith(fontSize: 11)),
-            const SizedBox(height: 3),
-            Text(
-              setup ?? 'your rules · no strategy yet',
-              style: DojiType.body.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('MEASURED AGAINST', style: DojiType.label.copyWith(fontSize: 11)),
+                  const SizedBox(height: 3),
+                  Text(
+                    setup ?? 'your rules · no strategy yet',
+                    style: DojiType.body.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
             ),
+            const Icon(Icons.chevron_right_rounded, color: DojiColors.textSecondary),
           ],
         ),
       ),

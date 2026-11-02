@@ -29,7 +29,8 @@ enum TrailingBasis {
 }
 
 /// A prop challenge's own limits, entered by the user (no firm presets yet).
-/// Every limit is optional; percentages are of [accountSize].
+/// Every limit is optional; percentages are of the account's starting size
+/// (`TradingAccount.startingSize`).
 ///
 /// Not modelled yet: minimum trading days, consistency rules, and trailing
 /// drawdowns that lock at the starting balance once reached.
@@ -41,7 +42,6 @@ abstract class PropRules with _$PropRules {
   const factory PropRules({
     /// Free text, shown as a comment in profile.doji.
     String? firm,
-    int? accountSize,
 
     /// Most you may lose in one day, % of the account.
     double? dailyLossLimitPct,
@@ -66,11 +66,7 @@ abstract class PropRules with _$PropRules {
   /// True when no limit or detail was entered. The drawdown settings alone do
   /// not count: they only describe a limit.
   bool get isEmpty =>
-      firm == null &&
-      accountSize == null &&
-      dailyLossLimitPct == null &&
-      maxDrawdownPct == null &&
-      profitTargetPct == null;
+      firm == null && dailyLossLimitPct == null && maxDrawdownPct == null && profitTargetPct == null;
 
   /// "static", "trailing balance" or "trailing equity": how the drawdown reads in
   /// profile.doji and on the meter.

@@ -92,6 +92,7 @@ class Trade {
     this.note = '',
     this.reviewedAt,
     this.source = 'manual',
+    this.accountId,
   });
 
   final String id;
@@ -125,6 +126,10 @@ class Trade {
 
   /// manual now; mt5, csv and broker later.
   final String source;
+
+  /// The TradingAccount it was taken on. Null on trades saved before accounts:
+  /// those show under "all accounts" only.
+  final String? accountId;
 
   bool get reviewed => reviewedAt != null;
   bool get isWin => pnl > 0;
@@ -166,6 +171,7 @@ class Trade {
     note: review.note,
     reviewedAt: at,
     source: source,
+    accountId: accountId,
   );
 
   Map<String, Object?> toJson() => {
@@ -189,6 +195,7 @@ class Trade {
     'note': note,
     'reviewedAt': reviewedAt?.toUtc().toIso8601String(),
     'source': source,
+    'accountId': accountId,
   };
 
   /// Null for a record that is missing its essentials (skipped, never a crash).
@@ -226,6 +233,7 @@ class Trade {
       note: (json['note'] as String?) ?? '',
       reviewedAt: reviewed is String ? DateTime.tryParse(reviewed)?.toUtc() : null,
       source: (json['source'] as String?) ?? 'manual',
+      accountId: json['accountId'] as String?,
     );
   }
 }

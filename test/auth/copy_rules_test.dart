@@ -19,6 +19,8 @@ void main() {
       // Markets 1b's screens; what the fake brief and its chat say is checked in brief_test.
       'lib/features/markets/domain',
       'lib/features/markets/presentation',
+      // Accounts and the strategy editor, and the conditions doji measures.
+      'lib/features/accounts',
     ];
     final literals = [RegExp(r"'(?:[^'\\\n]|\\.)*'"), RegExp(r'"(?:[^"\\\n]|\\.)*"')];
     final copy = <String>[];

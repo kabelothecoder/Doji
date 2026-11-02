@@ -5,6 +5,8 @@ import 'trade.dart';
 
 /// What the trades list can be filtered by (Doji Trade Journal › filters).
 enum FilterGroup {
+  /// Values are TradingAccount ids; the sheet shows their names.
+  account('account'),
   pair('pair', mono: true),
   setup('setup'),
   session('session'),
@@ -78,6 +80,7 @@ class TradeFilter {
   /// The value(s) a trade has for [g]; empty when it has none (unreviewed
   /// trades have no setup, tags or grade).
   static Iterable<String> valuesOf(Trade t, FilterGroup g) => switch (g) {
+    FilterGroup.account => [if (t.accountId != null) t.accountId!],
     FilterGroup.pair => [t.symbol],
     FilterGroup.setup => [if (t.setup != null) t.setup!],
     FilterGroup.session => [sessionOf(t.openedAt)],
@@ -95,15 +98,20 @@ class TradeFilter {
     return true;
   }
 
+  /// Only the account group: the journal home's stats follow the account,
+  /// not the list's other filters.
+  TradeFilter get accountOnly => TradeFilter({FilterGroup.account: of(FilterGroup.account)});
+
   List<Trade> apply(Iterable<Trade> trades) => [
     for (final t in trades)
       if (matches(t)) t,
   ];
 
-  /// "pair: XAUUSD", "setup: 2", for the chips above the list.
-  String chipLabel(FilterGroup g) {
+  /// "pair: XAUUSD", "setup: 2", for the chips above the list. [name] turns a
+  /// value into what the trader reads (an account id into its name).
+  String chipLabel(FilterGroup g, {String Function(String value)? name}) {
     final v = of(g);
-    if (v.isEmpty) return g.label;
-    return '${g.label.split(' ').last}: ${v.length == 1 ? v.first : v.length}';
+    if (v.isEmpty) return g == FilterGroup.account ? 'all accounts' : g.label;
+    return '${g.label.split(' ').last}: ${v.length == 1 ? (name?.call(v.first) ?? v.first) : v.length}';
   }
 }

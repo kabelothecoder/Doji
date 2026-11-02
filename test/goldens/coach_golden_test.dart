@@ -18,6 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/app_harness.dart';
 import '../helpers/clocks.dart';
+import '../helpers/sample_profile.dart';
 import '../helpers/fakes.dart';
 
 const _urge = 'the break is right there. I want in before it runs.';
@@ -27,7 +28,7 @@ Future<void> _match(String name) =>
 
 Map<String, Object> _seed({String? plan}) => {
   ...seedProfile(
-    profile: ProfileDoji(
+    profile: profileWith(
       name: 'sam',
       instruments: const ['XAUUSD'],
       strategy: const StrategyProfile(

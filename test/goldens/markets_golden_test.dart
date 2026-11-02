@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/app_harness.dart';
+import '../helpers/sample_profile.dart';
 import '../helpers/clocks.dart';
 
 Future<void> _match(String name) =>
@@ -29,7 +30,7 @@ Future<void> _match(String name) =>
 
 Map<String, Object> _seed({String? briefUsedOn}) => {
   ...seedProfile(
-    profile: ProfileDoji(
+    profile: profileWith(
       name: 'sam',
       instruments: const ['EURUSD', 'XAUUSD'],
       sessions: const ['london'],

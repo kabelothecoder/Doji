@@ -19,6 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/app_harness.dart';
 import '../helpers/clocks.dart';
+import '../helpers/sample_profile.dart';
 import '../helpers/fakes.dart';
 
 /// The handoff's trader, in Johannesburg (UTC+2): on [summerDay] (Wednesday
@@ -30,7 +31,7 @@ Map<String, Object> _seed({
   String? briefUsedOn,
 }) => {
   ...seedProfile(
-    profile: ProfileDoji(
+    profile: profileWith(
       name: 'sam',
       instruments: instruments,
       sessions: const ['london'],
@@ -74,7 +75,9 @@ Future<AppHarness> _open(
 );
 
 List<String> _watchlist(AppHarness h) => List<String>.from(
-  (jsonDecode(h.prefs.getString(PrefsOnboardingRepository.profileKey)!) as Map)['instruments'] as List,
+  ProfileDoji.fromJson(
+    jsonDecode(h.prefs.getString(PrefsOnboardingRepository.profileKey)!) as Map<String, dynamic>,
+  ).instruments,
 );
 
 Future<void> _scrollTo(WidgetTester tester, Finder f) =>

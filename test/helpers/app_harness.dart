@@ -15,6 +15,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fakes.dart';
+import 'sample_profile.dart';
 
 /// The whole app (router, app-lock gate, text clamp) at [location], with
 /// every platform service faked. Reduce motion is on unless [reduced] is
@@ -119,7 +120,7 @@ final ios = TargetPlatformVariant.only(TargetPlatform.iOS);
 Map<String, Object> seedProfile({ProfileDoji? profile, bool pendingSync = true}) => {
   PrefsOnboardingRepository.profileKey: jsonEncode(
     (profile ??
-            ProfileDoji(
+            profileWith(
               name: 'sam',
               style: 'day_trader',
               instruments: const ['XAUUSD', 'NAS100'],

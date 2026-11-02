@@ -45,6 +45,9 @@ lib/
                   brief_allowance_repository · presentation/ markets_screen (list) · market_search_screen ·
                   pair_detail_screen (1b) · markets_controller · brief_chat_sheet · widgets/
     settings/     account settings · sign-out sheet · delete account flow (A11–A12)
+    accounts/     domain/ trading_account.dart (freezed: TradingAccount, StrategyCondition) · condition_eval.dart
+                  (defaultConditions, measureConditions) · presentation/ accounts_controller · accounts_screen ·
+                  account_editor_screen
     plans/        domain/plans.dart (catalogue, prices, recommendPlan) · data/billing_repository.dart (FAKE store)
                   presentation/ plans · compare · success/failed · manage subscription · upsell_sheet · widgets/
     home/         domain/home_models.dart (HomeSnapshot.fromJournal; score, grid, brief still SAMPLE) · presentation/
@@ -115,8 +118,9 @@ must supply them (Deriv synthetics): `RiskSizing` then returns null instead of g
   indices, oil), crypto, Deriv synthetics (Volatility 10–100, Boom/Crash 300/500/1000). Futures and
   stocks are in the model but hidden: `AssetClass.shownInUi`. Synthetic symbols are Deriv's own
   (`R_75`, `BOOM1000`); the chip label is `Instrument.label`. Specs are typical, not broker-exact.
-- **Profile**: `ProfileDoji.instruments` (symbols; custom ones allowed) and `ProfileDoji.prop`
-  (`PropRules`: firm, accountSize, dailyLossLimitPct, maxDrawdownPct, profitTargetPct, all optional).
+- **Profile**: instruments (symbols; custom ones allowed), `PropRules` (firm, dailyLossLimitPct,
+  maxDrawdownPct, profitTargetPct, all optional) and the starting size live on the active
+  `TradingAccount` (see Accounts and strategies); `ProfileDoji.instruments` / `.prop` read it.
   Risk stays a **percent**; lots/contracts only appear through `RiskSizing`.
 - **Time zones are real** (`timezone` package, `markets/domain/time_zones.dart`, loaded lazily).
   `MarketHours` (always open, or weekly windows in the exchange's IANA zone) lives on the
@@ -134,11 +138,12 @@ must supply them (Deriv synthetics): `RiskSizing` then returns null instead of g
   starting balance) or trailing, and trailing follows the highest `balance` or `equity`
   (`trailingBasis`, default equity). `PropDrawdown.evaluate` has one branch per type; the Home
   meter and its label ("prop trailing equity drawdown") come from it, so a warning always uses the
-  type chosen. Percentages are of the starting account size. Home's account comes from the journal
-  (`accountStateFrom`: the starting size plus closed trades, so equity = balance and both trailing
+  type chosen. Percentages are of `TradingAccount.startingSize`, the only size (Home's loss %
+  uses it too). Home's account comes from the journal (`accountStateFrom`: the starting size plus closed trades, so equity = balance and both trailing
   bases read the same); TODO(next-slice): balance, equity and their highs from the broker.
   Not modelled: trailing that locks at the starting balance.
-- **Account currency** (USD, ZAR, EUR, GBP): `ProfileDoji.accountCurrency`, set on the risk step.
+- **Account currency** (USD, ZAR, EUR, GBP): `TradingAccount.accountCurrency`, set on the risk step
+  for the first account and in the editor after.
   `RiskSizing.contractsForRisk` converts the loss per contract from the instrument's quote
   currency into it with a `RateSource`. The only source is `PlaceholderRateSource` (fixed rough
   rates, NOT for real sizing). TODO(next-slice): live rates via a Supabase edge function, cached
@@ -173,6 +178,38 @@ as Markets 1b (`pairBriefProvider`); "open the brief" goes to 1b. The doji score
 - Not built: notification centre (bell is hidden), persistence of the open / reflection,
   and the me tab.
 
+## Accounts and strategies (on this device)
+
+No design file (design/SOURCE.md › Missing); built from `core/widgets/`. A trader has one or more
+`TradingAccount`s in `ProfileDoji.accounts` (id, name, kind `deriv_synthetic | prop_challenge |
+personal | demo`, currency, `startingSize`, instruments, `TradingRules`, optional `PropRules`, its
+own `StrategyProfile`). One is active (`activeAccountId`, else the first). Getters on `ProfileDoji`
+(`instruments`, `prop`, `rules`, `strategy`, `accountCurrency`, `startingSize`) read the active one,
+so Home, the journal, 1b, the brief, the coach and the rail follow it; writes go through
+`withActive` / `upsertAccount` / `switchAccount` / `removeAccount` (the last one stays).
+
+- **Onboarding** makes the first account in `profile_mapper.dart` (`kFirstAccountId`): prop goal =
+  prop challenge sized by the goal answer, only synthetics = deriv synthetics, else personal.
+- **Strategy** = the trader's own words (`rawText`, typed or dictated with the onboarding
+  `StrategyInput`) + `conditions`. A `StrategyCondition` is one of the kinds doji can measure today:
+  `session`, `newsBuffer`, `tradesVsMax`, `dailyLossVsLimit`, `rangeBreak` (+ `closeBack`, the
+  london break read from candles), or `manual` (shown "… · check on your chart", always waiting,
+  never guessed). **No indicator kinds, now or as a fixed list** (owner decision 2026-11-02):
+  strategies are personal. `defaultConditions(parsed)` gives a new account today's list;
+  `measureConditions` evaluates them in order for the brief (a limit the account lacks is left out).
+- **Trades** carry `accountId` (set on save). Home, the brief, its chat and the coach read
+  `activeAccountTradesProvider`; the journal opens filtered to the active account
+  (`FilterGroup.account`) and its stats follow that filter. Older trades with no `accountId` show
+  under "all accounts" only (no migration).
+- **Editor**: `/settings/accounts` (list, make active, add) and `/settings/accounts/:id` (name,
+  kind, currency, starting size, risk / max trades / daily loss, prop rules, strategy text,
+  conditions, delete with a confirm; leaving with unsaved changes asks). From settings and
+  MEASURED AGAINST. Instruments are edited from markets search / 1b's bookmark (active account).
+- Sign out and delete clear accounts with the profile (`clearAll`). `kOnboardingVersion` 4.
+- Not built: the AI (Gemini, behind Supabase) reading the strategy text and the trader's sources
+  and proposing conditions; reordering conditions; per-account sessions; per-account coach
+  voice; syncing accounts; moving a trade to another account.
+
 ## Markets list (sample prices for now)
 
 Source: `design/handoff/Doji Core Tabs.dc.html` › 01, drawn in `Doji Markets Phone.dc.html`.
@@ -182,7 +219,8 @@ the tab bar. Owner decisions (2026-10-24) are in `design/SOURCE.md` › Missing 
 - **Watchlist** rows (`WatchlistRow`): symbol, name, session badge (`sessionBadgeText`), sample
   price, and `StrategyStateBadge` from the brief's own conditions (`StrategyState.of`): met = all
   met, forming = at least half met, waiting = fewer than half. A count of rules, never a call.
-- "MEASURED AGAINST" shows the parsed setup, no version; not a button (no strategy manager).
+- "MEASURED AGAINST" shows the parsed setup, no version, and opens the active account's editor at
+  its strategy (`Routes.accountEditor(id, strategy: true)`).
 - **Search**: tabs all · forex · metals · indices · crypto · synthetics (`SearchClass`); oil shows
   under all. Add / remove saves profile.doji at once (`toggleWatchlist`, shared with 1b's
   bookmark; removing the last asks). Added = white fill + check, not green.
@@ -190,8 +228,7 @@ the tab bar. Owner decisions (2026-10-24) are in `design/SOURCE.md` › Missing 
   (`PairDetailScreen(embedded: true)`: no back, no Esc). Nothing opens until a row is picked
   (`marketsSelectionProvider`), so the free plan's one brief a day is never spent for the trader.
   Narrower, a row pushes 1b as on phones.
-- Not built (owner decision): ask doji, the strategy manager / editor / versions, the chart image
-  attach in the pair chat.
+- Not built (owner decision): ask doji, strategy versions, the chart image attach in the pair chat.
 
 ## Markets 1b, pair detail (sample prices for now)
 
@@ -230,7 +267,7 @@ rail. On wide screens it is the list's second pane.
 - **Remind me**: `Reminders` (`core/platform/reminders.dart`, flutter_local_notifications, inexact
   on Android, permission asked on first use) at the check-again time. Android needs core library
   desugaring and the two scheduled-notification receivers (in the manifest).
-- **Watchlist** = `profile.doji › instruments`: the bookmark adds/removes and saves at once
+- **Watchlist** = the active account's instruments: the bookmark adds/removes and saves at once
   (removing the last one asks); Home and the journal re-read the profile.
 - Not built: live prices (TODOs in `MarketData`), a real calendar, `SupabaseBrief` /
   the `ai-brief` edge function, server-side metering of the free brief, persisting reminders

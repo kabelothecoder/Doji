@@ -236,14 +236,16 @@ void main() {
       List<String> instruments, {
       PropRules? prop,
       TradingRules? rules,
+      double? startingSize,
       List<Trade> trades = const [],
     }) => {
       ...seedProfile(
-        profile: ProfileDoji(
+        profile: profileWith(
           name: 'sam',
           instruments: instruments,
           prop: prop,
           rules: rules,
+          startingSize: startingSize,
           pledgedAt: DateTime.utc(2026, 10, 1),
           completedAt: DateTime.utc(2026, 10, 1),
         ),
@@ -299,7 +301,8 @@ void main() {
           at: Routes.home,
           seed: seed(
             ['EURUSD'],
-            prop: const PropRules(accountSize: 100000, dailyLossLimitPct: 1, maxDrawdownPct: 5),
+            prop: const PropRules(dailyLossLimitPct: 1, maxDrawdownPct: 5),
+            startingSize: 100000,
             rules: const TradingRules(dailyLossLimit: 2),
             trades: history,
           ),
@@ -321,11 +324,8 @@ void main() {
           at: Routes.home,
           seed: seed(
             ['EURUSD'],
-            prop: const PropRules(
-              accountSize: 100000,
-              maxDrawdownPct: 5,
-              drawdownType: DrawdownType.trailing,
-            ),
+            startingSize: 100000,
+            prop: const PropRules(maxDrawdownPct: 5, drawdownType: DrawdownType.trailing),
             trades: history,
           ),
         );
@@ -346,8 +346,8 @@ void main() {
           at: Routes.home,
           seed: seed(
             ['EURUSD'],
+            startingSize: 100000,
             prop: const PropRules(
-              accountSize: 100000,
               maxDrawdownPct: 5,
               drawdownType: DrawdownType.trailing,
               trailingBasis: TrailingBasis.balance,
