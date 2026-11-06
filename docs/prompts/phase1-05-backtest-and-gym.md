@@ -39,7 +39,19 @@ Run `git status`. If anything is uncommitted, list it and ask me before you star
      size the trade for the active account, and "after two losses" scenarios that rehearse the
      account's own stop-for-the-day rule. A drill streak feeds Home's grid as practice, kept
      separate from real trading days.
-5. **Data.** Backtest sessions, gym scores and drill answers are stored like the journal (local,
+5. **Refine the strategy, per account.** From a backtest, the trader can copy the account's
+   strategy into a *draft version* and change one thing at a time (a session, a stop or target
+   rule, a condition on or off, max trades), rerun on the **same** history, and compare side by
+   side: setups, R, max losing streak, drawdown in R. For a prop account the comparison also
+   replays the firm's rules over the same sample (daily loss, max drawdown fixed/trailing,
+   consistency, minimum days, from `PropRules` and slice 06's payout rules if built) and says
+   which days would have broken them; a personal account is judged on its own risk and limits.
+   The trader decides; doji never picks the "best" version. Adopting a draft makes it the
+   account's strategy and keeps the old one as a numbered version (this brings back strategy
+   versions, out of scope until now). Warn in plain words when a change is fitted to a small
+   sample (under 30 setups, or tested on the same period it was tuned on); offer a held-back
+   period to check it on.
+6. **Data.** Backtest sessions, gym scores and drill answers are stored like the journal (local,
    sync TODO) so slice 06's AI analyst can read them.
 
 ## Rules
