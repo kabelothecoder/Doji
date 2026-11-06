@@ -12,6 +12,7 @@ import 'package:doji_app/features/markets/data/sample_news_calendar.dart';
 import 'package:doji_app/features/markets/domain/market_data.dart';
 import 'package:doji_app/features/onboarding/data/device_services.dart';
 import 'package:doji_app/features/onboarding/data/mock_strategy_parser.dart';
+import 'package:doji_app/features/onboarding/domain/strategy_parser.dart';
 import 'package:doji_app/features/onboarding/data/onboarding_repository.dart';
 import 'package:doji_app/features/onboarding/data/voice_input.dart';
 import 'package:flutter_riverpod/misc.dart';
@@ -150,10 +151,11 @@ List<Override> testOverrides(
   VoiceInput? voice,
   Reminders? reminders,
   MarketData? market,
+  StrategyParser? parser,
 }) => [
   sharedPreferencesProvider.overrideWithValue(prefs),
   timeZoneServiceProvider.overrideWithValue(const FakeTimeZoneService()),
-  strategyParserProvider.overrideWithValue(const MockStrategyParser(latency: Duration.zero)),
+  strategyParserProvider.overrideWithValue(parser ?? const MockStrategyParser(latency: Duration.zero)),
   coachProvider.overrideWithValue(const FakeCoach(latency: Duration.zero)),
   notificationPermissionProvider.overrideWithValue(FakeNotificationPermission()),
   voiceInputProvider.overrideWithValue(voice ?? const UnavailableVoiceInput()),

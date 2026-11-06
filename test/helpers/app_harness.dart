@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:doji_app/app/app.dart';
 import 'package:doji_app/app/router.dart';
+import 'package:doji_app/features/onboarding/domain/strategy_parser.dart';
 import 'package:doji_app/core/widgets/auth_method_button.dart';
 import 'package:doji_app/features/auth/data/fake_auth_repository.dart';
 import 'package:doji_app/features/auth/domain/auth_repository.dart';
@@ -51,6 +52,7 @@ class AppHarness {
     FakeVoiceInput? voice,
     FakeReminders? reminders,
     MarketData? market,
+    StrategyParser? parser,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -81,6 +83,7 @@ class AppHarness {
           voice: voice,
           reminders: notes,
           market: market,
+          parser: parser,
         ),
         routerProvider.overrideWith((ref) {
           final r = buildRouter(initialLocation: at);

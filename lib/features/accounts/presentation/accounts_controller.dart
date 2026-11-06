@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import 'package:uuid/uuid.dart';
 
 import '../../home/presentation/home_controller.dart';
@@ -8,6 +9,34 @@ import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/profile_doji.dart';
 import '../domain/condition_eval.dart';
 import '../domain/trading_account.dart';
+
+/// Marks every provider that reads account data (the profile, the active
+/// account's trades, and what is built from them) for recompute, now.
+///
+/// Not just the sources: screens under the current route (Home and markets
+/// under settings, other shell tabs) have paused subscriptions, and resume
+/// them while a frame builds. A provider left only "may have changed" is
+/// then rebuilt by its dependent's flush, notifies it, and riverpod 3.3
+/// schedules a refresh mid-build, which throws (fixed in riverpod 3.4.1,
+/// which needs Dart 3.12). Marked here, those notifications return early.
+/// A new provider that reads account data belongs in this list.
+void invalidateAccountReaders(ProviderContainer c) {
+  for (final p in <ProviderOrFamily>[
+    homeProfileProvider,
+    homeSnapshotProvider,
+    marketsProfileProvider,
+    watchlistProvider,
+    pairBriefProvider,
+    journalProfileProvider,
+    accountCurrencyProvider,
+    activeAccountTradesProvider,
+    journalViewProvider,
+    periodTradesProvider,
+    journalStatsProvider,
+  ]) {
+    c.invalidate(p);
+  }
+}
 
 /// The trader's accounts and which one is active, from profile.doji. Every
 /// change saves at once and makes Home, the journal and markets read again.
@@ -35,11 +64,7 @@ class AccountsController extends Notifier<ProfileDoji> {
   Future<void> _set(ProfileDoji next) async {
     state = next;
     await ref.read(onboardingRepositoryProvider).saveProfile(next);
-    ref
-      ..invalidate(marketsProfileProvider)
-      ..invalidate(homeProfileProvider)
-      ..invalidate(journalProfileProvider)
-      ..invalidate(journalViewProvider);
+    invalidateAccountReaders(ref.container);
   }
 }
 

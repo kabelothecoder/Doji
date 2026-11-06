@@ -14,7 +14,9 @@ import '../../markets/domain/currency.dart';
 import '../../onboarding/domain/onboarding_catalog.dart';
 import '../../onboarding/domain/profile_doji.dart';
 import '../../onboarding/domain/prop_rules.dart';
+import '../../onboarding/data/mock_strategy_parser.dart';
 import '../../onboarding/domain/sessions.dart';
+import '../../onboarding/domain/strategy_parser.dart';
 import '../../onboarding/presentation/steps/step_input.dart';
 import '../../onboarding/presentation/steps/text_inputs.dart';
 import '../domain/condition_eval.dart';
@@ -47,13 +49,39 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
   late final _name = TextEditingController(text: _draft?.name ?? '');
   late final _size = TextEditingController(text: _fmt(_draft?.startingSize));
   late final _manual = TextEditingController();
+
+  /// The strategy as stored, to tell whether its words changed. Read in
+  /// initState: a lazy initialiser would see the edited draft.
+  late StrategyProfile? _savedStrategy;
+  static final _strategyStep = buildOnboardingSteps().firstWhere((s) => s.id == StepIds.strategy);
   bool _dirty = false;
+  bool _saving = false;
+
+  /// Set when the parser failed on save: the words are saved, not read.
+  bool _parseFailed = false;
+
+  /// Set when the starting size cannot be used; save stays off until fixed.
+  String? _sizeError;
+
+  /// The first edit to a text field rebuilds, so the back guard sees it.
+  void _touched() {
+    if (!_dirty) setState(() => _dirty = true);
+  }
+
+  /// Empty = no size; otherwise a number above zero.
+  String? _checkSize(String text) {
+    final t = text.trim();
+    if (t.isEmpty) return null;
+    final v = double.tryParse(t);
+    return v == null || v <= 0 ? 'enter a size above zero, or leave it empty.' : null;
+  }
 
   static String _fmt(double? v) => v == null ? '' : (v == v.roundToDouble() ? v.toStringAsFixed(0) : '$v');
 
   @override
   void initState() {
     super.initState();
+    _savedStrategy = _draft?.strategy;
     if (widget.scrollToStrategy) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final c = _strategyKey.currentContext;
@@ -85,13 +113,55 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
   void _back() => context.canPop() ? context.pop() : context.go(Routes.accounts);
 
   Future<void> _save() async {
+    final sizeError = _checkSize(_size.text);
+    if (sizeError != null) {
+      setState(() => _sizeError = sizeError);
+      return;
+    }
+    setState(() => _saving = true);
     final name = _name.text.trim();
+    final rules = _rules;
+    var strategy = _strategy;
+    var failed = false;
+    // New words are read again, as onboarding does, so MEASURED AGAINST and the
+    // brief follow them. The conditions stay as the trader set them.
+    if (strategy.rawText != _savedStrategy?.rawText || strategy.template != _savedStrategy?.template) {
+      final raw = strategy.rawText;
+      ParsedStrategy? parsed;
+      if (raw != null) {
+        try {
+          parsed = await ref.read(strategyParserProvider).parse(raw);
+        } on Object {
+          parsed = null; // parser failed: no parsed setup rather than a stale one
+          failed = true;
+        }
+      } else if (strategy.template != null && strategy.template != 'none') {
+        parsed = strategyTemplates[strategy.template];
+      }
+      if (!mounted) return;
+      strategy = strategy.copyWith(parsed: parsed);
+    }
     final account = _draft!.copyWith(
       name: name.isEmpty ? _draft!.kind.label : name,
       startingSize: double.tryParse(_size.text.trim()),
+      // What the steppers show is what gets measured.
+      rules: rules.copyWith(
+        riskPerTrade: rules.riskPerTrade ?? 1,
+        maxTradesPerDay: rules.maxTradesPerDay ?? 3,
+        dailyLossLimit: rules.dailyLossLimit ?? 2,
+      ),
+      strategy: strategy,
     );
     await ref.read(accountsControllerProvider.notifier).save(account);
-    if (mounted) _back();
+    if (!mounted) return;
+    setState(() {
+      _saving = false;
+      _dirty = false;
+      _parseFailed = failed;
+      _savedStrategy = strategy;
+    });
+    // Stay so the trader sees it: the words are kept, doji just could not read them.
+    if (!failed) _back();
   }
 
   Future<void> _close() async {
@@ -142,7 +212,16 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
         leading: AuthLeading.back,
         onLeading: () => unawaited(_close()),
         bodyGap: 0,
-        actions: [DojiButton(label: 'save', onPressed: () => unawaited(_save()))],
+        actions: [
+          if (_parseFailed) ...[
+            const TerminalLine("couldn't read your strategy, saved your words.", tone: TerminalTone.tilt),
+            const SizedBox(height: 12),
+          ],
+          DojiButton(
+            label: _saving ? 'saving' : 'save',
+            onPressed: _saving || _sizeError != null ? null : () => unawaited(_save()),
+          ),
+        ],
         body: [
           Semantics(header: true, child: Text('edit account', style: DojiType.largeTitle)),
           const SizedBox(height: 20),
@@ -152,7 +231,7 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
             hint: a.kind.label,
             semanticLabel: 'account name',
             large: false,
-            onChanged: (_) => _dirty = true,
+            onChanged: (_) => _touched(),
           ),
           const SizedBox(height: 20),
           const _Label('KIND'),
@@ -174,12 +253,17 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
           DojiTextField(
             controller: _size,
             hint: 'e.g. 10000',
-            helper: 'loss % and the prop drawdown are measured against it.',
+            helper: _sizeError ?? 'loss % and the prop drawdown are measured against it.',
+            hasError: _sizeError != null,
             semanticLabel: 'starting size in ${a.accountCurrency}',
             large: false,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
-            onChanged: (_) => _dirty = true,
+            onChanged: (v) {
+              _touched();
+              final error = _checkSize(v);
+              if (error != _sizeError) setState(() => _sizeError = error);
+            },
           ),
           const SizedBox(height: 28),
           const _Section('rules'),
@@ -235,7 +319,7 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
           const SizedBox(height: 12),
           StrategyInput(
             StepInputArgs(
-              step: buildOnboardingSteps().firstWhere((s) => s.id == StepIds.strategy),
+              step: _strategyStep,
               answers: const {},
               draft: {'raw': ?_strategy.rawText, 'template': ?_strategy.template},
               onChanged: (v, {advance = false}) {
@@ -253,7 +337,7 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
               onSubmit: () {},
               wide: false,
             ),
-            parsing: false,
+            parsing: _saving,
           ),
           const SizedBox(height: 20),
           const _Label('CONDITIONS DOJI MEASURES'),
@@ -267,6 +351,8 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
             _ConditionTile(
               label: conditionLabel(_conditions[i]),
               onRemove: () => _setConditions([..._conditions]..removeAt(i)),
+              onUp: i == 0 ? null : () => _move(i, i - 1),
+              onDown: i == _conditions.length - 1 ? null : () => _move(i, i + 1),
             ),
           const SizedBox(height: 12),
           const _Label('ADD'),
@@ -310,6 +396,14 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
         ],
       ),
     );
+  }
+
+  /// Order matters: the brief lists conditions as the trader orders them.
+  void _move(int from, int to) {
+    final next = [..._conditions];
+    final c = next.removeAt(from);
+    next.insert(to, c);
+    _setConditions(next);
   }
 
   void _addManual() {
@@ -439,10 +533,14 @@ class _PropFieldsState extends State<_PropFields> {
 }
 
 class _ConditionTile extends StatelessWidget {
-  const _ConditionTile({required this.label, required this.onRemove});
+  const _ConditionTile({required this.label, required this.onRemove, this.onUp, this.onDown});
 
   final String label;
   final VoidCallback onRemove;
+
+  /// Null at the top / bottom of the list.
+  final VoidCallback? onUp;
+  final VoidCallback? onDown;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -461,6 +559,21 @@ class _ConditionTile extends StatelessWidget {
             child: Text(label, style: DojiType.body.copyWith(fontSize: 15)),
           ),
         ),
+        for (final (icon, word, onTap) in [
+          (Icons.keyboard_arrow_up_rounded, 'up', onUp),
+          (Icons.keyboard_arrow_down_rounded, 'down', onDown),
+        ])
+          // Hidden at the ends rather than greyed: an off button that still takes a
+          // tap is noise for a screen reader.
+          if (onTap != null)
+            DojiIconButton(
+              icon: icon,
+              semanticLabel: 'move $label $word',
+              outlined: false,
+              background: Colors.transparent,
+              foreground: DojiColors.textSecondary,
+              onPressed: onTap,
+            ),
         DojiIconButton(
           icon: Icons.close_rounded,
           semanticLabel: 'remove $label',

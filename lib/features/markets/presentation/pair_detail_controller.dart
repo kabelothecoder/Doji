@@ -1,8 +1,8 @@
 import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../accounts/presentation/accounts_controller.dart';
 import '../../../core/platform/reminders.dart';
-import '../../home/presentation/home_controller.dart';
 import '../../journal/presentation/journal_controller.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/profile_doji.dart';
@@ -128,9 +128,7 @@ class Watchlist extends Notifier<List<String>> {
         : [...profile.instruments, symbol];
     await repo.saveProfile(profile.withActive((a) => a.copyWith(instruments: next)));
     // Everything that read the old profile reads it again.
-    ref.invalidate(marketsProfileProvider);
-    ref.invalidate(homeProfileProvider);
-    ref.invalidate(journalProfileProvider);
+    invalidateAccountReaders(ref.container);
   }
 }
 

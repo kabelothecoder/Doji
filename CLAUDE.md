@@ -203,11 +203,15 @@ so Home, the journal, 1b, the brief, the coach and the rail follow it; writes go
   under "all accounts" only (no migration).
 - **Editor**: `/settings/accounts` (list, make active, add) and `/settings/accounts/:id` (name,
   kind, currency, starting size, risk / max trades / daily loss, prop rules, strategy text,
-  conditions, delete with a confirm; leaving with unsaved changes asks). From settings and
+  conditions with up / down buttons, delete with a confirm; leaving with unsaved changes asks).
+  Save stores the limits the steppers show (1% · 3 · 2% on a blank account), re-parses the strategy
+  when its words changed (conditions kept; if the parser fails, `parsed` is cleared, the words are
+  saved and the editor stays with "couldn't read your strategy, saved your words."), and is off
+  while the starting size is not a number > 0. From settings and
   MEASURED AGAINST. Instruments are edited from markets search / 1b's bookmark (active account).
 - Sign out and delete clear accounts with the profile (`clearAll`). `kOnboardingVersion` 4.
 - Not built: the AI (Gemini, behind Supabase) reading the strategy text and the trader's sources
-  and proposing conditions; reordering conditions; per-account sessions; per-account coach
+  and proposing conditions; per-account sessions; per-account coach
   voice; syncing accounts; moving a trade to another account.
 
 ## Markets list (sample prices for now)
@@ -445,6 +449,13 @@ dart run flutter_native_splash:create
 - A route's modal barrier carries `BlockSemantics`, which hides every node painted *before* it in
   the same semantics container. A nested navigator (the shell's branches) next to other UI hides
   that UI from screen readers unless the navigator is wrapped in `Semantics(container: true)`.
+- riverpod 3.3 pauses providers watched only by hidden screens (TickerMode: other shell tabs, Home
+  and markets under settings) and resumes them *while a frame builds*. A paused provider left only
+  "may have changed" is rebuilt by its dependent's flush and notifies it, and riverpod then schedules
+  a refresh mid-build: "markNeedsBuild() called during build". When account data changes, call
+  `invalidateAccountReaders` (accounts_controller.dart): it marks every account-derived provider
+  for recompute at once, so those notifications return early. Add new account readers to its list;
+  `select` where only one field matters. Fixed upstream in riverpod 3.4.1 (needs Dart 3.12).
 - In widget tests `clock.now()` advances with `pump` (hold durations work), but `withClock(fixed)`
   freezes it. The harness's reduce-motion flag is cleared only at teardown: test motion on and off
   in separate `testWidgets`, not in one loop.
