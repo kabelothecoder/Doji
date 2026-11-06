@@ -1,7 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../domain/candle.dart';
 import '../domain/instrument.dart';
 import '../domain/instrument_catalog.dart';
@@ -12,8 +10,8 @@ import '../domain/market_data.dart';
 /// timeframe agrees with every other, and a test gets the same candles every
 /// run. Bars only exist while the instrument's market is open.
 ///
-/// Labelled "sample prices" wherever it shows ([isSample]). Never for sizing
-/// or decisions. TODO(next-slice): replace with a real feed (see [MarketData]).
+/// Labelled "sample prices" wherever it shows ([sourceOf]). Never for sizing
+/// or decisions. Custom symbols, crypto and anything without a live feed stay here.
 class FakeMarketData implements MarketData {
   const FakeMarketData({this.latency = const Duration(milliseconds: 250)});
 
@@ -21,7 +19,7 @@ class FakeMarketData implements MarketData {
   final Duration latency;
 
   @override
-  bool get isSample => true;
+  FeedSource sourceOf(String symbol) => const FeedSource.sample();
 
   /// Rough levels to start the sample path from. Not quotes.
   static const _base = <String, double>{
@@ -236,6 +234,3 @@ class _Path {
     );
   }
 }
-
-/// The feed 1b and the brief read. Tests override it with a zero-latency fake.
-final marketDataProvider = Provider<MarketData>((ref) => const FakeMarketData());

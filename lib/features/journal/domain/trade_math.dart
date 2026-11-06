@@ -48,7 +48,7 @@ abstract final class TradeMath {
   }
 
   /// True when the quote currency differs from the account's: the figure then
-  /// rests on the exchange rate, which is a placeholder until live rates exist.
+  /// rests on the exchange rate (the broker's, live; none when stale).
   static bool usesRate(Instrument? instrument, String accountCurrency) =>
       instrument != null && instrument.quoteCurrency.toUpperCase() != accountCurrency.toUpperCase();
 

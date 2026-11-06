@@ -14,7 +14,7 @@ import '../domain/news.dart';
 import '../domain/pair_brief.dart';
 import '../domain/strategy_reading.dart';
 import '../domain/time_zones.dart';
-import 'fake_market_data.dart';
+import 'routed_market_data.dart';
 import 'sample_news_calendar.dart';
 
 /// The brief, worked out on the device: conditions are measured (the

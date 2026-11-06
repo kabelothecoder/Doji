@@ -22,6 +22,7 @@ import '../../onboarding/presentation/steps/text_inputs.dart';
 import '../domain/condition_eval.dart';
 import '../domain/trading_account.dart';
 import 'accounts_controller.dart';
+import 'broker_link_section.dart';
 
 /// Edits one account: name, kind, currency, starting size, risk and limits,
 /// prop rules, and the strategy (its own words + the conditions doji
@@ -109,6 +110,20 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
 
   void _setConditions(List<StrategyCondition> next) =>
       _edit((a) => a.copyWith(strategy: _strategy.copyWith(conditions: next)));
+
+  /// Linking happens at once, apart from save: store the link on the saved
+  /// account and on the draft, without marking the draft dirty.
+  Future<void> _linkChanged(BrokerLink? link) async {
+    final stored = ref
+        .read(accountsControllerProvider)
+        .accounts
+        .where((x) => x.id == widget.accountId)
+        .firstOrNull;
+    if (stored != null) {
+      await ref.read(accountsControllerProvider.notifier).save(stored.copyWith(brokerLink: link));
+    }
+    if (mounted) setState(() => _draft = _draft!.copyWith(brokerLink: link));
+  }
 
   void _back() => context.canPop() ? context.pop() : context.go(Routes.accounts);
 
@@ -313,6 +328,9 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
               onChanged: (p) => _edit((a) => a.copyWith(prop: p)),
             ),
           ],
+          const SizedBox(height: 28),
+          const _Section('broker'),
+          BrokerLinkSection(account: a, onChanged: _linkChanged),
           const SizedBox(height: 28),
           KeyedSubtree(key: _strategyKey, child: const _Section('strategy')),
           Text('in your own words. say it or type it.', style: DojiType.callout),

@@ -8,6 +8,9 @@ import 'package:doji_app/features/coach/data/fake_coach.dart';
 import 'package:doji_app/features/markets/data/fake_brief.dart';
 import 'package:doji_app/features/markets/data/fake_brief_chat.dart';
 import 'package:doji_app/features/markets/data/fake_market_data.dart';
+import 'package:doji_app/features/markets/data/placeholder_rate_source.dart';
+import 'package:doji_app/features/markets/data/live_rate_source.dart';
+import 'package:doji_app/features/markets/data/routed_market_data.dart';
 import 'package:doji_app/features/markets/data/sample_news_calendar.dart';
 import 'package:doji_app/features/markets/domain/market_data.dart';
 import 'package:doji_app/features/onboarding/data/device_services.dart';
@@ -164,6 +167,8 @@ List<Override> testOverrides(
   biometricAuthProvider.overrideWithValue(biometric ?? FakeBiometricAuth()),
   authRepositoryProvider.overrideWithValue(testAuthRepository(prefs, isOnline: isOnline)),
   marketDataProvider.overrideWithValue(market ?? const FakeMarketData(latency: Duration.zero)),
+  // Fixed rough rates: no network in tests; LiveRateSource has its own tests.
+  rateSourceProvider.overrideWithValue(const PlaceholderRateSource()),
   briefSourceProvider.overrideWith(
     (ref) => FakeBrief(
       market: ref.watch(marketDataProvider),

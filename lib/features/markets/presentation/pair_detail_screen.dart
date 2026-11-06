@@ -123,7 +123,13 @@ class _PairDetailScreenState extends ConsumerState<PairDetailScreen> {
 
     final children = <Widget>[
       _Header(name: name, watching: watching, onBack: widget.embedded ? null : _back, onWatch: _toggleWatch),
-      _PriceBlock(symbol: symbol, quote: quote, brief: brief.value, zone: zone),
+      _PriceBlock(
+        symbol: symbol,
+        quote: quote,
+        brief: brief.value,
+        zone: zone,
+        source: ref.watch(pairSourceProvider(symbol)),
+      ),
       _ChartCard(symbol: symbol, name: name, brief: brief.value, onRetry: _retry),
       _BriefHeader(updatedAt: brief.value?.updatedAt, zone: zone),
       ...switch (brief) {
@@ -360,7 +366,16 @@ class _GlassButton extends StatelessWidget {
 
 /// Price, "± % today", the session and news chips, and the sample label.
 class _PriceBlock extends StatelessWidget {
-  const _PriceBlock({required this.symbol, required this.quote, required this.brief, required this.zone});
+  const _PriceBlock({
+    required this.symbol,
+    required this.quote,
+    required this.brief,
+    required this.zone,
+    required this.source,
+  });
+
+  /// Where the price comes from: the line under it says so.
+  final FeedSource source;
 
   final String symbol;
   final AsyncValue<Quote?> quote;
@@ -440,7 +455,7 @@ class _PriceBlock extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Text('sample prices · not a live feed', style: DojiType.hint),
+        Text(source.label, style: DojiType.hint),
       ],
     );
   }
@@ -511,7 +526,7 @@ class _ChartCard extends ConsumerWidget {
     final news = brief?.nextNews;
     final overlays = [?levels?.spoken, if (news != null) 'the next news window'];
     final label = [
-      'Candlestick chart for $name, ${tf.label}, sample prices',
+      'Candlestick chart for $name, ${tf.label}, ${ref.watch(pairSourceProvider(symbol)).live ? 'live prices' : 'sample prices'}',
       if (overlays.isNotEmpty) 'with ${overlays.join(' and ')}',
     ].join(', ');
 

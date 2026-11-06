@@ -139,7 +139,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         _ScoreGridCard(snap: snap, days: days, todayIndex: todayIndex),
         OpenCard(doneAt: state.openDoneAt, mood: state.mood, onStart: _startOpen),
         AiBriefCard(instruments: snap.instruments),
-        RulesTodayCard(usage: snap.usage, onLogTrade: _logTrade),
+        RulesTodayCard(usage: snap.usage, note: snap.accountNote, onLogTrade: _logTrade),
         InsightCard(onTap: () => context.go(Routes.journal)),
         if (!evening && !state.dayClosed)
           CloseDayRow(onStart: () => unawaited(context.push(Routes.closeDay))),

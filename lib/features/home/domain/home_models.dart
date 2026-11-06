@@ -7,6 +7,7 @@ import '../../onboarding/domain/profile_doji.dart';
 import '../../onboarding/domain/prop_drawdown.dart';
 import '../../onboarding/domain/sessions.dart';
 import '../../onboarding/domain/user_zone.dart';
+import 'broker_account.dart';
 
 /// Home's day-zero tasks (Doji Home Phone: ITEMS).
 enum SetupTask {
@@ -62,6 +63,7 @@ class HomeSnapshot {
     required this.lossesToCooldown,
     required this.score,
     required this.streak,
+    this.accountNote,
   });
 
   final String name;
@@ -76,6 +78,10 @@ class HomeSnapshot {
   final int score;
   final int? streak;
 
+  /// Where the loss % and drawdown come from when the account is linked:
+  /// "broker figures · as of 14:02", or why the journal is used instead.
+  final String? accountNote;
+
   /// Shown after two losses in a row.
   bool get tilt => losses >= 2;
 
@@ -84,14 +90,34 @@ class HomeSnapshot {
   String get tiltWord => tiltLevel <= 2 ? 'low' : (tiltLevel <= 4 ? 'elevated' : 'high');
 
   /// [now] decides which trades count as today's.
-  factory HomeSnapshot.fromJournal(ProfileDoji p, {required List<Trade> trades, DateTime? now}) {
+  ///
+  /// [broker]: the linked account's balance and equity. Used for loss % and
+  /// the drawdown only while fresh ([kBrokerFreshFor]); an old figure is never
+  /// shown as current, the journal is used and [accountNote] says why.
+  factory HomeSnapshot.fromJournal(
+    ProfileDoji p, {
+    required List<Trade> trades,
+    DateTime? now,
+    BrokerReading? broker,
+  }) {
     final rules = p.rules;
     final prop = p.prop;
-    final day = DaySummary.of(trades, now ?? DateTime.now());
+    final at = now ?? DateTime.now();
+    final day = DaySummary.of(trades, at);
     // The account's starting size is the one base for loss % and the drawdown;
     // without a size doji shows no meter instead of inventing one.
     final accountSize = p.startingSize;
-    final lossPct = day.lossPercent(accountSize: accountSize, riskPerTradePct: rules?.riskPerTrade ?? 1.0);
+    final live = broker != null && broker.freshAt(at) && accountSize != null && accountSize > 0
+        ? broker
+        : null;
+    final lossPct = live != null
+        ? live.lossPercent(accountSize!)
+        : day.lossPercent(accountSize: accountSize, riskPerTradePct: rules?.riskPerTrade ?? 1.0);
+    final accountNote = broker == null
+        ? null
+        : live != null
+        ? 'broker figures · as of ${_hm(broker.asOf)}'
+        : 'broker figures are from ${_hm(broker.asOf)}, too old to use. showing the journal.';
     final maxTrades = rules?.maxTradesPerDay ?? 3;
     // The stricter of the user's own daily loss limit and the prop firm's.
     final limits = [rules?.dailyLossLimit, prop?.dailyLossLimitPct].whereType<double>();
@@ -99,7 +125,11 @@ class HomeSnapshot {
     final instruments = p.instruments.isEmpty ? defaultInstruments : p.instruments;
     final drawdown = prop == null || accountSize == null
         ? null
-        : PropDrawdown.evaluate(prop, accountSize: accountSize, state: accountStateFrom(trades, accountSize));
+        : PropDrawdown.evaluate(
+            prop,
+            accountSize: accountSize,
+            state: live?.state ?? accountStateFrom(trades, accountSize),
+          );
     return HomeSnapshot(
       name: p.name ?? 'trader',
       rank: p.rank,
@@ -127,8 +157,15 @@ class HomeSnapshot {
       lossesToCooldown: 3,
       score: 812, // sample data, labelled as such on screen
       streak: null, // TODO(next-slice): "[n] days" from the grid
+      accountNote: accountNote,
     );
   }
+}
+
+/// "14:02" in local time.
+String _hm(DateTime t) {
+  final l = t.toLocal();
+  return '${l.hour.toString().padLeft(2, '0')}:${l.minute.toString().padLeft(2, '0')}';
 }
 
 /// Two decimals, so floating-point noise never reaches the screen.

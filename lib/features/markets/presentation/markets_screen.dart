@@ -10,6 +10,8 @@ import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
 import 'markets_controller.dart';
 import 'pair_detail_controller.dart';
+import '../data/routed_market_data.dart';
+import '../domain/market_data.dart';
 import 'pair_detail_screen.dart';
 import 'widgets/watchlist_row.dart';
 
@@ -71,6 +73,20 @@ class MarketsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// "sample prices · not a live feed" while every row is sample; else each
+/// source once, with the symbols on sample prices said plainly.
+String _sourcesLine(WidgetRef ref, List<String> symbols) {
+  final feed = ref.watch(marketDataProvider);
+  final live = <String>{};
+  var anySample = symbols.isEmpty;
+  for (final s in symbols) {
+    final source = feed.sourceOf(s);
+    source.live ? live.add(source.label) : anySample = true;
+  }
+  if (live.isEmpty) return const FeedSource.sample().label;
+  return [...live, if (anySample) 'others: sample prices, not a live feed'].join(' · ');
 }
 
 class _Watchlist extends ConsumerWidget {
@@ -137,7 +153,7 @@ class _Watchlist extends ConsumerWidget {
         ],
         const SizedBox(height: 16),
         Text(
-          'sample prices · not a live feed. states are measured against your strategy. not financial advice.',
+          '${_sourcesLine(ref, symbols)}. states are measured against your strategy. not financial advice.',
           style: DojiType.hint.copyWith(fontSize: 11, height: 1.5),
         ),
       ],

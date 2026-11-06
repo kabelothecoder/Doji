@@ -5,15 +5,20 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// Never hardcode keys here. Empty values mean "run fully local": the app
 /// skips Supabase and onboarding still works end to end.
 class Env {
-  const Env({required this.supabaseUrl, required this.supabaseAnonKey});
+  const Env({required this.supabaseUrl, required this.supabaseAnonKey, this.derivAppId = ''});
 
   final String supabaseUrl;
   final String supabaseAnonKey;
+
+  /// Optional Deriv app id, sent as `app_id` on Deriv's public websocket.
+  /// Deriv's public market data needs none; set it if Deriv asks for one.
+  final String derivAppId;
 
   bool get hasSupabase => supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 
   static const _defineUrl = String.fromEnvironment('SUPABASE_URL');
   static const _defineKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  static const _defineDeriv = String.fromEnvironment('DERIV_APP_ID');
 
   static Future<Env> load() async {
     await dotenv.load(fileName: 'assets/env/.env', isOptional: true);
@@ -21,6 +26,7 @@ class Env {
     return Env(
       supabaseUrl: pick(_defineUrl, 'SUPABASE_URL'),
       supabaseAnonKey: pick(_defineKey, 'SUPABASE_ANON_KEY'),
+      derivAppId: pick(_defineDeriv, 'DERIV_APP_ID'),
     );
   }
 }

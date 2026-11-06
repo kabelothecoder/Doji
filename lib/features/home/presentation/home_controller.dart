@@ -1,6 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../accounts/data/broker_link_repository.dart';
 import '../../journal/presentation/journal_controller.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/profile_doji.dart';
@@ -90,11 +91,13 @@ class HomeController extends Notifier<HomeState> {
 final homeControllerProvider = NotifierProvider<HomeController, HomeState>(HomeController.new);
 
 /// The day as the screens read it: trades taken, loss, tilt and the prop
-/// drawdown come from the journal.
+/// drawdown come from the journal, or from the broker while the active
+/// account is linked and its figures are fresh.
 final homeSnapshotProvider = Provider.autoDispose<HomeSnapshot>((ref) {
   final profile = ref.watch(homeProfileProvider);
   final trades = ref.watch(activeAccountTradesProvider);
-  return HomeSnapshot.fromJournal(profile, trades: trades, now: clock.now().toUtc());
+  final broker = ref.watch(brokerReadingProvider).value;
+  return HomeSnapshot.fromJournal(profile, trades: trades, now: clock.now().toUtc(), broker: broker);
 });
 
 /// True on the day the setup was finished: the checklist day.

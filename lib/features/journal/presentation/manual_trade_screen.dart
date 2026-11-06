@@ -11,9 +11,10 @@ import '../../../core/haptics/doji_haptics.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
-import '../../markets/data/placeholder_rate_source.dart';
+import '../../markets/data/live_rate_source.dart';
 import '../../markets/domain/instrument.dart';
 import '../../markets/domain/instrument_catalog.dart';
+import '../../markets/domain/rate_source.dart';
 import '../domain/formatting.dart';
 import '../domain/trade.dart';
 import '../domain/trade_math.dart';
@@ -77,6 +78,17 @@ class _ManualTradeScreenState extends ConsumerState<ManualTradeScreen> {
 
   void _changed() => setState(() {});
 
+  /// Pairs already asked for on this screen.
+  final _askedRates = <String>{};
+
+  /// Fetches a live rate once per pair; the form works the result out when it lands.
+  void _askRate(RateSource rates, String from, String to) {
+    if (from.toUpperCase() == to.toUpperCase() || !_askedRates.add('$from$to')) return;
+    rates.prepare(from, to).then((_) {
+      if (mounted && rates.rate(from, to) != null) setState(() {});
+    });
+  }
+
   double? _num(TextEditingController c) => double.tryParse(c.text.trim().replaceAll(',', '.'));
 
   List<String> _symbolChoices() {
@@ -117,7 +129,8 @@ class _ManualTradeScreenState extends ConsumerState<ManualTradeScreen> {
         target = _num(_target),
         size = _num(_size);
     final currency = ref.read(journalProfileProvider).accountCurrency;
-    const rates = PlaceholderRateSource();
+    final rates = ref.read(rateSourceProvider);
+    if (instrument != null) _askRate(rates, instrument.quoteCurrency, currency);
 
     double? pnl;
     double? risk;
@@ -397,7 +410,7 @@ class _ManualTradeScreenState extends ConsumerState<ManualTradeScreen> {
               if (d.usesRate) ...[
                 const SizedBox(height: 4),
                 Text(
-                  'worked out from entry, exit and size. it uses a placeholder exchange rate for ${d.instrument!.quoteCurrency}.',
+                  'worked out from entry, exit and size. it uses the live ${d.instrument!.quoteCurrency} rate from your broker.',
                   style: DojiType.hint.copyWith(fontSize: 11, height: 1.5),
                 ),
               ],

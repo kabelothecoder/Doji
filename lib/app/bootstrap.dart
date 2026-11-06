@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/env/env.dart';
+import '../features/markets/data/mt5_api.dart';
 import '../features/onboarding/data/onboarding_repository.dart';
 import 'app.dart';
 
@@ -16,10 +17,12 @@ Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final env = await Env.load();
+  SupabaseClient? supabase;
   if (env.hasSupabase) {
     try {
       // supabase_flutter 2.18 names the client key "publishable"; a legacy anon key works too.
       await Supabase.initialize(url: env.supabaseUrl, publishableKey: env.supabaseAnonKey);
+      supabase = Supabase.instance.client;
     } on Object catch (e) {
       // Local-first: a bad or unreachable config must never block onboarding.
       debugPrint('supabase init skipped: $e');
@@ -29,7 +32,11 @@ Future<void> bootstrap() async {
 
   runApp(
     ProviderScope(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs), envProvider.overrideWithValue(env)],
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        envProvider.overrideWithValue(env),
+        supabaseClientProvider.overrideWithValue(supabase),
+      ],
       child: const DojiApp(),
     ),
   );

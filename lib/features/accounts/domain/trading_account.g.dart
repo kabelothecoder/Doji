@@ -18,6 +18,9 @@ _TradingAccount _$TradingAccountFromJson(Map<String, dynamic> json) => _TradingA
   strategy: json['strategy'] == null
       ? null
       : StrategyProfile.fromJson(json['strategy'] as Map<String, dynamic>),
+  brokerLink: json['brokerLink'] == null
+      ? null
+      : BrokerLink.fromJson(json['brokerLink'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$TradingAccountToJson(_TradingAccount instance) => <String, dynamic>{
@@ -30,6 +33,7 @@ Map<String, dynamic> _$TradingAccountToJson(_TradingAccount instance) => <String
   'rules': ?instance.rules?.toJson(),
   'prop': ?instance.prop?.toJson(),
   'strategy': ?instance.strategy?.toJson(),
+  'brokerLink': ?instance.brokerLink?.toJson(),
 };
 
 const _$AccountKindEnumMap = {
@@ -37,6 +41,14 @@ const _$AccountKindEnumMap = {
   AccountKind.propChallenge: 'prop_challenge',
   AccountKind.personal: 'personal',
   AccountKind.demo: 'demo',
+};
+
+_BrokerLink _$BrokerLinkFromJson(Map<String, dynamic> json) =>
+    _BrokerLink(server: json['server'] as String, login: (json['login'] as num).toInt());
+
+Map<String, dynamic> _$BrokerLinkToJson(_BrokerLink instance) => <String, dynamic>{
+  'server': instance.server,
+  'login': instance.login,
 };
 
 _StrategyCondition _$StrategyConditionFromJson(Map<String, dynamic> json) => _StrategyCondition(

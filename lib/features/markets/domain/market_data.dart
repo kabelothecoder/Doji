@@ -27,18 +27,48 @@ class Quote {
   double get changePct => dayOpen == 0 ? 0 : (price - dayOpen) / dayOpen * 100;
 }
 
+/// Where one instrument's prices come from, as the screen says it. The UI
+/// shows [label] and never asks which feed it is.
+class FeedSource {
+  /// Sample prices: every price on screen says so.
+  const FeedSource.sample() : live = false, label = 'sample prices · not a live feed';
+
+  /// A real feed, named by where it comes from ('deriv', a broker server).
+  const FeedSource.live(String from) : live = true, label = 'live prices · $from';
+
+  final bool live;
+  final String label;
+
+  @override
+  bool operator ==(Object other) => other is FeedSource && other.label == label;
+
+  @override
+  int get hashCode => label.hashCode;
+}
+
+/// A real feed did not answer (dropped socket, broker down). 1b shows its
+/// "price feed not responding." state with try again.
+class FeedUnavailable implements Exception {
+  const FeedUnavailable(this.reason);
+
+  final String reason;
+
+  @override
+  String toString() => 'FeedUnavailable: $reason';
+}
+
 /// Where prices and candles come from. The UI only sees this.
 ///
-/// [FakeMarketData] is the only implementation: sample prices, labelled as
-/// such wherever they show ([isSample]).
-/// TODO(next-slice): a real feed. Deriv's websocket (`ticks_history`) for
-/// synthetics, a broker or data API for forex, CFDs and crypto, behind a
-/// Supabase edge function so keys stay off the device; then stream quotes.
+/// `RoutedMarketData` is what the app reads: Deriv's public websocket for
+/// synthetics, the trader's MT5 account (MetaRPC, through the `mt5` edge
+/// function) for forex, metals, indices and oil once the active account has a
+/// broker link, and [FakeMarketData]'s sample prices for everything else.
 abstract interface class MarketData {
-  /// True while prices are sample data; every price on screen says so.
-  bool get isSample;
+  /// Where [symbol]'s prices come from; the label every price shows.
+  FeedSource sourceOf(String symbol);
 
-  /// Null when there is no price for [symbol] (custom symbols).
+  /// Null when there is no price for [symbol] (custom symbols). A real feed
+  /// that does not answer throws [FeedUnavailable].
   Future<Quote?> quote(String symbol, {required DateTime now});
 
   /// The last [count] bars up to [now], oldest first. The last one is still

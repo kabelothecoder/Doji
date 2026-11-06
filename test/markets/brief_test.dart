@@ -69,7 +69,7 @@ class _StubMarket implements MarketData {
   final bars = _bars();
 
   @override
-  bool get isSample => true;
+  FeedSource sourceOf(String symbol) => const FeedSource.sample();
 
   @override
   Future<Quote?> quote(String symbol, {required DateTime now}) async =>

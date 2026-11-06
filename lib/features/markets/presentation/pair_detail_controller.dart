@@ -10,7 +10,7 @@ import '../../plans/domain/plans.dart';
 import '../../plans/presentation/plans_controller.dart';
 import '../data/brief_allowance_repository.dart';
 import '../data/fake_brief.dart';
-import '../data/fake_market_data.dart';
+import '../data/routed_market_data.dart';
 import '../domain/brief_allowance.dart';
 import '../domain/candle.dart';
 import '../domain/market_data.dart';
@@ -24,7 +24,12 @@ final marketsProfileProvider = Provider.autoDispose<ProfileDoji>(
   (ref) => ref.watch(onboardingRepositoryProvider).loadProfile() ?? const ProfileDoji(),
 );
 
-/// The latest (sample) price of [symbol]; null when doji has no feed for it.
+/// Where [symbol]'s prices come from, for the label under them.
+final pairSourceProvider = Provider.autoDispose.family<FeedSource, String>(
+  (ref, symbol) => ref.watch(marketDataProvider).sourceOf(symbol),
+);
+
+/// The latest price of [symbol]; null when doji has no feed for it.
 final pairQuoteProvider = FutureProvider.autoDispose.family<Quote?, String>(
   (ref, symbol) => ref.watch(marketDataProvider).quote(symbol, now: clock.now()),
 );

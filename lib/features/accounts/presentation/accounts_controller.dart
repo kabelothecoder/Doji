@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import 'package:uuid/uuid.dart';
 
 import '../../home/presentation/home_controller.dart';
+import '../data/broker_link_repository.dart';
 import '../../journal/presentation/journal_controller.dart';
 import '../../markets/presentation/pair_detail_controller.dart';
 import '../../onboarding/data/onboarding_repository.dart';
@@ -33,6 +34,7 @@ void invalidateAccountReaders(ProviderContainer c) {
     journalViewProvider,
     periodTradesProvider,
     journalStatsProvider,
+    brokerReadingProvider,
   ]) {
     c.invalidate(p);
   }

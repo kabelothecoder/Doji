@@ -9,7 +9,9 @@ import '../../../core/platform/connectivity.dart';
 import '../../../core/widgets/auth_method_button.dart' show AuthMethod;
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/profile_doji.dart';
+import '../../markets/data/mt5_api.dart' show supabaseClientProvider;
 import '../domain/auth_repository.dart';
+import 'supabase_auth_repository.dart';
 
 /// A working, on-device stand-in for the auth backend. It behaves like the
 /// handoff prototype so every screen can be built and tested before Supabase:
@@ -225,9 +227,13 @@ class FakeAuthRepository implements AuthRepository {
   }
 }
 
-final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => FakeAuthRepository(
+/// Supabase email-code sign-in when Supabase is configured; this fake
+/// otherwise (fully local runs, tests).
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  final client = ref.watch(supabaseClientProvider);
+  if (client != null) return SupabaseAuthRepository(client);
+  return FakeAuthRepository(
     ref.watch(sharedPreferencesProvider),
     isOnline: () => ref.read(isOnlineProvider).value ?? true,
-  ),
-);
+  );
+});

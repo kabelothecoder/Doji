@@ -6,6 +6,7 @@ import 'package:doji_app/features/markets/data/sample_news_calendar.dart';
 import 'package:doji_app/features/markets/domain/brief_allowance.dart';
 import 'package:doji_app/features/markets/domain/candle.dart';
 import 'package:doji_app/features/markets/domain/instrument_catalog.dart';
+import 'package:doji_app/features/markets/domain/market_data.dart';
 import 'package:doji_app/features/markets/domain/market_format.dart';
 import 'package:doji_app/features/markets/domain/market_status.dart';
 import 'package:doji_app/features/markets/domain/news.dart';
@@ -65,7 +66,8 @@ void main() {
       expect(q.decimals, 5);
       expect(await feed.quote('MYPAIR', now: wed), isNull);
       expect(await feed.candles('MYPAIR', Timeframe.m15, now: wed), isEmpty);
-      expect(feed.isSample, isTrue);
+      expect(feed.sourceOf('EURUSD'), const FeedSource.sample());
+      expect(feed.sourceOf('EURUSD').label, 'sample prices · not a live feed');
     });
   });
 

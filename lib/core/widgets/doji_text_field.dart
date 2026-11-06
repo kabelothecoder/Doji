@@ -34,6 +34,7 @@ class DojiTextField extends StatefulWidget {
     this.accent = DojiColors.dojiGreen,
     this.autocorrect = true,
     this.enableSuggestions = true,
+    this.obscureText = false,
   });
 
   final TextEditingController controller;
@@ -64,6 +65,9 @@ class DojiTextField extends StatefulWidget {
   final Color accent;
   final bool autocorrect;
   final bool enableSuggestions;
+
+  /// Passwords (the MT5 investor password). Turns off suggestions too.
+  final bool obscureText;
 
   @override
   State<DojiTextField> createState() => _DojiTextFieldState();
@@ -124,7 +128,8 @@ class _DojiTextFieldState extends State<DojiTextField> {
                     style: style,
                     cursorColor: widget.accent,
                     autocorrect: widget.autocorrect,
-                    enableSuggestions: widget.enableSuggestions,
+                    enableSuggestions: widget.enableSuggestions && !widget.obscureText,
+                    obscureText: widget.obscureText,
                     cursorWidth: 2,
                     textInputAction: widget.textInputAction,
                     keyboardType: widget.keyboardType,

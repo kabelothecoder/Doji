@@ -158,9 +158,12 @@ class CloseDayRow extends StatelessWidget {
 
 /// Design spec `RuleMeter` card: "RULES TODAY" with the log-a-trade link.
 class RulesTodayCard extends StatelessWidget {
-  const RulesTodayCard({super.key, required this.usage, required this.onLogTrade});
+  const RulesTodayCard({super.key, required this.usage, required this.onLogTrade, this.note});
 
   final List<RuleUsage> usage;
+
+  /// Where the account figures come from (broker, as of when), if linked.
+  final String? note;
   final VoidCallback onLogTrade;
 
   @override
@@ -187,6 +190,10 @@ class RulesTodayCard extends StatelessWidget {
         for (var i = 0; i < usage.length; i++) ...[
           if (i > 0) const SizedBox(height: 14),
           RuleMeter(label: usage[i].label, used: usage[i].used, limit: usage[i].limit, unit: usage[i].unit),
+        ],
+        if (note != null) ...[
+          const SizedBox(height: 12),
+          Text(note!, style: DojiType.hint.copyWith(fontSize: 11, height: 1.5)),
         ],
       ],
     ),

@@ -27,6 +27,9 @@ class _NoRates implements RateSource {
 
   @override
   double? rate(String from, String to) => null;
+
+  @override
+  Future<void> prepare(String from, String to) async {}
 }
 
 void main() {

@@ -52,6 +52,11 @@ abstract class TradingAccount with _$TradingAccount {
     /// A prop challenge's own limits (percentages of [startingSize]).
     PropRules? prop,
     StrategyProfile? strategy,
+
+    /// The MT5 account behind this one, linked through MetaRPC. The terminal
+    /// and the password stay server-side (`supabase/functions/mt5`); the app
+    /// keeps only what it shows.
+    BrokerLink? brokerLink,
   }) = _TradingAccount;
 
   factory TradingAccount.fromJson(Map<String, dynamic> json) => _$TradingAccountFromJson(json);
@@ -61,6 +66,15 @@ abstract class TradingAccount with _$TradingAccount {
     final limits = [rules?.dailyLossLimit, prop?.dailyLossLimitPct].whereType<double>();
     return limits.isEmpty ? null : limits.reduce((a, b) => a < b ? a : b);
   }
+}
+
+/// A trading account's link to the trader's MT5 account (read-only: prices,
+/// balance and equity). Keyed server-side by [TradingAccount.id].
+@freezed
+abstract class BrokerLink with _$BrokerLink {
+  const factory BrokerLink({required String server, required int login}) = _BrokerLink;
+
+  factory BrokerLink.fromJson(Map<String, dynamic> json) => _$BrokerLinkFromJson(json);
 }
 
 /// What doji measures a condition with. Only kinds doji can measure from data

@@ -72,7 +72,7 @@ class _Feed implements MarketData {
   }
 
   @override
-  bool get isSample => true;
+  FeedSource sourceOf(String symbol) => const FeedSource.sample();
 
   @override
   Future<Quote?> quote(String symbol, {required DateTime now}) => _or(() => _real.quote(symbol, now: now));

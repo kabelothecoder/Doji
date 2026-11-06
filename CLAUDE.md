@@ -41,13 +41,14 @@ lib/
     markets/      domain/ instrument.dart · instrument_catalog.dart · market_hours.dart · risk_sizing.dart ·
                   candle · market_data · news · market_status · strategy_reading · pair_brief · brief_allowance ·
                   strategy_state
-                  data/ fake_market_data (SAMPLE prices) · sample_news_calendar · fake_brief · fake_brief_chat ·
-                  brief_allowance_repository · presentation/ markets_screen (list) · market_search_screen ·
+                  data/ routed_market_data (marketDataProvider) · deriv_market_data · mt5_market_data · mt5_api ·
+                  live_rate_source · fake_market_data (SAMPLE prices) · sample_news_calendar · fake_brief ·
+                  fake_brief_chat · brief_allowance_repository · presentation/ markets_screen (list) · market_search_screen ·
                   pair_detail_screen (1b) · markets_controller · brief_chat_sheet · widgets/
     settings/     account settings · sign-out sheet · delete account flow (A11–A12)
-    accounts/     domain/ trading_account.dart (freezed: TradingAccount, StrategyCondition) · condition_eval.dart
-                  (defaultConditions, measureConditions) · presentation/ accounts_controller · accounts_screen ·
-                  account_editor_screen
+    accounts/     domain/ trading_account.dart (freezed: TradingAccount, BrokerLink, StrategyCondition) ·
+                  condition_eval.dart (defaultConditions, measureConditions) · data/ broker_link_repository ·
+                  presentation/ accounts_controller · accounts_screen · account_editor_screen · broker_link_section
     plans/        domain/plans.dart (catalogue, prices, recommendPlan) · data/billing_repository.dart (FAKE store)
                   presentation/ plans · compare · success/failed · manage subscription · upsell_sheet · widgets/
     home/         domain/home_models.dart (HomeSnapshot.fromJournal; score, grid, brief still SAMPLE) · presentation/
@@ -62,7 +63,7 @@ app/shell/        AppShell (StatefulShellRoute): DojiBottomBar on phones, DojiNa
                   MainTab.branches = the 4 shell branches (the coach is a cover, not a branch);
                   me is a TabPlaceholderScreen until its brief
 test/  (unit, widget, a11y, goldens; helpers/app_harness.dart pumps the real app)   integration_test/   tool/ (asset export)
-design/  handoff/ · system/ · brand/ · SOURCE.md       supabase/migrations/
+design/  handoff/ · system/ · brand/ · SOURCE.md       supabase/ migrations/ · functions/mt5 (+ _shared/mrpc.ts)
 ```
 
 ## The onboarding engine
@@ -76,15 +77,18 @@ e.g. the parsed-strategy review only shows when there is a strategy).
 `OnboardingController` persists after every change; `profile.doji` lines come
 from `config_lines.dart` and each line knows which step edits it.
 
-## Auth (fake backend for now)
+## Auth (Supabase email code, else fake)
 
 Source: `design/handoff/Doji Auth Screen iOS.dc.html` + `Doji Sign-in iOS.dc.html`.
 Built: A1–A4e, A9, A10, A8 app lock, A11–A12. **Not built yet:** A5 (signed up
 with another method), A6 (merge setups), A7 (18+ and consent).
 
-- `FakeAuthRepository` is the only backend. Swap `authRepositoryProvider` for a
-  Supabase implementation; the UI only sees `AuthRepository`.
-- Fake email codes: any 6 digits work, `111111` = wrong (5 tries → 15-min lock),
+- `authRepositoryProvider` picks `SupabaseAuthRepository` when Supabase started
+  (`supabaseClientProvider`, set in bootstrap), else `FakeAuthRepository` (local runs, tests).
+  Supabase: email code only (`signInWithOtp` + `verifyOTP`; the email template must send
+  `{{ .Token }}`); Apple/Google answer "use your email for now". Delete removes the profile row
+  and unlinks brokers; erasing the auth user needs a `delete-account` function (not built).
+- Fake email codes (FakeAuthRepository): any 6 digits work, `111111` = wrong (5 tries → 15-min lock),
   `000000` = expired. Apple/Google return sample `@example.com` identities.
 - Method order is Apple, Google, email on **every** platform; screens look the
   same on iOS, Android and Windows (owner decision 2026-10-07). Planned real
@@ -139,15 +143,22 @@ must supply them (Deriv synthetics): `RiskSizing` then returns null instead of g
   (`trailingBasis`, default equity). `PropDrawdown.evaluate` has one branch per type; the Home
   meter and its label ("prop trailing equity drawdown") come from it, so a warning always uses the
   type chosen. Percentages are of `TradingAccount.startingSize`, the only size (Home's loss %
-  uses it too). Home's account comes from the journal (`accountStateFrom`: the starting size plus closed trades, so equity = balance and both trailing
-  bases read the same); TODO(next-slice): balance, equity and their highs from the broker.
+  uses it too). Home's account: with a broker link and a fresh figure (≤ `kBrokerFreshFor`,
+  2 min), the broker's balance and equity (`brokerReadingProvider`, polled every 60s while watched)
+  with highs tracked on the device (`BrokerReading.track`, `doji.broker.v1`); loss % = day-start
+  balance − equity. Otherwise the journal (`accountStateFrom`: starting size plus closed trades,
+  equity = balance). An old broker figure is never shown as current: Home uses the journal and the
+  rules card says so (`HomeSnapshot.accountNote`). Shortcut: the day-start balance is the first one
+  seen that day (losses closed before it are missed) until the function reads today's deals.
   Not modelled: trailing that locks at the starting balance.
 - **Account currency** (USD, ZAR, EUR, GBP): `TradingAccount.accountCurrency`, set on the risk step
   for the first account and in the editor after.
   `RiskSizing.contractsForRisk` converts the loss per contract from the instrument's quote
-  currency into it with a `RateSource`. The only source is `PlaceholderRateSource` (fixed rough
-  rates, NOT for real sizing). TODO(next-slice): live rates via a Supabase edge function, cached
-  with a timestamp, and refuse to size on a stale rate.
+  currency into it with a `RateSource`. `rateSourceProvider` = `LiveRateSource`: the broker's FX
+  quotes through the `mt5` function (active account if linked, else any linked one), cached with
+  the fetch time; older than 5 min = null, so `RiskSizing` / `TradeMath` refuse to size and the
+  journal asks for the broker's figure. No link = same-currency only. `PlaceholderRateSource` is
+  for tests only.
 - **No migration**: stored data has `onboardingVersion`; anything older than `kOnboardingVersion`
   is dropped and the user starts over. Bump it when the stored shape changes without a migration.
 - Home shows the stricter of the user's and the prop firm's daily loss limit, plus the drawdown
@@ -214,7 +225,7 @@ so Home, the journal, 1b, the brief, the coach and the rail follow it; writes go
   and proposing conditions; per-account sessions; per-account coach
   voice; syncing accounts; moving a trade to another account.
 
-## Markets list (sample prices for now)
+## Markets list
 
 Source: `design/handoff/Doji Core Tabs.dc.html` › 01, drawn in `Doji Markets Phone.dc.html`.
 `MarketsScreen` is the markets tab (`/markets`); `MarketSearchScreen` (`/markets/search`) keeps
@@ -234,7 +245,7 @@ the tab bar. Owner decisions (2026-10-24) are in `design/SOURCE.md` › Missing 
   Narrower, a row pushes 1b as on phones.
 - Not built (owner decision): ask doji, strategy versions, the chart image attach in the pair chat.
 
-## Markets 1b, pair detail (sample prices for now)
+## Markets 1b, pair detail
 
 Source: `design/handoff/Doji Hero Screens.dc.html` › 1b, plus Doji Core Tabs › 01b's states.
 `PairDetailScreen` at `/markets/pair/:symbol` (`Routes.pairDetail`), full screen with the floating
@@ -247,11 +258,13 @@ rail. On wide screens it is the list's second pane.
   01/02/04; conditions and check-again still show). The design's "build my strategy" button is
   not built: a strategy can't be edited after onboarding yet.
 
-- **Boundaries**, each with one FAKE implementation: `MarketData` (`FakeMarketData`: a smooth,
-  deterministic sample path per instrument, so timeframes agree; bars only while the market is
-  open; null for custom symbols), `NewsCalendar` (`SampleNewsCalendar`: fixed weekly releases in
+- **Boundaries**: `MarketData` is real per instrument (see Feeds); `FakeMarketData` (a smooth,
+  deterministic sample path, bars only while the market is open, null for custom symbols) answers
+  the rest. `NewsCalendar` (`SampleNewsCalendar`: fixed weekly releases in
   each currency's zone; synthetics have none), `BriefSource` (`FakeBrief`), `BriefChat`
-  (`FakeBriefChat`). Every price on screen says "sample prices · not a live feed".
+  (`FakeBriefChat`). Every price says where it is from: `MarketData.sourceOf(symbol).label`
+  ("live prices · deriv", "live prices · <broker server>", or "sample prices · not a live feed");
+  the UI never asks which feed it is. A feed that fails throws `FeedUnavailable` → the feed error state.
 - **The brief is measured, then written.** Conditions (`EntryCondition`, met | notMet | waiting) come
   from the session clock, the journal (`CoachContext`: trades vs max, the stricter loss limit), the
   news window (`kNewsBufferMinutes` = 30 either side) and, for a london break of the Asian range
@@ -273,9 +286,37 @@ rail. On wide screens it is the list's second pane.
   desugaring and the two scheduled-notification receivers (in the manifest).
 - **Watchlist** = the active account's instruments: the bookmark adds/removes and saves at once
   (removing the last one asks); Home and the journal re-read the profile.
-- Not built: live prices (TODOs in `MarketData`), a real calendar, `SupabaseBrief` /
+- Not built: streamed quotes (1b reads on open / check again), a real calendar, `SupabaseBrief` /
   the `ai-brief` edge function, server-side metering of the free brief, persisting reminders
   across launches (the button forgets; the OS keeps the notification), the rail's news.
+
+## Feeds (live prices, broker equity, rates)
+
+- **Deriv synthetics** (`R_*`, `BOOM*`, `CRASH*`): `DerivMarketData`, Deriv's public websocket
+  `wss://api.derivws.com/trading/v1/options/ws/public` (no auth; `ticks_history` style ticks / candles).
+  One socket, `ping` every 30s; a drop fails pending requests and reconnects with backoff 1s → 30s,
+  failing fast meanwhile. `DERIV_APP_ID` is optional (sent as `app_id` when set).
+- **MT5 via MetaRPC** (forex, metals, indices, oil): only through `supabase/functions/mt5`, called with
+  the user's Supabase session. The MetaRPC key is a function secret; the terminal id and the investor
+  password (Supabase Vault) live in `broker_links` (migration 0002), never on the device. The app keeps
+  `TradingAccount.brokerLink` (server, login), edited in the account editor's "broker" section (links
+  at once, apart from save). MetaRPC calls used: ConnectEx, Disconnect, AccountSummary, SymbolInfoTick,
+  QuoteHistory/Bars. Symbols are sent as in the catalogue (no broker suffix map yet).
+- **Routing**: `RoutedMarketData` (`marketDataProvider`): synthetic → Deriv; forex/metals/indices/oil →
+  the active account's MT5 link if any; everything else (crypto, custom) → `FakeMarketData`.
+- **Tests** never touch the network: `fakes.dart` overrides `marketDataProvider` (FakeMarketData) and
+  `rateSourceProvider` (PlaceholderRateSource); `supabaseClientProvider` is null. Feed tests use an
+  in-memory `DerivSocket` and `Mt5Api` (`deriv_market_data_test`, `feeds_test`, `broker_account_test`).
+- **Run with the keys**:
+
+  ```bash
+  supabase db push                                  # migrations 0001, 0002 (Vault must be enabled)
+  supabase secrets set MRPC_API_KEY=<key from mrpc.pro/my>
+  supabase functions deploy mt5
+  flutter run -d windows --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_ANON_KEY=… [--dart-define=DERIV_APP_ID=…]
+  ```
+
+  Sign in with the email code, then link the account under settings › accounts › broker.
 
 ## Coach (fake coach for now)
 

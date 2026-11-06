@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/routes.dart';
+import '../../accounts/data/broker_link_repository.dart';
+import '../../accounts/domain/trading_account.dart';
 import '../../../core/widgets/auth_method_button.dart' show AuthMethod;
 import '../../app_lock/presentation/app_lock_controller.dart';
 import '../../coach/data/coach_session_repository.dart';
@@ -331,6 +333,15 @@ class AccountActions {
   /// Throws [AuthFailure] (usually [AuthOffline]); nothing local is touched
   /// unless the account is really gone.
   Future<void> deleteAccount() async {
+    // Broker links first, while the session still exists: their MT5
+    // passwords leave Supabase Vault with them.
+    final links = _ref.read(brokerLinkRepositoryProvider);
+    if (links.available) {
+      for (final a
+          in _ref.read(onboardingRepositoryProvider).loadProfile()?.accounts ?? const <TradingAccount>[]) {
+        if (a.brokerLink != null) await links.unlink(a.id);
+      }
+    }
     await _ref.read(authRepositoryProvider).deleteAccount();
     await _wipeLocal();
   }
@@ -343,6 +354,7 @@ class AccountActions {
     // Saved coach sessions ("coaching history" on the delete screen) too.
     await _ref.read(coachSessionRepositoryProvider).clear();
     await _ref.read(briefAllowanceRepositoryProvider).clear();
+    await _ref.read(brokerLinkRepositoryProvider).clear();
     await _ref.read(appLockControllerProvider.notifier).reset();
     await _ref.read(billingRepositoryProvider).clear();
     _ref.invalidate(entitlementProvider);
