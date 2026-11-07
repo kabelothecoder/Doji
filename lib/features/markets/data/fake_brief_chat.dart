@@ -1,11 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ai/ai_functions.dart';
 import '../../coach/data/fake_coach.dart';
 import '../../onboarding/domain/user_zone.dart';
 import '../domain/market_format.dart';
 import '../domain/news.dart';
 import '../domain/pair_brief.dart';
 import '../domain/strategy_reading.dart';
+import 'supabase_brief.dart';
 
 /// Answers questions about one brief from the brief itself: why something is
 /// waiting, the risk note, what the entry needs. Anything else goes to the
@@ -89,4 +91,13 @@ class FakeBriefChat implements BriefChat {
 }
 
 /// The chat behind "ask about this brief". Tests override it with zero latency.
-final briefChatProvider = Provider<BriefChat>((ref) => const FakeBriefChat());
+final briefChatProvider = Provider<BriefChat>((ref) {
+  final ai = ref.watch(aiFunctionsProvider);
+  if (ai == null) return const FakeBriefChat();
+  return SupabaseBriefChat(
+    ai,
+    fallback: const FakeBriefChat(latency: Duration.zero),
+    plan: () => currentPlan(ref),
+    zone: () => currentZone(ref),
+  );
+});

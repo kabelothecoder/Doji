@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../chart/data/chart_note_repository.dart';
 import '../../markets/domain/currency.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/profile_doji.dart';
@@ -33,7 +34,19 @@ class JournalController extends Notifier<List<Trade>> {
 
   static String newId() => const Uuid().v4();
 
-  Future<void> add(Trade trade) => _set([...state, trade]);
+  /// Saves [trade] and links the chart notes that led to it (same account
+  /// and instrument, made in the day before it opened).
+  Future<void> add(Trade trade) async {
+    await _set([...state, trade]);
+    await ref
+        .read(chartNotesProvider.notifier)
+        .linkTrade(
+          tradeId: trade.id,
+          accountId: trade.accountId,
+          symbol: trade.symbol,
+          openedAt: trade.openedAt,
+        );
+  }
 
   /// Saves the review on trade [id]; the grade follows from it.
   Future<void> review(String id, TradeReview review) =>

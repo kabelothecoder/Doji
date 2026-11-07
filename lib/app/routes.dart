@@ -32,6 +32,10 @@ abstract final class Routes {
   static const pairDetailPattern = '/markets/pair/:symbol';
   static String pairDetail(String symbol) => '/markets/pair/${Uri.encodeComponent(symbol)}';
 
+  // The full chart with drawing tools and the co-pilot (no design file).
+  static const chartPattern = '/markets/chart/:symbol';
+  static String chart(String symbol) => '/markets/chart/${Uri.encodeComponent(symbol)}';
+
   // Daily loop (design: Doji Home.dc.html › 02): full screen, no tab bar.
   static const open = '/open';
   static const closeDay = '/close-day';

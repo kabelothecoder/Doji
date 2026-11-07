@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/ai/ai_functions.dart';
 
 import '../../accounts/domain/condition_eval.dart';
 import '../../accounts/domain/trading_account.dart';
@@ -16,6 +20,7 @@ import '../domain/strategy_reading.dart';
 import '../domain/time_zones.dart';
 import 'routed_market_data.dart';
 import 'sample_news_calendar.dart';
+import 'supabase_brief.dart';
 
 /// The brief, worked out on the device: conditions are measured (the
 /// session clock, the journal, the sample candles, the sample calendar) and
@@ -361,6 +366,15 @@ class _LondonBreak {
 }
 
 /// The brief 1b shows. Tests override it with a zero-latency [FakeBrief].
-final briefSourceProvider = Provider<BriefSource>(
-  (ref) => FakeBrief(market: ref.watch(marketDataProvider), news: ref.watch(newsCalendarProvider)),
-);
+final briefSourceProvider = Provider<BriefSource>((ref) {
+  final measured = FakeBrief(market: ref.watch(marketDataProvider), news: ref.watch(newsCalendarProvider));
+  final ai = ref.watch(aiFunctionsProvider);
+  if (ai == null) return measured;
+  return SupabaseBrief(
+    ai,
+    measure: measured,
+    plan: () => currentPlan(ref),
+    zone: () => currentZone(ref),
+    onBriefUsed: (_) => unawaited(markBriefUsed(ref)),
+  );
+});

@@ -91,6 +91,7 @@ system). The real files were never attached — see *Missing*.
 | 1b on the free plan | Plans say "1 ai brief a day"; the handoff has no locked state | A locked card in place of 01, 02 and 04 with the existing `aiBrief` upsell copy; conditions, chart and 05 still show |
 | 1b chart overlays for other strategies | The handoff draws the Asian range for a london break | Only a london break of the Asian range gets levels; other strategies get the news window only, and their entry shows "waiting" |
 | A5, A6, A7 | In the handoff | **Not built** (out of this slice's scope). A6's default (keep this device's setup) is applied silently |
+| Chart, drawing tools and co-pilot (slice 04) | No design file for the full chart (`/markets/chart/:symbol`), its toolbar, the drawings list, the "what is this?" sheet, the pre-trade check or trade detail's "how you got here" | Built 2026-11-07 from `core/widgets/` (`DojiIconButton`, `DojiButton`, `DojiChoiceChip`, `DojiTextField`, `GlassSurface` sheets like the review sheet, `TerminalLine`) and 1b's neutral grey candles. Drawings are grey (white when selected); only a position's stop / target zones are orange / green, each labelled in words. 1b opens it by tapping its chart (no visible change to 1b). Needs a design pass in Claude Design |
 | A standalone motion/haptics spec file | Not a separate file | Taken from the keyframe cards (ease + haptic per frame) and design system § Motion |
 
 ## Text in the design files that reads like instructions

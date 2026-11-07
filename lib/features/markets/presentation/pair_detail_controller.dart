@@ -11,6 +11,7 @@ import '../../plans/presentation/plans_controller.dart';
 import '../data/brief_allowance_repository.dart';
 import '../data/fake_brief.dart';
 import '../data/routed_market_data.dart';
+import '../data/supabase_brief.dart';
 import '../domain/brief_allowance.dart';
 import '../domain/candle.dart';
 import '../domain/market_data.dart';
@@ -89,6 +90,7 @@ class BriefAccessController extends Notifier<BriefAccess> {
   @override
   BriefAccess build() {
     final plan = ref.watch(entitlementProvider).plan;
+    ref.watch(briefUsedSignalProvider);
     final allowance = ref.read(briefAllowanceRepositoryProvider).load();
     final now = clock.now();
     return BriefAccess(

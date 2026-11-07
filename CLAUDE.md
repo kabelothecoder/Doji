@@ -45,6 +45,9 @@ lib/
                   live_rate_source · fake_market_data (SAMPLE prices) · sample_news_calendar · fake_brief ·
                   fake_brief_chat · brief_allowance_repository · presentation/ markets_screen (list) · market_search_screen ·
                   pair_detail_screen (1b) · markets_controller · brief_chat_sheet · widgets/
+    chart/        domain/ drawing · chart_viewport · hit_test · drawing_editor · drawing_drafts · position_math ·
+                  chart_note · copilot · bar_source · data/ chart_note_repository · copilot_service (FAKE + Supabase)
+                  presentation/ chart_screen · chart_controller · what_is_this_sheet · pre_trade_check_sheet · widgets/
     settings/     account settings · sign-out sheet · delete account flow (A11–A12)
     accounts/     domain/ trading_account.dart (freezed: TradingAccount, BrokerLink, StrategyCondition) ·
                   condition_eval.dart (defaultConditions, measureConditions) · data/ broker_link_repository ·
@@ -221,8 +224,13 @@ so Home, the journal, 1b, the brief, the coach and the rail follow it; writes go
   while the starting size is not a number > 0. From settings and
   MEASURED AGAINST. Instruments are edited from markets search / 1b's bookmark (active account).
 - Sign out and delete clear accounts with the profile (`clearAll`). `kOnboardingVersion` 4.
-- Not built: the AI (Gemini, behind Supabase) reading the strategy text and the trader's sources
-  and proposing conditions; per-account sessions; per-account coach
+- **Strategy reader** (`accounts/data/strategy_reader.dart`): "read my words" under the strategy
+  text asks `strategyReaderProvider` (Gemini via `ai-strategy` when Supabase runs, else
+  `FakeStrategyReader` = keyword parser + `defaultConditions`). The proposal card offers "use these"
+  (replaces the list), "add to mine" (appends new ones), "keep mine" (drops it); nothing is stored
+  until save. Kinds are checked on the server and again on the device: anything else is `manual`.
+  `SupabaseStrategyReader` is also the `StrategyParser` onboarding and save use.
+- Not built: reading the trader's sources (only their words); per-account sessions; per-account coach
   voice; syncing accounts; moving a trade to another account.
 
 ## Markets list
@@ -286,9 +294,58 @@ rail. On wide screens it is the list's second pane.
   desugaring and the two scheduled-notification receivers (in the manifest).
 - **Watchlist** = the active account's instruments: the bookmark adds/removes and saves at once
   (removing the last one asks); Home and the journal re-read the profile.
-- Not built: streamed quotes (1b reads on open / check again), a real calendar, `SupabaseBrief` /
-  the `ai-brief` edge function, server-side metering of the free brief, persisting reminders
+- **AI** (with Supabase, see AI functions): `SupabaseBrief` runs `FakeBrief` first (conditions,
+  levels, check-again stay measured on the device), then `ai-brief` writes 01, 02, 04 and the
+  follow-ups. A null field, a copy-rule break or any failure keeps the device's own text, so the brief
+  works offline. `SupabaseBriefChat` (`ai-brief-chat`) falls back to `FakeBriefChat`. The free brief
+  is counted on the server too (`brief_days`, the trader's local day): a 402 saves today as used and
+  bumps `briefUsedSignalProvider`, which locks 1b like the local allowance.
+- Not built: streamed quotes (1b reads on open / check again), a real calendar, persisting reminders
   across launches (the button forgets; the OS keeps the notification), the rail's news.
+
+## Chart and co-pilot (slice 04)
+
+No design file (design/SOURCE.md › Missing). `ChartScreen` at `/markets/chart/:symbol` (`Routes.chart`),
+opened by tapping 1b's chart (`_OpenChart`, nothing drawn at rest, so 1b's goldens don't move).
+`PairChart` on 1b is unchanged.
+
+- **Chart** (`features/chart/`): `DojiChart` + `ChartPainter` (CustomPainter, neutral grey candles, no
+  third-party chart). Bars come from `BarSource` (`LiveBarSource` = slice 02's `MarketData`, 300 bars;
+  backtest replay / the gym give their own). `ChartViewport` (start, count; 12–400 bars, 16 empty slots
+  on the right) and `ChartGeometry` (pixels ↔ bar index ↔ time ↔ price; gaps take no room) are pure.
+  Drag pans, pinch / Ctrl+wheel zooms, wheel pans, hover / long-press = crosshair. Not built: loading
+  older bars past 300, streamed bars (try again reloads).
+- **Drawings**: `Drawing` (zone, level, trend line, position) anchored to time + price, never pixels.
+  `DrawingEditor` is immutable (one gesture = one undo step, 50 kept). `hitTest` (12px, selected
+  drawing's handles first, later drawings on top). A tap draws a default-sized drawing
+  (`draftDrawing`), a drag sizes it; then the tool goes back to select. Keys (Windows): V R H T P,
+  arrows pan or move the selected drawing (a bar / a tick), + −, Delete, Ctrl+Z / Ctrl+Y, Enter =
+  reason, Esc. Keys are ignored while a text field has focus.
+- **Position box** records the trader's plan, never a suggestion: R, money at risk (starting size ×
+  risk %) and size from `RiskSizing` (`PositionFigures`; null size = "size: broker figure needed").
+  It names no side (copy rules ban the words): "stop below entry" / "stop above entry".
+- **Accessible list** (`DrawingList`): beside the chart when wide (≥ 760px), a sheet on phones. Each
+  drawing's name, prices, reason and the co-pilot's line; select / reason / delete; "add by price"
+  for every tool, so the chart is never the only way in.
+- **Co-pilot**: after a drawing, "what is this?" (`showWhatIsThis`: typed, or dictated on pro/elite,
+  same rule as the coach; skip = no reason, no call). The reason is saved before the call.
+  `Copilot` boundary: `SupabaseCopilot` (`ai-copilot` via `AiFunctions`) when Supabase started, else
+  `FakeCopilot` (limits first, then the trader's own strategy sentence that matches, then a waiting
+  condition, else a question). Replies that break the copy rules or `ratesOdds` fall back to the
+  fake; 429 says "you've used today's co-pilot replies." `ratesOdds` (Dart and `_shared/guard.ts`)
+  catches odds words; plain percentages of the trader's own limits are allowed.
+- **Pre-trade check** (`showPreTradeCheck`): a new position box lists the account's conditions (1b's
+  measured `pairBriefProvider` conditions) and today's limits from `CoachContext`. A limit reached is
+  said plainly with "talk to the coach"; "continue" always works (doji never blocks the broker).
+- **ChartNote** (`doji.chartnotes.v1`, `ChartNotesController`): drawing, reason, co-pilot turns,
+  checklist, account, symbol, timeframe, time, `tradeId`. Deleted drawings stay as `deleted` notes so
+  undo restores them with their reason. `JournalController.add` links notes on the same account +
+  symbol from the 24 h before the trade opened (`notesLeadingTo`, shortcut). Trade detail shows them
+  under "HOW YOU GOT HERE". Sign out / delete clear them. Sync TODO in `chart_note_repository.dart`.
+- `ai-copilot` (`supabase/functions/ai-copilot/`, contract and prompt in `spec.ts`, 80 a day, 8 a
+  minute): `supabase functions deploy ai-copilot` (not deployed). `deno test supabase/functions/ai-copilot/spec_test.ts`.
+- Tests: `test/chart/` (domain, co-pilot + copy scan of every string in `lib/features/chart`, flow,
+  a11y), `test/goldens/chart_golden_test.dart` (one per tool + Windows).
 
 ## Feeds (live prices, broker equity, rates)
 
@@ -318,7 +375,42 @@ rail. On wide screens it is the list's second pane.
 
   Sign in with the email code, then link the account under settings › accounts › broker.
 
-## Coach (fake coach for now)
+## AI functions (Gemini behind Supabase)
+
+Plan and reasoning: `design/ai-slice-plan.md`. The app never holds a model key.
+
+- `supabase/functions/ai-coach | ai-brief | ai-brief-chat | ai-strategy`: each is `spec.ts` (contract,
+  prompt, schema, guard) + `index.ts`, run by `_shared/ai.ts › handle`: session (401) → body (400) →
+  crisis check in code, **before** the model (SADAG line, `_shared/guard.ts`) → free-brief claim (402)
+  → rate limit (`ai_take`, 429) → Gemini → every string through `breaksCopyRules` (a failing field
+  becomes the fallback and logs `COPY_RULE`) → JSON. Gemini failure = 502 `AI_UNAVAILABLE`. Logs carry
+  only the function, the user id and an error code.
+- Gemini: Interactions API (`_shared/gemini.ts`), model `gemini-3.8-flash` (override: `GEMINI_MODEL`),
+  JSON via `response_format`. The system prompt is the start of `input`. Prompts: `_shared/voice.ts`
+  (shared preamble) + each `spec.ts`. Facts only: `CoachContext`, the measured conditions, the active
+  account's rules, today's journal, the trader's own words (fenced as TRADER WORDS).
+- No streaming: the guard sees the whole reply first; the app types it out.
+- The plan: `AI_TRUST_CLIENT_PLAN=true` trusts the plan the app sends (phase 1); otherwise the server
+  treats everyone as free. Switch to a server-owned plan when billing is real.
+- **Copy rules, one list**: `_shared/copy_rules.json` = `lib/core/copy_rules.dart › kBannedPhrases`
+  (`test/core/copy_rules_test.dart` fails if they drift; it also scans guard.ts's fixed lines). The
+  Supabase* clients check replies again on the device.
+- **App side**: `aiFunctionsProvider` (`core/ai/ai_functions.dart`) is null without Supabase, so the
+  fakes answer (local runs, tests). With it, every AI client falls back to its fake on any
+  `AiFailure` (not signed in, offline, rate limit, 5xx): the screens have no AI error state.
+- Tests: `deno test --allow-env --allow-read` in `supabase/functions` (stub `Deps`, no network:
+  copy-rule break, crisis, 401/400/429/402/502). `real_deps.ts` is only imported by `index.ts`.
+- **Run**: migration `0003_ai_usage.sql` (`ai_usage` + `ai_take`, `brief_days` + `ai_claim_brief`,
+  RLS on, service role only), then:
+
+  ```bash
+  supabase secrets set GEMINI_API_KEY=<key from aistudio.google.com/apikey>
+  supabase secrets set AI_TRUST_CLIENT_PLAN=true        # phase 1 only
+  supabase db push
+  supabase functions deploy ai-coach ai-brief ai-brief-chat ai-strategy
+  ```
+
+## Coach (Gemini with Supabase, else the fake coach)
 
 Source: `design/handoff/Doji Hero Screens.dc.html` › 1c, orb from the design system's `VoiceOrb`.
 The coach is a **full-screen cover** at `/coach` (`MaterialPage(fullscreenDialog)`, cross-fade
@@ -326,7 +418,8 @@ under reduce motion), not a shell branch: tapping the orb (bar or rail) pushes i
 tab, long-pressing pushes `/coach?listen=1`, which opens the mic straight away. Home's "talk to
 coach" pushes it too.
 
-- `Coach` is the boundary (`opener`, `reply`); `FakeCoach` is the only implementation: keyword
+- `Coach` is the boundary (`opener`, `reply`). With Supabase, `SupabaseCoach` (`ai-coach`, see AI
+  functions) answers and falls back to `FakeCoach` on any failure. `FakeCoach`: keyword
   intents (crisis first, then call, done, revenge, sizing, stop, hesitation, urge, feeling,
   another) answered from `CoachContext` (profile.doji + today's journal: entry rule, risk, max
   trades, the stricter daily limit, loss streak, today's loss). It never says what the market will
@@ -343,7 +436,7 @@ coach" pushes it too.
 - **Saving**: `CoachSessionRepository` (`doji.coach.v1`, shared_preferences); "save" keeps the
   transcript, saving again replaces it. Close, end, back and (iOS) pull-down ask before dropping
   unsaved words. Sign out and delete clear saved sessions.
-- Not built: the real coach (`SupabaseCoach` + an Edge Function, streamed), text-to-speech in the
+- Not built: streaming the coach (the guard needs the whole reply first), text-to-speech in the
   chosen voice, voice-minute metering, a place to read saved sessions, Windows dictation, and a
   tappable / region-specific helpline (SADAG is South African).
 

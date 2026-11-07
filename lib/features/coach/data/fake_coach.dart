@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ai/ai_functions.dart';
 import '../domain/coach.dart';
+import 'supabase_coach.dart';
 
 /// What the trader's message is about, as far as the fake coach can tell.
 /// Checked in declaration order: the first match wins.
@@ -197,4 +199,7 @@ class FakeCoach implements Coach {
 
 /// The coach the session screen talks to. Tests override it with a
 /// zero-latency [FakeCoach].
-final coachProvider = Provider<Coach>((ref) => const FakeCoach());
+final coachProvider = Provider<Coach>((ref) {
+  final ai = ref.watch(aiFunctionsProvider);
+  return ai == null ? const FakeCoach() : SupabaseCoach(ai);
+});

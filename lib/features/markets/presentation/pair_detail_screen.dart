@@ -573,13 +573,16 @@ class _ChartCard extends ConsumerWidget {
                   _ClosedTag(opensAt: closed.opensAt, zone: zone, now: now),
                 ],
               ),
-              AsyncData(:final value) => PairChart(
-                candles: value,
-                timeframe: tf,
-                decimals: decimals,
-                levels: levels,
-                news: news,
-                semanticLabel: label,
+              AsyncData(:final value) => _OpenChart(
+                symbol: symbol,
+                child: PairChart(
+                  candles: value,
+                  timeframe: tf,
+                  decimals: decimals,
+                  levels: levels,
+                  news: news,
+                  semanticLabel: label,
+                ),
               ),
               _ => SizedBox(
                 height: 200,
@@ -883,6 +886,49 @@ class _NoStrategyCard extends StatelessWidget {
           style: DojiType.callout,
         ),
       ],
+    ),
+  );
+}
+
+/// Tapping 1b's chart (or Enter on it) opens the full chart with the drawing
+/// tools. Nothing is drawn at rest, so 1b looks the same; a focus outline
+/// shows only while the keyboard is on it.
+class _OpenChart extends StatefulWidget {
+  const _OpenChart({required this.symbol, required this.child});
+
+  final String symbol;
+  final Widget child;
+
+  @override
+  State<_OpenChart> createState() => _OpenChartState();
+}
+
+class _OpenChartState extends State<_OpenChart> {
+  bool _focused = false;
+
+  void _open() => context.push(Routes.chart(widget.symbol));
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    explicitChildNodes: true,
+    button: true,
+    label: 'open the full chart to draw',
+    onTap: _open,
+    child: FocusableActionDetector(
+      onShowFocusHighlight: (v) => setState(() => _focused = v),
+      actions: {ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) => _open())},
+      child: GestureDetector(
+        onTap: _open,
+        child: DecoratedBox(
+          position: DecorationPosition.foreground,
+          decoration: BoxDecoration(
+            border: _focused ? Border.all(color: DojiColors.textPrimary, width: 2) : null,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: widget.child,
+        ),
+      ),
     ),
   );
 }

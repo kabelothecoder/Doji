@@ -13,6 +13,7 @@ import '../features/auth/presentation/code_entry_screen.dart';
 import '../features/auth/presentation/email_entry_screen.dart';
 import '../features/auth/presentation/save_your_setup_screen.dart';
 import '../features/auth/presentation/sign_in_screen.dart';
+import '../features/chart/presentation/chart_screen.dart';
 import '../features/coach/presentation/coach_screen.dart';
 import '../features/home/presentation/close_day_screen.dart';
 import '../features/home/presentation/home_screen.dart';
@@ -122,6 +123,10 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
     GoRoute(
       path: Routes.pairDetailPattern,
       builder: (c, s) => PairDetailScreen(symbol: s.pathParameters['symbol'] ?? ''),
+    ),
+    GoRoute(
+      path: Routes.chartPattern,
+      builder: (c, s) => ChartScreen(symbol: s.pathParameters['symbol'] ?? ''),
     ),
     GoRoute(path: Routes.open, builder: (c, s) => const OpenScreen()),
     GoRoute(path: Routes.closeDay, builder: (c, s) => const CloseDayScreen()),

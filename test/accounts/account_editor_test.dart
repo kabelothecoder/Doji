@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:doji_app/app/routes.dart';
+import 'package:doji_app/features/accounts/data/strategy_reader.dart';
 import 'package:doji_app/features/accounts/domain/trading_account.dart';
 import 'package:doji_app/features/onboarding/data/onboarding_repository.dart';
 import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
@@ -213,6 +214,34 @@ void main() {
       final now = _stored(h).activeAccount!.strategy!.conditions;
       expect(now.first, first[1]);
       expect(now[1], first.first);
+    });
+  }, variant: ios);
+
+  testWidgets('read my words: keep mine drops the proposal, use these replaces the list on save', (
+    tester,
+  ) async {
+    await withClock(summerDay, () async {
+      const words = 'london breakout of the asian range on m15, wait for a close back';
+      final h = await AppHarness.pump(
+        tester,
+        at: Routes.accountEditor(kFirstAccountId, strategy: true),
+        seed: _seed(),
+      );
+      await tester.enterText(strategyField(), words);
+      await h.wait(50);
+      await h.tapText('read my words');
+      await h.wait(50);
+      expect(find.text('DOJI READ YOUR WORDS AS'), findsOneWidget);
+      await h.tapText('keep mine');
+      expect(find.text('DOJI READ YOUR WORDS AS'), findsNothing);
+
+      await h.tapText('read my words');
+      await h.wait(50);
+      await h.tapText('use these');
+      expect(find.text('DOJI READ YOUR WORDS AS'), findsNothing);
+      await h.tapText('save');
+      final proposed = (await const FakeStrategyReader().propose(words)).conditions;
+      expect(_stored(h).activeAccount!.strategy!.conditions, proposed);
     });
   }, variant: ios);
 

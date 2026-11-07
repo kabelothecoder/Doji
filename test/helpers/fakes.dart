@@ -4,6 +4,7 @@ import 'package:doji_app/core/platform/reminders.dart';
 import 'package:doji_app/features/app_lock/data/biometric_auth.dart';
 import 'package:doji_app/features/app_lock/domain/biometric_kind.dart';
 import 'package:doji_app/features/auth/data/fake_auth_repository.dart';
+import 'package:doji_app/features/chart/data/copilot_service.dart';
 import 'package:doji_app/features/coach/data/fake_coach.dart';
 import 'package:doji_app/features/markets/data/fake_brief.dart';
 import 'package:doji_app/features/markets/data/fake_brief_chat.dart';
@@ -160,6 +161,7 @@ List<Override> testOverrides(
   timeZoneServiceProvider.overrideWithValue(const FakeTimeZoneService()),
   strategyParserProvider.overrideWithValue(parser ?? const MockStrategyParser(latency: Duration.zero)),
   coachProvider.overrideWithValue(const FakeCoach(latency: Duration.zero)),
+  copilotProvider.overrideWithValue(const FakeCopilot(latency: Duration.zero)),
   notificationPermissionProvider.overrideWithValue(FakeNotificationPermission()),
   voiceInputProvider.overrideWithValue(voice ?? const UnavailableVoiceInput()),
   isOnlineProvider.overrideWith((ref) => Stream.value(true)),

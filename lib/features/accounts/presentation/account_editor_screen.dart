@@ -11,6 +11,7 @@ import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../auth/presentation/widgets/auth_scaffold.dart';
 import '../../markets/domain/currency.dart';
+import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/onboarding_catalog.dart';
 import '../../onboarding/domain/profile_doji.dart';
 import '../../onboarding/domain/prop_rules.dart';
@@ -19,6 +20,7 @@ import '../../onboarding/domain/sessions.dart';
 import '../../onboarding/domain/strategy_parser.dart';
 import '../../onboarding/presentation/steps/step_input.dart';
 import '../../onboarding/presentation/steps/text_inputs.dart';
+import '../data/strategy_reader.dart';
 import '../domain/condition_eval.dart';
 import '../domain/trading_account.dart';
 import 'accounts_controller.dart';
@@ -60,6 +62,10 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
 
   /// Set when the parser failed on save: the words are saved, not read.
   bool _parseFailed = false;
+
+  /// "read my words": what doji proposed, until the trader accepts or drops it.
+  StrategyProposal? _proposal;
+  bool _reading = false;
 
   /// Set when the starting size cannot be used; save stays off until fixed.
   String? _sizeError;
@@ -357,6 +363,23 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
             ),
             parsing: _saving,
           ),
+          const SizedBox(height: 12),
+          DojiButton(
+            label: _reading ? 'reading your words…' : 'read my words',
+            variant: DojiButtonVariant.secondary,
+            onPressed: _reading || (_strategy.rawText?.trim().isEmpty ?? true)
+                ? null
+                : () => unawaited(_read()),
+          ),
+          if (_proposal case final p?) ...[
+            const SizedBox(height: 12),
+            _ProposalCard(
+              proposal: p,
+              onUse: () => _useProposal(replace: true),
+              onAdd: () => _useProposal(replace: false),
+              onDrop: () => setState(() => _proposal = null),
+            ),
+          ],
           const SizedBox(height: 20),
           const _Label('CONDITIONS DOJI MEASURES'),
           Text(
@@ -414,6 +437,34 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _read() async {
+    final words = _strategy.rawText?.trim() ?? '';
+    if (words.isEmpty || _reading) return;
+    setState(() => _reading = true);
+    final sessions = ref.read(onboardingRepositoryProvider).loadProfile()?.sessions ?? const <String>[];
+    StrategyProposal? p;
+    try {
+      p = await ref.read(strategyReaderProvider).propose(words, sessions: sessions);
+    } on Object {
+      p = null;
+    }
+    if (!mounted) return;
+    setState(() {
+      _reading = false;
+      _proposal = p;
+    });
+  }
+
+  /// Accept: the proposal replaces the list (still editable, saved with "save").
+  void _useProposal({required bool replace}) {
+    final p = _proposal!;
+    final next = replace
+        ? p.conditions
+        : [..._conditions, ...p.conditions.where((c) => !_conditions.contains(c))];
+    _edit((a) => a.copyWith(strategy: _strategy.copyWith(conditions: next)));
+    setState(() => _proposal = null);
   }
 
   /// Order matters: the brief lists conditions as the trader orders them.
@@ -548,6 +599,55 @@ class _PropFieldsState extends State<_PropFields> {
       ],
     );
   }
+}
+
+/// What doji read from the trader's words: the conditions it would measure,
+/// with the trader's own rules marked "check on your chart". Nothing changes
+/// until the trader picks one of the three.
+class _ProposalCard extends StatelessWidget {
+  const _ProposalCard({
+    required this.proposal,
+    required this.onUse,
+    required this.onAdd,
+    required this.onDrop,
+  });
+
+  final StrategyProposal proposal;
+  final VoidCallback onUse;
+  final VoidCallback onAdd;
+  final VoidCallback onDrop;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: DojiColors.elevated1,
+      borderRadius: BorderRadius.circular(DojiRadius.card),
+      border: Border.all(color: DojiColors.separator),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _Label('DOJI READ YOUR WORDS AS'),
+        if (proposal.conditions.isEmpty)
+          Text("doji couldn't find a rule it can measure. add your own below.", style: DojiType.callout)
+        else
+          for (final c in proposal.conditions)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text('· ${conditionLabel(c)}', style: DojiType.body.copyWith(fontSize: 15)),
+            ),
+        const SizedBox(height: 12),
+        if (proposal.conditions.isNotEmpty) ...[
+          DojiButton(label: 'use these', onPressed: onUse),
+          const SizedBox(height: 8),
+          DojiButton(label: 'add to mine', variant: DojiButtonVariant.secondary, onPressed: onAdd),
+          const SizedBox(height: 8),
+        ],
+        DojiButton(label: 'keep mine', variant: DojiButtonVariant.text, onPressed: onDrop),
+      ],
+    ),
+  );
 }
 
 class _ConditionTile extends StatelessWidget {

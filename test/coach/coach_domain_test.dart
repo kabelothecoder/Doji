@@ -9,6 +9,7 @@ import 'package:doji_app/features/coach/domain/coach.dart';
 import 'package:doji_app/features/coach/domain/coach_session.dart';
 import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
 import 'package:doji_app/features/onboarding/domain/prop_rules.dart';
+import 'package:doji_app/core/copy_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -153,18 +154,7 @@ void main() {
         }
       }
       final text = ' ${lines.join(' ').toLowerCase()} ';
-      for (final banned in [
-        ' buy ',
-        ' sell ',
-        'signal',
-        'guarantee',
-        'profit',
-        'win rate',
-        'go long',
-        'go short',
-      ]) {
-        expect(text, isNot(contains(banned)), reason: banned);
-      }
+      expect(breaksCopyRules(text), isFalse, reason: text);
     },
   );
 

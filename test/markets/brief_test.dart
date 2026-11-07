@@ -10,6 +10,7 @@ import 'package:doji_app/features/markets/domain/candle.dart';
 import 'package:doji_app/features/markets/domain/market_data.dart';
 import 'package:doji_app/features/markets/domain/pair_brief.dart';
 import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
+import 'package:doji_app/core/copy_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../journal/journal_fixtures.dart';
@@ -309,17 +310,6 @@ void main() {
       }
     }
     final text = ' ${lines.join(' ').toLowerCase()} ';
-    for (final banned in [
-      ' buy ',
-      ' sell ',
-      'signal',
-      'guarantee',
-      'profit',
-      'win rate',
-      'go long',
-      'go short',
-    ]) {
-      expect(text, isNot(contains(banned)), reason: banned);
-    }
+    expect(breaksCopyRules(text), isFalse, reason: text);
   });
 }

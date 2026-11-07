@@ -9,6 +9,7 @@ import '../../accounts/data/broker_link_repository.dart';
 import '../../accounts/domain/trading_account.dart';
 import '../../../core/widgets/auth_method_button.dart' show AuthMethod;
 import '../../app_lock/presentation/app_lock_controller.dart';
+import '../../chart/data/chart_note_repository.dart';
 import '../../coach/data/coach_session_repository.dart';
 import '../../journal/data/journal_repository.dart';
 import '../../journal/presentation/journal_controller.dart';
@@ -353,6 +354,8 @@ class AccountActions {
     _ref.invalidate(journalControllerProvider);
     // Saved coach sessions ("coaching history" on the delete screen) too.
     await _ref.read(coachSessionRepositoryProvider).clear();
+    await _ref.read(chartNoteRepositoryProvider).clear();
+    _ref.invalidate(chartNotesProvider);
     await _ref.read(briefAllowanceRepositoryProvider).clear();
     await _ref.read(brokerLinkRepositoryProvider).clear();
     await _ref.read(appLockControllerProvider.notifier).reset();

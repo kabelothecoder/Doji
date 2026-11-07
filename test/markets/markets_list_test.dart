@@ -17,6 +17,7 @@ import 'package:doji_app/features/markets/domain/strategy_state.dart';
 import 'package:doji_app/features/onboarding/data/onboarding_repository.dart';
 import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
 import 'package:flutter/material.dart';
+import 'package:doji_app/core/copy_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/app_harness.dart';
@@ -371,18 +372,7 @@ void main() {
     void check(WidgetTester tester) {
       final seen = tester.widgetList<RichText>(find.byType(RichText)).map((r) => r.text.toPlainText());
       final text = ' ${[...seen, ...StrategyState.values.map((s) => s.label)].join(' ').toLowerCase()} ';
-      for (final banned in [
-        ' buy ',
-        ' sell ',
-        'signal',
-        'guarantee',
-        'profit',
-        'win rate',
-        'go long',
-        'go short',
-      ]) {
-        expect(text, isNot(contains(banned)), reason: banned);
-      }
+      expect(breaksCopyRules(text), isFalse, reason: text);
     }
 
     testWidgets('the list', (tester) async {

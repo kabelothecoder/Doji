@@ -9,6 +9,8 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../home/presentation/widgets/home_card.dart';
+import '../../chart/data/chart_note_repository.dart';
+import '../../chart/domain/chart_note.dart';
 import '../../markets/domain/instrument_catalog.dart';
 import '../domain/formatting.dart';
 import '../domain/journal_stats.dart';
@@ -192,6 +194,7 @@ class _TradeDetailScreenState extends ConsumerState<TradeDetailScreen> {
         if (t.reviewed && grade != null)
           _GradeReasons(trade: t, grade: grade, riskPercent: profile.rules?.riskPerTrade),
         if (t.reviewed) _ReviewBlock(trade: t),
+        _ChartNotes(tradeId: t.id, decimals: decimals),
         _DeleteRow(
           confirming: _confirmDelete,
           onAsk: () => setState(() => _confirmDelete = true),
@@ -463,4 +466,81 @@ class _DeleteRow extends StatelessWidget {
       ],
     );
   }
+}
+
+/// "how you got here": the chart notes that led to this trade (each mark,
+/// the trader's reason, the co-pilot's line, the pre-trade check). Hidden
+/// when there are none.
+class _ChartNotes extends ConsumerWidget {
+  const _ChartNotes({required this.tradeId, required this.decimals});
+
+  final String tradeId;
+  final int decimals;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notes = ref.watch(chartNotesProvider).where((n) => n.tradeId == tradeId).toList()
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    if (notes.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(header: true, child: Text('HOW YOU GOT HERE', style: DojiType.label)),
+        const SizedBox(height: 8),
+        for (final n in notes) _ChartNoteCard(note: n, decimals: decimals),
+      ],
+    );
+  }
+}
+
+class _ChartNoteCard extends StatelessWidget {
+  const _ChartNoteCard({required this.note, required this.decimals});
+
+  final ChartNote note;
+  final int decimals;
+
+  @override
+  Widget build(BuildContext context) {
+    final n = note;
+    final reply = n.copilot.where((t) => !t.fromYou).lastOrNull?.text;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: HomeCard(
+        child: MergeSemantics(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '${whenLabel(n.createdAt)} · ${n.timeframe.label} · ${n.drawing.describe(decimals)}',
+                style: DojiType.hint,
+              ),
+              if (n.drawing.stopSide != null) Text(n.drawing.stopSide!, style: DojiType.hint),
+              const SizedBox(height: 6),
+              Text(
+                n.reason == null ? 'no reason given' : 'you: ${n.reason}',
+                style: DojiType.callout.copyWith(fontSize: 14),
+              ),
+              if (reply != null) Text('doji: $reply', style: DojiType.callout.copyWith(fontSize: 14)),
+              if (n.checklist != null && n.checklist!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                for (final c in n.checklist!)
+                  Text(
+                    '${c.label} · ${_status(c.status)}${c.answer == null ? '' : ' · you: ${c.answer!.label}'}',
+                    style: DojiType.hint,
+                  ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _status(String s) => switch (s) {
+    'met' => 'met',
+    'notMet' => 'not met',
+    'waiting' => 'waiting',
+    'limitHit' => 'limit reached',
+    _ => 'ok',
+  };
 }

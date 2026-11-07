@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import 'package:uuid/uuid.dart';
 
+import '../../chart/presentation/chart_controller.dart';
 import '../../home/presentation/home_controller.dart';
 import '../data/broker_link_repository.dart';
 import '../../journal/presentation/journal_controller.dart';
@@ -35,6 +36,7 @@ void invalidateAccountReaders(ProviderContainer c) {
     periodTradesProvider,
     journalStatsProvider,
     brokerReadingProvider,
+    chartControllerProvider,
   ]) {
     c.invalidate(p);
   }
