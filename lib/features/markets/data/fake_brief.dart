@@ -11,6 +11,7 @@ import '../../onboarding/domain/user_zone.dart';
 import '../domain/candle.dart';
 import '../domain/instrument.dart';
 import '../domain/instrument_catalog.dart';
+import '../domain/london_break.dart';
 import '../domain/market_data.dart';
 import '../domain/market_format.dart';
 import '../domain/market_status.dart';
@@ -293,45 +294,27 @@ class FakeBrief implements BriefSource {
 
   /// The Asian range (Tokyo open to London open), and in London the first
   /// break of it and the first [tf] close back beyond the broken level.
-  Future<_LondonBreak> _londonBreak(String symbol, Timeframe tf, DateTime now) async {
-    var tokyoOpen = TradingSession.tokyo.openInstant(now)!;
-    if (tokyoOpen.isAfter(now)) {
-      tokyoOpen = TradingSession.tokyo.openInstant(now.subtract(const Duration(days: 1)))!;
-    }
-    final londonOpen = TradingSession.london.openInstant(tokyoOpen)!;
-    final londonClose = TradingSession.london.closeInstant(tokyoOpen)!;
-    final forming = now.isBefore(londonOpen);
+  Future<LondonBreak> _londonBreak(String symbol, Timeframe tf, DateTime now) async {
+    final w = LondonBreak.windowFor(LondonBreak.lastTokyoOpen(now));
+    final forming = now.isBefore(w.londonOpen);
+    final over = !now.isBefore(w.londonClose);
     final asian = await market.candlesBetween(
       symbol,
       Timeframe.m15,
-      from: tokyoOpen,
-      to: forming ? now : londonOpen,
+      from: w.tokyoOpen,
+      to: forming ? now : w.londonOpen,
     );
-    final range = PriceRange.of(asian);
-    final over = !now.isBefore(londonClose);
-    if (range == null || forming) return _LondonBreak(range: range, forming: forming, londonOver: over);
-    final london = await market.candlesBetween(symbol, tf, from: londonOpen, to: over ? londonClose : now);
-    DateTime? breakAt, retestAt;
-    bool? up;
-    for (final k in london) {
-      if (breakAt == null) {
-        if (k.high > range.high || k.low < range.low) {
-          breakAt = k.at;
-          up = k.high > range.high && (k.low >= range.low || k.close >= range.high);
-        }
-        continue;
-      }
-      // Only closed bars count as a close back beyond the level.
-      if (k.at.add(tf.duration).isAfter(now)) break;
-      final retest = up!
-          ? k.low <= range.high && k.close > range.high
-          : k.high >= range.low && k.close < range.low;
-      if (retest) {
-        retestAt = k.at.add(tf.duration);
-        break;
-      }
-    }
-    return _LondonBreak(range: range, forming: false, londonOver: over, breakAt: breakAt, retestAt: retestAt);
+    final london = forming || asian.isEmpty
+        ? const <Candle>[]
+        : await market.candlesBetween(symbol, tf, from: w.londonOpen, to: over ? w.londonClose : now);
+    return LondonBreak.measure(
+      asian: asian,
+      london: london,
+      tf: tf,
+      now: now,
+      londonOpen: w.londonOpen,
+      londonClose: w.londonClose,
+    );
   }
 
   /// 1.5 → "1.5", 2.0 → "2".
@@ -339,30 +322,6 @@ class FakeBrief implements BriefSource {
     final r = double.parse(v.toStringAsFixed(2));
     return r == r.roundToDouble() ? r.toInt().toString() : r.toString();
   }
-}
-
-class _LondonBreak {
-  const _LondonBreak({
-    required this.range,
-    required this.forming,
-    required this.londonOver,
-    this.breakAt,
-    this.retestAt,
-  });
-
-  final PriceRange? range;
-
-  /// Before the London open: the range is still being made.
-  final bool forming;
-
-  /// After the London close: the setup is done for today.
-  final bool londonOver;
-
-  /// Open time of the bar that first left the range.
-  final DateTime? breakAt;
-
-  /// Close time of the first bar that closed back beyond the broken level.
-  final DateTime? retestAt;
 }
 
 /// The brief 1b shows. Tests override it with a zero-latency [FakeBrief].

@@ -7,9 +7,19 @@ import '../../../../core/widgets/widgets.dart';
 /// Design spec `MiniGrid`: 12 weeks × 7 days on the five-step green scale,
 /// future days outlined, today ringed while the day is open. [days] is
 /// column-major (Mon first). The fill animation plays when today's cell
-/// changes state, once.
+/// changes state, once. Days in [practice] (gym drill days) carry a small
+/// dot: practice, kept apart from the trading-day fill.
 class MiniGrid extends StatelessWidget {
-  const MiniGrid({super.key, required this.days, required this.label, this.todayIndex, this.weeks = 12});
+  const MiniGrid({
+    super.key,
+    required this.days,
+    required this.label,
+    this.todayIndex,
+    this.weeks = 12,
+    this.practice = const {},
+  });
+
+  final Set<int> practice;
 
   final List<GridCellState> days;
   final String label;
@@ -34,7 +44,7 @@ class MiniGrid extends StatelessWidget {
                     children: [
                       for (var d = 0; d < 7; d++) ...[
                         if (d > 0) const SizedBox(height: _gap),
-                        GridCell(size: cell, state: days[w * 7 + d], animateIn: w * 7 + d == todayIndex),
+                        _cell(cell, w * 7 + d),
                       ],
                     ],
                   ),
@@ -43,6 +53,24 @@ class MiniGrid extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+extension on MiniGrid {
+  Widget _cell(double size, int i) {
+    final c = GridCell(size: size, state: days[i], animateIn: i == todayIndex);
+    if (!practice.contains(i)) return c;
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        c,
+        Container(
+          width: (size / 3).clamp(3, 6).toDouble(),
+          height: (size / 3).clamp(3, 6).toDouble(),
+          decoration: const BoxDecoration(color: DojiColors.textPrimary, shape: BoxShape.circle),
+        ),
+      ],
     );
   }
 }

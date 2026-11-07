@@ -13,7 +13,14 @@ import '../features/auth/presentation/code_entry_screen.dart';
 import '../features/auth/presentation/email_entry_screen.dart';
 import '../features/auth/presentation/save_your_setup_screen.dart';
 import '../features/auth/presentation/sign_in_screen.dart';
+import '../features/backtest/presentation/backtest_screen.dart';
+import '../features/backtest/presentation/compare_screen.dart';
+import '../features/backtest/presentation/practice_screen.dart';
 import '../features/chart/presentation/chart_screen.dart';
+import '../features/gym/presentation/drills_screen.dart';
+import '../features/gym/presentation/gym_screen.dart';
+import '../features/replay/presentation/replay_pick_screen.dart';
+import '../features/replay/presentation/replay_screen.dart';
 import '../features/coach/presentation/coach_screen.dart';
 import '../features/home/presentation/close_day_screen.dart';
 import '../features/home/presentation/home_screen.dart';
@@ -93,6 +100,7 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
                     MainTab.home => const HomeScreen(),
                     MainTab.journal => const JournalScreen(),
                     MainTab.markets => const MarketsScreen(),
+                    MainTab.me => const PracticeScreen(),
                     _ => TabPlaceholderScreen(tab: tab),
                   },
                 ),
@@ -102,6 +110,15 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
                     GoRoute(path: 'trades', builder: (c, s) => const TradesScreen()),
                   if (tab == MainTab.markets)
                     GoRoute(path: 'search', builder: (c, s) => const MarketSearchScreen()),
+                  if (tab == MainTab.me) ...[
+                    GoRoute(
+                      path: 'backtest',
+                      builder: (c, s) => const BacktestScreen(),
+                      routes: [GoRoute(path: 'compare', builder: (c, s) => const CompareScreen())],
+                    ),
+                    GoRoute(path: 'replays', builder: (c, s) => const ReplayPickScreen()),
+                    GoRoute(path: 'gym', builder: (c, s) => const GymScreen()),
+                  ],
                 ],
               ),
             ],
@@ -128,6 +145,15 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
       path: Routes.chartPattern,
       builder: (c, s) => ChartScreen(symbol: s.pathParameters['symbol'] ?? ''),
     ),
+    GoRoute(
+      path: Routes.replayPattern,
+      builder: (c, s) => ReplayScreen(
+        symbol: s.pathParameters['symbol'] ?? '',
+        day: DateTime.tryParse('${s.uri.queryParameters['day']}T00:00:00Z'),
+        gym: s.uri.queryParameters['gym'] == '1',
+      ),
+    ),
+    GoRoute(path: Routes.drills, builder: (c, s) => const DrillsScreen()),
     GoRoute(path: Routes.open, builder: (c, s) => const OpenScreen()),
     GoRoute(path: Routes.closeDay, builder: (c, s) => const CloseDayScreen()),
     GoRoute(path: Routes.settings, builder: (c, s) => const SettingsScreen()),

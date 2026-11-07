@@ -57,15 +57,40 @@ abstract class TradingAccount with _$TradingAccount {
     /// and the password stay server-side (`supabase/functions/mt5`); the app
     /// keeps only what it shows.
     BrokerLink? brokerLink,
+
+    /// Earlier strategies, oldest first, kept when a backtest draft is adopted.
+    /// The current one is [strategy]; its number is [strategyVersion].
+    @Default(<StrategyVersion>[]) List<StrategyVersion> strategyVersions,
   }) = _TradingAccount;
 
   factory TradingAccount.fromJson(Map<String, dynamic> json) => _$TradingAccountFromJson(json);
+
+  /// The current strategy's number: 1 until a draft is adopted.
+  int get strategyVersion => strategyVersions.length + 1;
 
   /// The stricter of the trader's own daily loss limit and the prop firm's.
   double? get strictestDailyLossPct {
     final limits = [rules?.dailyLossLimit, prop?.dailyLossLimitPct].whereType<double>();
     return limits.isEmpty ? null : limits.reduce((a, b) => a < b ? a : b);
   }
+}
+
+/// A strategy the account used before, with the limits it ran with.
+@freezed
+abstract class StrategyVersion with _$StrategyVersion {
+  const factory StrategyVersion({
+    required int number,
+
+    /// When it stopped being the current strategy.
+    required DateTime replacedAt,
+    StrategyProfile? strategy,
+    TradingRules? rules,
+
+    /// Where the strategy that replaced it came from ('from backtest').
+    String? note,
+  }) = _StrategyVersion;
+
+  factory StrategyVersion.fromJson(Map<String, dynamic> json) => _$StrategyVersionFromJson(json);
 }
 
 /// A trading account's link to the trader's MT5 account (read-only: prices,

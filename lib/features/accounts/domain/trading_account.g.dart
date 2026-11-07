@@ -21,6 +21,11 @@ _TradingAccount _$TradingAccountFromJson(Map<String, dynamic> json) => _TradingA
   brokerLink: json['brokerLink'] == null
       ? null
       : BrokerLink.fromJson(json['brokerLink'] as Map<String, dynamic>),
+  strategyVersions:
+      (json['strategyVersions'] as List<dynamic>?)
+          ?.map((e) => StrategyVersion.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <StrategyVersion>[],
 );
 
 Map<String, dynamic> _$TradingAccountToJson(_TradingAccount instance) => <String, dynamic>{
@@ -34,6 +39,7 @@ Map<String, dynamic> _$TradingAccountToJson(_TradingAccount instance) => <String
   'prop': ?instance.prop?.toJson(),
   'strategy': ?instance.strategy?.toJson(),
   'brokerLink': ?instance.brokerLink?.toJson(),
+  'strategyVersions': instance.strategyVersions.map((e) => e.toJson()).toList(),
 };
 
 const _$AccountKindEnumMap = {
@@ -41,6 +47,24 @@ const _$AccountKindEnumMap = {
   AccountKind.propChallenge: 'prop_challenge',
   AccountKind.personal: 'personal',
   AccountKind.demo: 'demo',
+};
+
+_StrategyVersion _$StrategyVersionFromJson(Map<String, dynamic> json) => _StrategyVersion(
+  number: (json['number'] as num).toInt(),
+  replacedAt: DateTime.parse(json['replacedAt'] as String),
+  strategy: json['strategy'] == null
+      ? null
+      : StrategyProfile.fromJson(json['strategy'] as Map<String, dynamic>),
+  rules: json['rules'] == null ? null : TradingRules.fromJson(json['rules'] as Map<String, dynamic>),
+  note: json['note'] as String?,
+);
+
+Map<String, dynamic> _$StrategyVersionToJson(_StrategyVersion instance) => <String, dynamic>{
+  'number': instance.number,
+  'replacedAt': instance.replacedAt.toIso8601String(),
+  'strategy': ?instance.strategy?.toJson(),
+  'rules': ?instance.rules?.toJson(),
+  'note': ?instance.note,
 };
 
 _BrokerLink _$BrokerLinkFromJson(Map<String, dynamic> json) =>

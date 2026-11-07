@@ -130,9 +130,48 @@ abstract class StrategyProfile with _$StrategyProfile {
     /// What doji measures, in order. Anything it cannot measure is a manual
     /// condition ("check on your chart").
     @Default(<StrategyCondition>[]) List<StrategyCondition> conditions,
+
+    /// How a backtest closes a setup. Null = not set: the backtest asks for it.
+    ExitRules? exits,
   }) = _StrategyProfile;
 
   factory StrategyProfile.fromJson(Map<String, dynamic> json) => _$StrategyProfileFromJson(json);
+}
+
+/// Where a backtest puts the stop of a london break setup.
+enum StopRule {
+  /// Just past the broken level, on the range side.
+  @JsonValue('broken_level')
+  brokenLevel('past the broken level'),
+
+  /// At the other side of the asian range.
+  @JsonValue('range_opposite')
+  rangeOpposite('other side of the range');
+
+  const StopRule(this.label);
+
+  final String label;
+}
+
+/// A strategy's exits as rules a backtest can run. Stop and target in the
+/// trader's words stay in [ParsedStrategy]; these are what doji measures.
+@freezed
+abstract class ExitRules with _$ExitRules {
+  const factory ExitRules({
+    @Default(StopRule.brokenLevel) StopRule stop,
+
+    /// The stop sits this share of the range past its level (0.1 = 10%).
+    @Default(0.1) double bufferOfRange,
+
+    /// Target in R (2 = twice the stop distance).
+    @Default(2.0) double targetR,
+
+    /// Closed at the close of this bar count after entry, when set; always closed
+    /// at the session's end.
+    int? maxBarsOpen,
+  }) = _ExitRules;
+
+  factory ExitRules.fromJson(Map<String, dynamic> json) => _$ExitRulesFromJson(json);
 }
 
 /// Structured fields a [StrategyParser] extracts. Every field is editable.

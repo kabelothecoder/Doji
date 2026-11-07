@@ -4,6 +4,9 @@ import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../backtest/data/backtest_repository.dart';
+import '../../gym/data/gym_repository.dart';
+import '../../history/history.dart';
 import '../../../app/routes.dart';
 import '../../accounts/data/broker_link_repository.dart';
 import '../../accounts/domain/trading_account.dart';
@@ -357,6 +360,12 @@ class AccountActions {
     await _ref.read(chartNoteRepositoryProvider).clear();
     _ref.invalidate(chartNotesProvider);
     await _ref.read(briefAllowanceRepositoryProvider).clear();
+    // Practice: backtest sessions, gym scores and drill answers, cached history.
+    await _ref.read(backtestRepositoryProvider).clear();
+    _ref.invalidate(backtestSessionsProvider);
+    await _ref.read(gymRepositoryProvider).clear();
+    _ref.invalidate(gymProvider);
+    await _ref.read(historyRepositoryProvider).clear();
     await _ref.read(brokerLinkRepositoryProvider).clear();
     await _ref.read(appLockControllerProvider.notifier).reset();
     await _ref.read(billingRepositoryProvider).clear();

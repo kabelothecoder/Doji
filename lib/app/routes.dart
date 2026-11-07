@@ -36,6 +36,23 @@ abstract final class Routes {
   static const chartPattern = '/markets/chart/:symbol';
   static String chart(String symbol) => '/markets/chart/${Uri.encodeComponent(symbol)}';
 
+  // Practice (me tab, no design file): backtest, refine, replay, gym. The
+  // lists keep the tab bar; a replay and the drills are full screen.
+  static const meBacktest = '/me/backtest';
+  static const meCompare = '/me/backtest/compare';
+  static const meReplays = '/me/replays';
+  static const meGym = '/me/gym';
+  static const replayPattern = '/replay/:symbol';
+
+  /// A replay of [symbol] on [day] (UTC date); [gym] = a scored practice on a
+  /// random past session when [day] is null.
+  static String replay(String symbol, {DateTime? day, bool gym = false}) {
+    final q = [if (day != null) 'day=${day.toIso8601String().substring(0, 10)}', if (gym) 'gym=1'];
+    return '/replay/${Uri.encodeComponent(symbol)}${q.isEmpty ? '' : '?${q.join('&')}'}';
+  }
+
+  static const drills = '/drills';
+
   // Daily loop (design: Doji Home.dc.html › 02): full screen, no tab bar.
   static const open = '/open';
   static const closeDay = '/close-day';

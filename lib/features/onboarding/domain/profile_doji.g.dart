@@ -62,6 +62,7 @@ _StrategyProfile _$StrategyProfileFromJson(Map<String, dynamic> json) => _Strate
           ?.map((e) => StrategyCondition.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const <StrategyCondition>[],
+  exits: json['exits'] == null ? null : ExitRules.fromJson(json['exits'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$StrategyProfileToJson(_StrategyProfile instance) => <String, dynamic>{
@@ -70,7 +71,24 @@ Map<String, dynamic> _$StrategyProfileToJson(_StrategyProfile instance) => <Stri
   'source': ?instance.source,
   'parsed': ?instance.parsed?.toJson(),
   'conditions': instance.conditions.map((e) => e.toJson()).toList(),
+  'exits': ?instance.exits?.toJson(),
 };
+
+_ExitRules _$ExitRulesFromJson(Map<String, dynamic> json) => _ExitRules(
+  stop: $enumDecodeNullable(_$StopRuleEnumMap, json['stop']) ?? StopRule.brokenLevel,
+  bufferOfRange: (json['bufferOfRange'] as num?)?.toDouble() ?? 0.1,
+  targetR: (json['targetR'] as num?)?.toDouble() ?? 2.0,
+  maxBarsOpen: (json['maxBarsOpen'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$ExitRulesToJson(_ExitRules instance) => <String, dynamic>{
+  'stop': _$StopRuleEnumMap[instance.stop]!,
+  'bufferOfRange': instance.bufferOfRange,
+  'targetR': instance.targetR,
+  'maxBarsOpen': ?instance.maxBarsOpen,
+};
+
+const _$StopRuleEnumMap = {StopRule.brokenLevel: 'broken_level', StopRule.rangeOpposite: 'range_opposite'};
 
 _ParsedStrategy _$ParsedStrategyFromJson(Map<String, dynamic> json) => _ParsedStrategy(
   setup: json['setup'] as String?,

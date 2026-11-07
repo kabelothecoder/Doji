@@ -71,6 +71,54 @@ class ChartState {
   );
 }
 
+/// Which chart: an instrument's live chart, or a replay of it ([replayId],
+/// on a fixed [timeframe]). A replay's drawings are its own: they are saved
+/// under [ChartController.replayAccount], so they never show on the live chart
+/// and never link to a journal trade.
+class ChartKey {
+  const ChartKey(this.symbol, {this.replayId, this.timeframe});
+
+  final String symbol;
+  final String? replayId;
+  final Timeframe? timeframe;
+
+  bool get isReplay => replayId != null;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ChartKey &&
+      other.symbol == symbol &&
+      other.replayId == replayId &&
+      other.timeframe == timeframe;
+
+  @override
+  int get hashCode => Object.hash(symbol, replayId, timeframe);
+}
+
+/// What a replay chart is measured against at its cursor: the conditions and
+/// the day so far in the replay, not today's live ones. Set by the replay.
+class ChartFacts {
+  const ChartFacts({required this.conditions, required this.coach});
+
+  final List<EntryCondition> conditions;
+  final CoachContext coach;
+}
+
+class ChartFactsController extends Notifier<ChartFacts?> {
+  ChartFactsController(this.replayId);
+
+  final String replayId;
+
+  @override
+  ChartFacts? build() => null;
+
+  void set(ChartFacts facts) => state = facts;
+}
+
+final chartFactsProvider = NotifierProvider.autoDispose.family<ChartFactsController, ChartFacts?, String>(
+  ChartFactsController.new,
+);
+
 /// The bars of one instrument (the live feed; replay gives another source).
 final barSourceProvider = Provider.autoDispose.family<BarSource, String>(
   (ref, symbol) => LiveBarSource(ref.watch(marketDataProvider), symbol),
@@ -83,11 +131,32 @@ final chartBarsProvider = FutureProvider.autoDispose.family<List<Candle>, (Strin
 /// One instrument's chart for the active account: tool, drawings with undo,
 /// selection, viewport. Every edit is saved as a [ChartNote] at once.
 class ChartController extends Notifier<ChartState> {
-  ChartController(this.symbol);
+  ChartController(this.key);
 
-  final String symbol;
+  final ChartKey key;
 
-  String get _accountId => ref.read(marketsProfileProvider).activeAccount?.id ?? 'none';
+  String get symbol => key.symbol;
+
+  /// The account id a replay's notes are saved under.
+  static String replayAccount(String accountId, String replayId) => 'replay:$accountId:$replayId';
+
+  String get _accountId {
+    final id = ref.read(marketsProfileProvider).activeAccount?.id ?? 'none';
+    return key.replayId == null ? id : replayAccount(id, key.replayId!);
+  }
+
+  /// The conditions and coach facts the pre-trade check and the co-pilot use.
+  ChartFacts facts() {
+    if (key.replayId != null) {
+      final f = ref.read(chartFactsProvider(key.replayId!));
+      if (f != null) return f;
+    }
+    final profile = ref.read(marketsProfileProvider);
+    return ChartFacts(
+      conditions: key.isReplay ? const [] : ref.read(pairBriefProvider(symbol)).value?.conditions ?? const [],
+      coach: CoachContext.from(profile, trades: ref.read(activeAccountTradesProvider), now: clock.now()),
+    );
+  }
 
   ChartNotesController get _notes => ref.read(chartNotesProvider.notifier);
 
@@ -101,7 +170,7 @@ class ChartController extends Notifier<ChartState> {
         if (!n.deleted && n.accountId == account && n.symbol.toUpperCase() == symbol.toUpperCase()) n.drawing,
     ];
     return ChartState(
-      timeframe: ref.read(pairTimeframeProvider(symbol)),
+      timeframe: key.timeframe ?? ref.read(pairTimeframeProvider(symbol)),
       editor: DrawingEditor(drawings: drawings),
     );
   }
@@ -198,6 +267,7 @@ class ChartController extends Notifier<ChartState> {
       ),
     );
     final profile = ref.read(marketsProfileProvider);
+    final f = facts();
     final d = note.drawing;
     final stopDistance = d.kind == DrawingKind.position ? (d.entry - d.stop!).abs() : 0.0;
     final request = CopilotRequest(
@@ -206,8 +276,8 @@ class ChartController extends Notifier<ChartState> {
       drawing: d,
       reason: words,
       strategyWords: profile.strategy?.rawText ?? '',
-      conditions: ref.read(pairBriefProvider(symbol)).value?.conditions ?? const <EntryCondition>[],
-      coach: CoachContext.from(profile, trades: ref.read(activeAccountTradesProvider), now: clock.now()),
+      conditions: f.conditions,
+      coach: f.coach,
       r: stopDistance == 0 ? null : (d.target! - d.entry).abs() / stopDistance,
       lastPrice: bars.isEmpty ? null : bars.last.close,
     );
@@ -233,6 +303,6 @@ class ChartController extends Notifier<ChartState> {
       instrumentBySymbol(symbol)?.tickSize ?? (bars.isEmpty ? 0.0001 : bars.last.close.abs() / 1000);
 }
 
-final chartControllerProvider = NotifierProvider.autoDispose.family<ChartController, ChartState, String>(
+final chartControllerProvider = NotifierProvider.autoDispose.family<ChartController, ChartState, ChartKey>(
   ChartController.new,
 );

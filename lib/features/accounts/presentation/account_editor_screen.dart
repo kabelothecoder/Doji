@@ -339,6 +339,14 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
           BrokerLinkSection(account: a, onChanged: _linkChanged),
           const SizedBox(height: 28),
           KeyedSubtree(key: _strategyKey, child: const _Section('strategy')),
+          Text('version ${a.strategyVersion}', style: DojiType.label),
+          for (final v in a.strategyVersions.reversed)
+            Text(
+              'version ${v.number} · until ${v.replacedAt.toIso8601String().substring(0, 10)}'
+              '${v.strategy?.rawText == null ? '' : ' · "${v.strategy!.rawText}"'}${v.note == null ? '' : ' · ${v.note}'}',
+              style: DojiType.hint,
+            ),
+          const SizedBox(height: 8),
           Text('in your own words. say it or type it.', style: DojiType.callout),
           const SizedBox(height: 12),
           StrategyInput(
@@ -425,6 +433,35 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
               onPressed: _addManual,
             ),
           ),
+          const SizedBox(height: 20),
+          const _Label('BACKTEST STOP AND TARGET'),
+          Text(
+            'how the backtest closes a london break setup. your own words above stay as you wrote them.',
+            style: DojiType.callout,
+          ),
+          const SizedBox(height: 12),
+          _Chips(
+            options: {for (final r in StopRule.values) r: r.label},
+            selected: _strategy.exits?.stop,
+            onTap: (r) => _edit(
+              (a) => a.copyWith(
+                strategy: _strategy.copyWith(exits: (_strategy.exits ?? const ExitRules()).copyWith(stop: r)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _Chips(
+            options: {1.0: '1R target', 1.5: '1.5R target', 2.0: '2R target', 3.0: '3R target'},
+            selected: _strategy.exits?.targetR,
+            onTap: (r) => _edit(
+              (a) => a.copyWith(
+                strategy: _strategy.copyWith(
+                  exits: (_strategy.exits ?? const ExitRules()).copyWith(targetR: r),
+                ),
+              ),
+            ),
+          ),
+          if (_strategy.exits == null) const _Label("NOT SET: THE BACKTEST USES DOJI'S DEFAULTS"),
           if (canDelete) ...[
             const SizedBox(height: 32),
             DojiButton(
@@ -525,10 +562,14 @@ class _PropFieldsState extends State<_PropFields> {
   late final _target = TextEditingController(
     text: _AccountEditorScreenState._fmt(widget.prop.profitTargetPct),
   );
+  late final _minDays = TextEditingController(text: widget.prop.minTradingDays?.toString() ?? '');
+  late final _consistency = TextEditingController(
+    text: _AccountEditorScreenState._fmt(widget.prop.consistencyPct),
+  );
 
   @override
   void dispose() {
-    for (final c in [_firm, _daily, _dd, _target]) {
+    for (final c in [_firm, _daily, _dd, _target, _minDays, _consistency]) {
       c.dispose();
     }
     super.dispose();
@@ -544,6 +585,8 @@ class _PropFieldsState extends State<_PropFields> {
         dailyLossLimitPct: _num(_daily),
         maxDrawdownPct: _num(_dd),
         profitTargetPct: _num(_target),
+        minTradingDays: int.tryParse(_minDays.text.trim()),
+        consistencyPct: _num(_consistency),
       ),
     );
   }
@@ -596,6 +639,19 @@ class _PropFieldsState extends State<_PropFields> {
         ],
         const SizedBox(height: 12),
         _pct('challenge target', _target),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: DojiTextField(
+            controller: _minDays,
+            hint: 'minimum trading days (optional)',
+            semanticLabel: 'minimum trading days',
+            large: false,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            onChanged: (_) => _changed(),
+          ),
+        ),
+        _pct('consistency: best day at most', _consistency),
       ],
     );
   }
@@ -709,7 +765,7 @@ class _Chips<T> extends StatelessWidget {
   const _Chips({required this.options, required this.selected, required this.onTap, this.mono = false});
 
   final Map<T, String> options;
-  final T selected;
+  final T? selected;
   final ValueChanged<T> onTap;
   final bool mono;
 

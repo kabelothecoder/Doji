@@ -59,12 +59,20 @@ lib/
     journal/      domain/ trade · trade_math · journal_stats · process_grade · trade_filter · formatting
                   data/journal_repository.dart (shared_preferences) · presentation/ journal · trades · manual_trade ·
                   trade_detail · review_sheet · filters_sheet · journal_controller · widgets/
+    history/      history.dart: HistoryRange · HistoryRepository (doji.history.v1.<SYM>.<TF>) · HistoryService.ensure
+    backtest/     domain/ backtest (engine, stats) · fills (same bar = stop) · limits_check · refine (drafts, versions)
+                  data/ backtest_repository (BacktestSession, doji.backtest.v1) · presentation/ practice_screen (me tab) ·
+                  backtest_screen · compare_screen (refine) · backtest_controller · widgets/practice_widgets
+    replay/       domain/replay.dart (ReplayBarSource, PositionTrack) · presentation/ replay_controller · replay_screen ·
+                  replay_pick_screen
+    gym/          domain/gym.dart (scorePractice, drills, streak) · data/gym_repository (doji.gym.v1) ·
+                  presentation/ gym_screen · drills_screen
     coach/        domain/ coach.dart (Coach interface, CoachContext, CoachVoice) · coach_session.dart
                   data/ fake_coach.dart (FAKE coach) · coach_session_repository.dart (shared_preferences)
                   presentation/ coach_screen (1c) · coach_controller · save_session_sheet · widgets/
 app/shell/        AppShell (StatefulShellRoute): DojiBottomBar on phones, DojiNavRail when wide. main_tab.dart = the 5 items,
                   MainTab.branches = the 4 shell branches (the coach is a cover, not a branch);
-                  me is a TabPlaceholderScreen until its brief
+                  me = PracticeScreen (backtest, replay, gym; account and settings)
 test/  (unit, widget, a11y, goldens; helpers/app_harness.dart pumps the real app)   integration_test/   tool/ (asset export)
 design/  handoff/ · system/ · brand/ · SOURCE.md       supabase/ migrations/ · functions/mt5 (+ _shared/mrpc.ts)
 ```
@@ -230,6 +238,11 @@ so Home, the journal, 1b, the brief, the coach and the rail follow it; writes go
   (replaces the list), "add to mine" (appends new ones), "keep mine" (drops it); nothing is stored
   until save. Kinds are checked on the server and again on the device: anything else is `manual`.
   `SupabaseStrategyReader` is also the `StrategyParser` onboarding and save use.
+- **Versions**: adopting a backtest draft keeps the old strategy as a numbered `StrategyVersion`
+  (`TradingAccount.strategyVersions`, `strategyVersion` = current number). The editor shows them read-only.
+  Still one strategy per account. `StrategyProfile.exits` (`ExitRules`: stop rule, buffer, target R, max bars)
+  is what the backtest runs; null = doji's defaults, said on screen. `PropRules` gained `minTradingDays`
+  and `consistencyPct` (backtest only). All nullable: no `kOnboardingVersion` bump.
 - Not built: reading the trader's sources (only their words); per-account sessions; per-account coach
   voice; syncing accounts; moving a trade to another account.
 
@@ -251,7 +264,8 @@ the tab bar. Owner decisions (2026-10-24) are in `design/SOURCE.md` › Missing 
   (`PairDetailScreen(embedded: true)`: no back, no Esc). Nothing opens until a row is picked
   (`marketsSelectionProvider`), so the free plan's one brief a day is never spent for the trader.
   Narrower, a row pushes 1b as on phones.
-- Not built (owner decision): ask doji, strategy versions, the chart image attach in the pair chat.
+- Not built (owner decision): ask doji, the chart image attach in the pair chat. Strategy versions now
+  exist (slice 05, see Accounts and strategies); the markets list still shows no version.
 
 ## Markets 1b, pair detail
 
@@ -346,6 +360,53 @@ opened by tapping 1b's chart (`_OpenChart`, nothing drawn at rest, so 1b's golde
   minute): `supabase functions deploy ai-copilot` (not deployed). `deno test supabase/functions/ai-copilot/spec_test.ts`.
 - Tests: `test/chart/` (domain, co-pilot + copy scan of every string in `lib/features/chart`, flow,
   a11y), `test/goldens/chart_golden_test.dart` (one per tool + Windows).
+
+## Practice: backtest, replay, gym (slice 05)
+
+Plan: `design/backtest-gym-plan.md`. No design file (design/SOURCE.md › Missing). The me tab is
+`PracticeScreen` (`/me`, account and settings kept on it); `/me/backtest`, `/me/backtest/compare`,
+`/me/replays`, `/me/gym` keep the tab bar; `/replay/:symbol?day=&gym=1` and `/drills` are full screen.
+
+- **History** (`features/history/`): `HistoryService.ensure(symbol, tf, from, to)` fetches only the missing
+  edges through `MarketData.candlesBetween` (Deriv `ticks_history`; MT5 via the `mt5` function's paged
+  `bars`, which already took from/to; sample prices otherwise) in 2,500-bar windows, merges, keeps 20,000
+  bars per instrument + timeframe on the device with the range covered. Never synced (re-fetchable).
+- **Engine** (`runBacktest`, pure): per Tokyo open, `LondonBreak.measure` (shared with `FakeBrief`, so
+  brief and backtest agree), entry = next bar's open (after the close back when asked), then
+  `measureConditions` at the entry bar; manual conditions are listed "not tested, needs replay"; no
+  `rangeBreak` = no measurable entry = no automatic setups (said plainly). The account's max trades and
+  stricter daily loss always apply. Stop from `ExitRules`, target in R. **Fills (`fillOn`): a gap past
+  the stop fills at the open (loss can pass 1R); stop and target in one bar = the stop** (`kSameBarRule`,
+  shown in the UI); closed at the London close or after `maxBarsOpen`. No spread or costs (said).
+  News = the sample calendar (said). Results: setups, R total/average, longest losing streak, drawdown in
+  R, by session and instrument. Never a hit rate; "in this sample: n setups, dates"; under 30 =
+  "small sample". `LimitsCheck` replays prop rules (daily loss, static/trailing drawdown via
+  `PropDrawdown`, min days, consistency) or a personal account's own limits, closed trades only.
+- **Refine** (`compare_screen`, `StrategyDraft`): one change at a time (session, stop rule, target,
+  a condition on/off, max trades); others wait until the run. Tuning period = first 70% of the cached
+  range; the held-back 30% can be used once per draft. `fitWarnings`: small sample, several changes on
+  one period. Both columns look the same; doji never picks. Adopt = `adoptDraft` (versions above).
+- **Replay**: `ChartScreen` with `replayId` / `replayBars` / `footer`; `ChartKey(symbol, replayId,
+  timeframe)` keys `chartControllerProvider`. Replay notes are saved under
+  `replay:<account>:<id>` so they never show on the live chart nor link to journal trades; a replay
+  reads no live brief or quote (never spends the free brief). `ReplayBarSource` never returns a bar past
+  the cursor. `PositionTrack.reveal` fills a box only on bars revealed after it was placed (entry when
+  a bar trades through it, then `fillOn`; a moved stop is recorded). `chartFactsProvider` gives the
+  pre-trade check and co-pilot the replayed day's conditions and limits. Keys: N next bar, Space play
+  (not under reduce motion), the chart's own keys stay. Saved as `BacktestSession` (kind replay | gym).
+- **Gym**: replay practice = a random past weekday (45 days) of an account instrument, "finish practice"
+  scores it with `scorePractice` → `ProcessGrade` (setup there ±3 bars, stop not moved, max trades);
+  skipped setups are shown, never graded. Drills (`buildDrills`, 3–5 a day, seeded by date): spot your
+  setup (yes before an entry, no while the Asian range forms), place the stop (± a quarter of 1R), size
+  the trade (`RiskSizing`, ±5%; skipped when sizing is null), after-losses (the account's max trades and
+  stricter daily limit). A finished set = a practice day: `drillStreakProvider`, Home's grid dot
+  (`MiniGrid.practice`), never a trading day.
+- **Data**: `doji.backtest.v1`, `doji.gym.v1`, `doji.history.v1.*`; a record that fails to parse is
+  skipped; `toAnalystJson` for slice 06; sync TODOs in the repositories; sign out / delete clear all three.
+- Tests: `test/backtest/` (engine fixtures with known answers, history, refine + limits, copy scan of every
+  string in the four features, flow + a11y), `test/replay/`, `test/gym/`, `test/goldens/practice_golden_test.dart`.
+- Not built: spread/costs, partial exits, trailing stops in the engine, other measurable entries than the
+  london break, real news history, intraday equity in the limits check, the markets list's version label.
 
 ## Feeds (live prices, broker equity, rates)
 

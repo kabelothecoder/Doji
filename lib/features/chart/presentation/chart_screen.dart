@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,9 +10,7 @@ import '../../../core/platform/layout.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
-import '../../coach/domain/coach.dart';
 import '../../journal/domain/formatting.dart' show formatMoney;
-import '../../journal/presentation/journal_controller.dart';
 import '../../markets/data/live_rate_source.dart';
 import '../../markets/domain/candle.dart';
 import '../../markets/domain/instrument_catalog.dart';
@@ -42,10 +39,31 @@ import 'widgets/drawing_list.dart';
 /// Keys (Windows): V select, R zone, H level, T trend line, P position,
 /// ← → pan (or move the selected drawing a bar), ↑ ↓ move it a tick, + −
 /// zoom, Delete, Ctrl+Z / Ctrl+Y, Esc.
+///
+/// A replay ([replayId]) gives its own [replayBars] (never past its cursor),
+/// a fixed [timeframe], its [source] label and its controls as [footer]; it
+/// reads no live brief or quote.
 class ChartScreen extends ConsumerStatefulWidget {
-  const ChartScreen({super.key, required this.symbol});
+  const ChartScreen({
+    super.key,
+    required this.symbol,
+    this.replayId,
+    this.timeframe,
+    this.replayBars,
+    this.source,
+    this.footer,
+    this.subtitle,
+  });
 
   final String symbol;
+  final String? replayId;
+  final Timeframe? timeframe;
+  final List<Candle>? replayBars;
+  final FeedSource? source;
+  final Widget? footer;
+
+  /// Under the name in a replay ("replay · jul 15 · bars hidden ahead").
+  final String? subtitle;
 
   @override
   ConsumerState<ChartScreen> createState() => _ChartScreenState();
@@ -55,7 +73,9 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
   final _focus = FocusNode(debugLabel: 'chart');
 
   String get _symbol => widget.symbol.toUpperCase();
-  ChartController get _c => ref.read(chartControllerProvider(_symbol).notifier);
+  bool get _replay => widget.replayId != null;
+  ChartKey get _key => ChartKey(_symbol, replayId: widget.replayId, timeframe: widget.timeframe);
+  ChartController get _c => ref.read(chartControllerProvider(_key).notifier);
 
   @override
   void initState() {
@@ -76,10 +96,12 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
     super.dispose();
   }
 
-  void _back() => context.canPop() ? context.pop() : context.go(Routes.pairDetail(_symbol));
+  void _back() =>
+      context.canPop() ? context.pop() : context.go(_replay ? Routes.me : Routes.pairDetail(_symbol));
 
   List<Candle> get _bars =>
-      ref.read(chartBarsProvider((_symbol, ref.read(chartControllerProvider(_symbol)).timeframe))).value ??
+      widget.replayBars ??
+      ref.read(chartBarsProvider((_symbol, ref.read(chartControllerProvider(_key)).timeframe))).value ??
       const [];
 
   ChartViewport _viewport(ChartState s, int total) => s.viewport ?? ChartViewport.latest(total);
@@ -88,32 +110,25 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
     await _c.create(d);
     if (!mounted) return;
     if (d.kind == DrawingKind.position) {
-      final profile = ref.read(marketsProfileProvider);
-      final rows = await showPreTradeCheck(
-        context,
-        conditions: ref.read(pairBriefProvider(_symbol)).value?.conditions ?? const [],
-        coach: CoachContext.from(profile, trades: ref.read(activeAccountTradesProvider), now: clock.now()),
-      );
+      final here = GoRouter.of(context).state.matchedLocation;
+      final facts = _c.facts();
+      final rows = await showPreTradeCheck(context, conditions: facts.conditions, coach: facts.coach);
       if (rows != null) await _c.saveChecklist(d.id, rows);
-      if (!mounted || GoRouter.of(context).state.matchedLocation != Routes.chart(_symbol)) return;
+      // The coach (or anything else) opened from the check: no reason sheet on return.
+      if (!mounted || GoRouter.of(context).state.matchedLocation != here) return;
     }
     await _askReason(d.id);
   }
 
   Future<void> _askReason(String id) async {
-    final d = ref.read(chartControllerProvider(_symbol)).editor.byId(id);
+    final d = ref.read(chartControllerProvider(_key)).editor.byId(id);
     if (d == null) return;
-    await showWhatIsThis(
-      context,
-      symbol: _symbol,
-      noteId: id,
-      drawingName: d.describe(_decimals),
-      bars: _bars,
-    );
+    await showWhatIsThis(context, symbol: _key, noteId: id, drawingName: d.describe(_decimals), bars: _bars);
     if (mounted) _focus.requestFocus();
   }
 
-  int get _decimals => ref.read(pairQuoteProvider(_symbol)).value?.decimals ?? _fallbackDecimals;
+  int get _decimals =>
+      _replay ? _fallbackDecimals : ref.read(pairQuoteProvider(_symbol)).value?.decimals ?? _fallbackDecimals;
 
   int get _fallbackDecimals {
     final tick = instrumentBySymbol(_symbol)?.tickSize;
@@ -131,7 +146,7 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
   KeyEventResult _onKey(FocusNode _, KeyEvent e) {
     if (e is! KeyDownEvent && e is! KeyRepeatEvent) return KeyEventResult.ignored;
     if (_typing()) return KeyEventResult.ignored;
-    final s = ref.read(chartControllerProvider(_symbol));
+    final s = ref.read(chartControllerProvider(_key));
     final bars = _bars;
     final k = e.logicalKey;
     final kb = HardwareKeyboard.instance;
@@ -213,7 +228,7 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
     label: 'drawings',
     builder: (sheet) => Consumer(
       builder: (context, ref, _) {
-        final live = ref.watch(chartControllerProvider(_symbol));
+        final live = ref.watch(chartControllerProvider(_key));
         return _list(live, bars, inSheet: sheet);
       },
     ),
@@ -242,12 +257,16 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final s = ref.watch(chartControllerProvider(_symbol));
-    final bars = ref.watch(chartBarsProvider((_symbol, s.timeframe)));
-    // Kept alive for the pre-trade check and the co-pilot's conditions.
-    ref.watch(pairBriefProvider(_symbol));
-    ref.watch(pairQuoteProvider(_symbol));
-    final source = ref.watch(barSourceProvider(_symbol)).source;
+    final s = ref.watch(chartControllerProvider(_key));
+    final bars = _replay
+        ? AsyncValue<List<Candle>>.data(widget.replayBars ?? const [])
+        : ref.watch(chartBarsProvider((_symbol, s.timeframe)));
+    if (!_replay) {
+      // Kept alive for the pre-trade check and the co-pilot's conditions.
+      ref.watch(pairBriefProvider(_symbol));
+      ref.watch(pairQuoteProvider(_symbol));
+    }
+    final source = widget.source ?? ref.watch(barSourceProvider(_symbol)).source;
     final zone = userZoneFromProfile(ref.watch(marketsProfileProvider));
     final name = instrumentLabel(_symbol);
     final wide = isWideLayout(context) && MediaQuery.sizeOf(context).width >= 760;
@@ -304,7 +323,8 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
                             header: true,
                             child: Text(name, style: DojiType.headline.copyWith(fontFamily: DojiFonts.mono)),
                           ),
-                          Text(source.label, style: DojiType.hint, maxLines: 2),
+                          Text(widget.subtitle ?? source.label, style: DojiType.hint, maxLines: 2),
+                          if (widget.subtitle != null) Text(source.label, style: DojiType.hint, maxLines: 2),
                         ],
                       ),
                     ),
@@ -319,8 +339,10 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                TimeframeTabs(selected: s.timeframe, onChanged: _c.setTimeframe),
-                const SizedBox(height: 8),
+                if (!_replay) ...[
+                  TimeframeTabs(selected: s.timeframe, onChanged: _c.setTimeframe),
+                  const SizedBox(height: 8),
+                ],
                 _Toolbar(state: s, controller: _c),
                 const SizedBox(height: 8),
                 Expanded(
@@ -345,6 +367,7 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
                     ],
                   ),
                 ),
+                if (widget.footer != null) ...[const SizedBox(height: 8), widget.footer!],
               ],
             ),
           ),

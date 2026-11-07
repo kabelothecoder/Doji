@@ -24,7 +24,7 @@ import 'widgets/chart_sheet.dart';
 /// no reason and asks nothing.
 Future<void> showWhatIsThis(
   BuildContext context, {
-  required String symbol,
+  required ChartKey symbol,
   required String noteId,
   required String drawingName,
   required List<Candle> bars,
@@ -43,7 +43,7 @@ class WhatIsThisSheet extends ConsumerStatefulWidget {
     required this.bars,
   });
 
-  final String symbol;
+  final ChartKey symbol;
   final String noteId;
   final String drawingName;
   final List<Candle> bars;

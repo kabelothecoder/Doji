@@ -25,7 +25,9 @@ mixin _$TradingAccount {
  PropRules? get prop; StrategyProfile? get strategy;/// The MT5 account behind this one, linked through MetaRPC. The terminal
 /// and the password stay server-side (`supabase/functions/mt5`); the app
 /// keeps only what it shows.
- BrokerLink? get brokerLink;
+ BrokerLink? get brokerLink;/// Earlier strategies, oldest first, kept when a backtest draft is adopted.
+/// The current one is [strategy]; its number is [strategyVersion].
+ List<StrategyVersion> get strategyVersions;
 /// Create a copy of TradingAccount
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -38,16 +40,16 @@ $TradingAccountCopyWith<TradingAccount> get copyWith => _$TradingAccountCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TradingAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.accountCurrency, accountCurrency) || other.accountCurrency == accountCurrency)&&(identical(other.startingSize, startingSize) || other.startingSize == startingSize)&&const DeepCollectionEquality().equals(other.instruments, instruments)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.prop, prop) || other.prop == prop)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.brokerLink, brokerLink) || other.brokerLink == brokerLink));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TradingAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.accountCurrency, accountCurrency) || other.accountCurrency == accountCurrency)&&(identical(other.startingSize, startingSize) || other.startingSize == startingSize)&&const DeepCollectionEquality().equals(other.instruments, instruments)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.prop, prop) || other.prop == prop)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.brokerLink, brokerLink) || other.brokerLink == brokerLink)&&const DeepCollectionEquality().equals(other.strategyVersions, strategyVersions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,kind,accountCurrency,startingSize,const DeepCollectionEquality().hash(instruments),rules,prop,strategy,brokerLink);
+int get hashCode => Object.hash(runtimeType,id,name,kind,accountCurrency,startingSize,const DeepCollectionEquality().hash(instruments),rules,prop,strategy,brokerLink,const DeepCollectionEquality().hash(strategyVersions));
 
 @override
 String toString() {
-  return 'TradingAccount(id: $id, name: $name, kind: $kind, accountCurrency: $accountCurrency, startingSize: $startingSize, instruments: $instruments, rules: $rules, prop: $prop, strategy: $strategy, brokerLink: $brokerLink)';
+  return 'TradingAccount(id: $id, name: $name, kind: $kind, accountCurrency: $accountCurrency, startingSize: $startingSize, instruments: $instruments, rules: $rules, prop: $prop, strategy: $strategy, brokerLink: $brokerLink, strategyVersions: $strategyVersions)';
 }
 
 
@@ -58,7 +60,7 @@ abstract mixin class $TradingAccountCopyWith<$Res>  {
   factory $TradingAccountCopyWith(TradingAccount value, $Res Function(TradingAccount) _then) = _$TradingAccountCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, AccountKind kind, String accountCurrency, double? startingSize, List<String> instruments, TradingRules? rules, PropRules? prop, StrategyProfile? strategy, BrokerLink? brokerLink
+ String id, String name, AccountKind kind, String accountCurrency, double? startingSize, List<String> instruments, TradingRules? rules, PropRules? prop, StrategyProfile? strategy, BrokerLink? brokerLink, List<StrategyVersion> strategyVersions
 });
 
 
@@ -75,7 +77,7 @@ class _$TradingAccountCopyWithImpl<$Res>
 
 /// Create a copy of TradingAccount
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? accountCurrency = null,Object? startingSize = freezed,Object? instruments = null,Object? rules = freezed,Object? prop = freezed,Object? strategy = freezed,Object? brokerLink = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? accountCurrency = null,Object? startingSize = freezed,Object? instruments = null,Object? rules = freezed,Object? prop = freezed,Object? strategy = freezed,Object? brokerLink = freezed,Object? strategyVersions = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -87,7 +89,8 @@ as List<String>,rules: freezed == rules ? _self.rules : rules // ignore: cast_nu
 as TradingRules?,prop: freezed == prop ? _self.prop : prop // ignore: cast_nullable_to_non_nullable
 as PropRules?,strategy: freezed == strategy ? _self.strategy : strategy // ignore: cast_nullable_to_non_nullable
 as StrategyProfile?,brokerLink: freezed == brokerLink ? _self.brokerLink : brokerLink // ignore: cast_nullable_to_non_nullable
-as BrokerLink?,
+as BrokerLink?,strategyVersions: null == strategyVersions ? _self.strategyVersions : strategyVersions // ignore: cast_nullable_to_non_nullable
+as List<StrategyVersion>,
   ));
 }
 /// Create a copy of TradingAccount
@@ -220,10 +223,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  AccountKind kind,  String accountCurrency,  double? startingSize,  List<String> instruments,  TradingRules? rules,  PropRules? prop,  StrategyProfile? strategy,  BrokerLink? brokerLink)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  AccountKind kind,  String accountCurrency,  double? startingSize,  List<String> instruments,  TradingRules? rules,  PropRules? prop,  StrategyProfile? strategy,  BrokerLink? brokerLink,  List<StrategyVersion> strategyVersions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TradingAccount() when $default != null:
-return $default(_that.id,_that.name,_that.kind,_that.accountCurrency,_that.startingSize,_that.instruments,_that.rules,_that.prop,_that.strategy,_that.brokerLink);case _:
+return $default(_that.id,_that.name,_that.kind,_that.accountCurrency,_that.startingSize,_that.instruments,_that.rules,_that.prop,_that.strategy,_that.brokerLink,_that.strategyVersions);case _:
   return orElse();
 
 }
@@ -241,10 +244,10 @@ return $default(_that.id,_that.name,_that.kind,_that.accountCurrency,_that.start
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  AccountKind kind,  String accountCurrency,  double? startingSize,  List<String> instruments,  TradingRules? rules,  PropRules? prop,  StrategyProfile? strategy,  BrokerLink? brokerLink)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  AccountKind kind,  String accountCurrency,  double? startingSize,  List<String> instruments,  TradingRules? rules,  PropRules? prop,  StrategyProfile? strategy,  BrokerLink? brokerLink,  List<StrategyVersion> strategyVersions)  $default,) {final _that = this;
 switch (_that) {
 case _TradingAccount():
-return $default(_that.id,_that.name,_that.kind,_that.accountCurrency,_that.startingSize,_that.instruments,_that.rules,_that.prop,_that.strategy,_that.brokerLink);case _:
+return $default(_that.id,_that.name,_that.kind,_that.accountCurrency,_that.startingSize,_that.instruments,_that.rules,_that.prop,_that.strategy,_that.brokerLink,_that.strategyVersions);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -261,10 +264,10 @@ return $default(_that.id,_that.name,_that.kind,_that.accountCurrency,_that.start
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  AccountKind kind,  String accountCurrency,  double? startingSize,  List<String> instruments,  TradingRules? rules,  PropRules? prop,  StrategyProfile? strategy,  BrokerLink? brokerLink)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  AccountKind kind,  String accountCurrency,  double? startingSize,  List<String> instruments,  TradingRules? rules,  PropRules? prop,  StrategyProfile? strategy,  BrokerLink? brokerLink,  List<StrategyVersion> strategyVersions)?  $default,) {final _that = this;
 switch (_that) {
 case _TradingAccount() when $default != null:
-return $default(_that.id,_that.name,_that.kind,_that.accountCurrency,_that.startingSize,_that.instruments,_that.rules,_that.prop,_that.strategy,_that.brokerLink);case _:
+return $default(_that.id,_that.name,_that.kind,_that.accountCurrency,_that.startingSize,_that.instruments,_that.rules,_that.prop,_that.strategy,_that.brokerLink,_that.strategyVersions);case _:
   return null;
 
 }
@@ -276,7 +279,7 @@ return $default(_that.id,_that.name,_that.kind,_that.accountCurrency,_that.start
 @JsonSerializable()
 
 class _TradingAccount extends TradingAccount {
-  const _TradingAccount({required this.id, required this.name, this.kind = AccountKind.personal, this.accountCurrency = 'USD', this.startingSize, final  List<String> instruments = const <String>[], this.rules, this.prop, this.strategy, this.brokerLink}): _instruments = instruments,super._();
+  const _TradingAccount({required this.id, required this.name, this.kind = AccountKind.personal, this.accountCurrency = 'USD', this.startingSize, final  List<String> instruments = const <String>[], this.rules, this.prop, this.strategy, this.brokerLink, final  List<StrategyVersion> strategyVersions = const <StrategyVersion>[]}): _instruments = instruments,_strategyVersions = strategyVersions,super._();
   factory _TradingAccount.fromJson(Map<String, dynamic> json) => _$TradingAccountFromJson(json);
 
 @override final  String id;
@@ -306,6 +309,17 @@ class _TradingAccount extends TradingAccount {
 /// and the password stay server-side (`supabase/functions/mt5`); the app
 /// keeps only what it shows.
 @override final  BrokerLink? brokerLink;
+/// Earlier strategies, oldest first, kept when a backtest draft is adopted.
+/// The current one is [strategy]; its number is [strategyVersion].
+ final  List<StrategyVersion> _strategyVersions;
+/// Earlier strategies, oldest first, kept when a backtest draft is adopted.
+/// The current one is [strategy]; its number is [strategyVersion].
+@override@JsonKey() List<StrategyVersion> get strategyVersions {
+  if (_strategyVersions is EqualUnmodifiableListView) return _strategyVersions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_strategyVersions);
+}
+
 
 /// Create a copy of TradingAccount
 /// with the given fields replaced by the non-null parameter values.
@@ -320,16 +334,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TradingAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.accountCurrency, accountCurrency) || other.accountCurrency == accountCurrency)&&(identical(other.startingSize, startingSize) || other.startingSize == startingSize)&&const DeepCollectionEquality().equals(other._instruments, _instruments)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.prop, prop) || other.prop == prop)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.brokerLink, brokerLink) || other.brokerLink == brokerLink));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TradingAccount&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.accountCurrency, accountCurrency) || other.accountCurrency == accountCurrency)&&(identical(other.startingSize, startingSize) || other.startingSize == startingSize)&&const DeepCollectionEquality().equals(other._instruments, _instruments)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.prop, prop) || other.prop == prop)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.brokerLink, brokerLink) || other.brokerLink == brokerLink)&&const DeepCollectionEquality().equals(other._strategyVersions, _strategyVersions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,kind,accountCurrency,startingSize,const DeepCollectionEquality().hash(_instruments),rules,prop,strategy,brokerLink);
+int get hashCode => Object.hash(runtimeType,id,name,kind,accountCurrency,startingSize,const DeepCollectionEquality().hash(_instruments),rules,prop,strategy,brokerLink,const DeepCollectionEquality().hash(_strategyVersions));
 
 @override
 String toString() {
-  return 'TradingAccount(id: $id, name: $name, kind: $kind, accountCurrency: $accountCurrency, startingSize: $startingSize, instruments: $instruments, rules: $rules, prop: $prop, strategy: $strategy, brokerLink: $brokerLink)';
+  return 'TradingAccount(id: $id, name: $name, kind: $kind, accountCurrency: $accountCurrency, startingSize: $startingSize, instruments: $instruments, rules: $rules, prop: $prop, strategy: $strategy, brokerLink: $brokerLink, strategyVersions: $strategyVersions)';
 }
 
 
@@ -340,7 +354,7 @@ abstract mixin class _$TradingAccountCopyWith<$Res> implements $TradingAccountCo
   factory _$TradingAccountCopyWith(_TradingAccount value, $Res Function(_TradingAccount) _then) = __$TradingAccountCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, AccountKind kind, String accountCurrency, double? startingSize, List<String> instruments, TradingRules? rules, PropRules? prop, StrategyProfile? strategy, BrokerLink? brokerLink
+ String id, String name, AccountKind kind, String accountCurrency, double? startingSize, List<String> instruments, TradingRules? rules, PropRules? prop, StrategyProfile? strategy, BrokerLink? brokerLink, List<StrategyVersion> strategyVersions
 });
 
 
@@ -357,7 +371,7 @@ class __$TradingAccountCopyWithImpl<$Res>
 
 /// Create a copy of TradingAccount
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? accountCurrency = null,Object? startingSize = freezed,Object? instruments = null,Object? rules = freezed,Object? prop = freezed,Object? strategy = freezed,Object? brokerLink = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? accountCurrency = null,Object? startingSize = freezed,Object? instruments = null,Object? rules = freezed,Object? prop = freezed,Object? strategy = freezed,Object? brokerLink = freezed,Object? strategyVersions = null,}) {
   return _then(_TradingAccount(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -369,7 +383,8 @@ as List<String>,rules: freezed == rules ? _self.rules : rules // ignore: cast_nu
 as TradingRules?,prop: freezed == prop ? _self.prop : prop // ignore: cast_nullable_to_non_nullable
 as PropRules?,strategy: freezed == strategy ? _self.strategy : strategy // ignore: cast_nullable_to_non_nullable
 as StrategyProfile?,brokerLink: freezed == brokerLink ? _self.brokerLink : brokerLink // ignore: cast_nullable_to_non_nullable
-as BrokerLink?,
+as BrokerLink?,strategyVersions: null == strategyVersions ? _self._strategyVersions : strategyVersions // ignore: cast_nullable_to_non_nullable
+as List<StrategyVersion>,
   ));
 }
 
@@ -420,6 +435,333 @@ $BrokerLinkCopyWith<$Res>? get brokerLink {
 
   return $BrokerLinkCopyWith<$Res>(_self.brokerLink!, (value) {
     return _then(_self.copyWith(brokerLink: value));
+  });
+}
+}
+
+
+/// @nodoc
+mixin _$StrategyVersion {
+
+ int get number;/// When it stopped being the current strategy.
+ DateTime get replacedAt; StrategyProfile? get strategy; TradingRules? get rules;/// Where the strategy that replaced it came from ('from backtest').
+ String? get note;
+/// Create a copy of StrategyVersion
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$StrategyVersionCopyWith<StrategyVersion> get copyWith => _$StrategyVersionCopyWithImpl<StrategyVersion>(this as StrategyVersion, _$identity);
+
+  /// Serializes this StrategyVersion to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StrategyVersion&&(identical(other.number, number) || other.number == number)&&(identical(other.replacedAt, replacedAt) || other.replacedAt == replacedAt)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.note, note) || other.note == note));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,number,replacedAt,strategy,rules,note);
+
+@override
+String toString() {
+  return 'StrategyVersion(number: $number, replacedAt: $replacedAt, strategy: $strategy, rules: $rules, note: $note)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $StrategyVersionCopyWith<$Res>  {
+  factory $StrategyVersionCopyWith(StrategyVersion value, $Res Function(StrategyVersion) _then) = _$StrategyVersionCopyWithImpl;
+@useResult
+$Res call({
+ int number, DateTime replacedAt, StrategyProfile? strategy, TradingRules? rules, String? note
+});
+
+
+$StrategyProfileCopyWith<$Res>? get strategy;$TradingRulesCopyWith<$Res>? get rules;
+
+}
+/// @nodoc
+class _$StrategyVersionCopyWithImpl<$Res>
+    implements $StrategyVersionCopyWith<$Res> {
+  _$StrategyVersionCopyWithImpl(this._self, this._then);
+
+  final StrategyVersion _self;
+  final $Res Function(StrategyVersion) _then;
+
+/// Create a copy of StrategyVersion
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? number = null,Object? replacedAt = null,Object? strategy = freezed,Object? rules = freezed,Object? note = freezed,}) {
+  return _then(_self.copyWith(
+number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
+as int,replacedAt: null == replacedAt ? _self.replacedAt : replacedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,strategy: freezed == strategy ? _self.strategy : strategy // ignore: cast_nullable_to_non_nullable
+as StrategyProfile?,rules: freezed == rules ? _self.rules : rules // ignore: cast_nullable_to_non_nullable
+as TradingRules?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+/// Create a copy of StrategyVersion
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StrategyProfileCopyWith<$Res>? get strategy {
+    if (_self.strategy == null) {
+    return null;
+  }
+
+  return $StrategyProfileCopyWith<$Res>(_self.strategy!, (value) {
+    return _then(_self.copyWith(strategy: value));
+  });
+}/// Create a copy of StrategyVersion
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$TradingRulesCopyWith<$Res>? get rules {
+    if (_self.rules == null) {
+    return null;
+  }
+
+  return $TradingRulesCopyWith<$Res>(_self.rules!, (value) {
+    return _then(_self.copyWith(rules: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [StrategyVersion].
+extension StrategyVersionPatterns on StrategyVersion {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _StrategyVersion value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _StrategyVersion() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _StrategyVersion value)  $default,){
+final _that = this;
+switch (_that) {
+case _StrategyVersion():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _StrategyVersion value)?  $default,){
+final _that = this;
+switch (_that) {
+case _StrategyVersion() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int number,  DateTime replacedAt,  StrategyProfile? strategy,  TradingRules? rules,  String? note)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _StrategyVersion() when $default != null:
+return $default(_that.number,_that.replacedAt,_that.strategy,_that.rules,_that.note);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int number,  DateTime replacedAt,  StrategyProfile? strategy,  TradingRules? rules,  String? note)  $default,) {final _that = this;
+switch (_that) {
+case _StrategyVersion():
+return $default(_that.number,_that.replacedAt,_that.strategy,_that.rules,_that.note);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int number,  DateTime replacedAt,  StrategyProfile? strategy,  TradingRules? rules,  String? note)?  $default,) {final _that = this;
+switch (_that) {
+case _StrategyVersion() when $default != null:
+return $default(_that.number,_that.replacedAt,_that.strategy,_that.rules,_that.note);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _StrategyVersion implements StrategyVersion {
+  const _StrategyVersion({required this.number, required this.replacedAt, this.strategy, this.rules, this.note});
+  factory _StrategyVersion.fromJson(Map<String, dynamic> json) => _$StrategyVersionFromJson(json);
+
+@override final  int number;
+/// When it stopped being the current strategy.
+@override final  DateTime replacedAt;
+@override final  StrategyProfile? strategy;
+@override final  TradingRules? rules;
+/// Where the strategy that replaced it came from ('from backtest').
+@override final  String? note;
+
+/// Create a copy of StrategyVersion
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$StrategyVersionCopyWith<_StrategyVersion> get copyWith => __$StrategyVersionCopyWithImpl<_StrategyVersion>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$StrategyVersionToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StrategyVersion&&(identical(other.number, number) || other.number == number)&&(identical(other.replacedAt, replacedAt) || other.replacedAt == replacedAt)&&(identical(other.strategy, strategy) || other.strategy == strategy)&&(identical(other.rules, rules) || other.rules == rules)&&(identical(other.note, note) || other.note == note));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,number,replacedAt,strategy,rules,note);
+
+@override
+String toString() {
+  return 'StrategyVersion(number: $number, replacedAt: $replacedAt, strategy: $strategy, rules: $rules, note: $note)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$StrategyVersionCopyWith<$Res> implements $StrategyVersionCopyWith<$Res> {
+  factory _$StrategyVersionCopyWith(_StrategyVersion value, $Res Function(_StrategyVersion) _then) = __$StrategyVersionCopyWithImpl;
+@override @useResult
+$Res call({
+ int number, DateTime replacedAt, StrategyProfile? strategy, TradingRules? rules, String? note
+});
+
+
+@override $StrategyProfileCopyWith<$Res>? get strategy;@override $TradingRulesCopyWith<$Res>? get rules;
+
+}
+/// @nodoc
+class __$StrategyVersionCopyWithImpl<$Res>
+    implements _$StrategyVersionCopyWith<$Res> {
+  __$StrategyVersionCopyWithImpl(this._self, this._then);
+
+  final _StrategyVersion _self;
+  final $Res Function(_StrategyVersion) _then;
+
+/// Create a copy of StrategyVersion
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? number = null,Object? replacedAt = null,Object? strategy = freezed,Object? rules = freezed,Object? note = freezed,}) {
+  return _then(_StrategyVersion(
+number: null == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
+as int,replacedAt: null == replacedAt ? _self.replacedAt : replacedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,strategy: freezed == strategy ? _self.strategy : strategy // ignore: cast_nullable_to_non_nullable
+as StrategyProfile?,rules: freezed == rules ? _self.rules : rules // ignore: cast_nullable_to_non_nullable
+as TradingRules?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+/// Create a copy of StrategyVersion
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StrategyProfileCopyWith<$Res>? get strategy {
+    if (_self.strategy == null) {
+    return null;
+  }
+
+  return $StrategyProfileCopyWith<$Res>(_self.strategy!, (value) {
+    return _then(_self.copyWith(strategy: value));
+  });
+}/// Create a copy of StrategyVersion
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$TradingRulesCopyWith<$Res>? get rules {
+    if (_self.rules == null) {
+    return null;
+  }
+
+  return $TradingRulesCopyWith<$Res>(_self.rules!, (value) {
+    return _then(_self.copyWith(rules: value));
   });
 }
 }

@@ -26,6 +26,7 @@ import 'widgets/ai_brief_card.dart';
 import 'widgets/home_alerts.dart';
 import 'widgets/home_card.dart';
 import 'widgets/home_header.dart';
+import '../../gym/data/gym_repository.dart';
 import 'widgets/mini_grid.dart';
 import 'widgets/setup_checklist.dart';
 import 'widgets/open_card.dart';
@@ -91,6 +92,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final zero = isDayZero(profile);
     final days = sampleGrid(today: clock.now(), zero: zero, closed: state.dayClosed);
     final todayIndex = 11 * 7 + (clock.now().weekday - 1);
+    // Drill days, as grid indexes: shown as practice, never as trading days.
+    final now = clock.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final practice = {
+      for (final d in ref.watch(practiceDaysProvider))
+        if (todayIndex - today.difference(d).inDays case final i when i >= 0 && i <= todayIndex) i,
+    };
 
     final cards = <Widget>[
       // TODO(next-slice): pass onBell once the notification centre exists.
@@ -136,7 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onTap: _startOpen,
         ),
       ] else ...[
-        _ScoreGridCard(snap: snap, days: days, todayIndex: todayIndex),
+        _ScoreGridCard(snap: snap, days: days, todayIndex: todayIndex, practice: practice),
         OpenCard(doneAt: state.openDoneAt, mood: state.mood, onStart: _startOpen),
         AiBriefCard(instruments: snap.instruments),
         RulesTodayCard(usage: snap.usage, note: snap.accountNote, onLogTrade: _logTrade),
@@ -240,7 +248,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 /// Doji score, streak and the 12-week grid.
 class _ScoreGridCard extends StatelessWidget {
-  const _ScoreGridCard({required this.snap, required this.days, required this.todayIndex});
+  const _ScoreGridCard({
+    required this.snap,
+    required this.days,
+    required this.todayIndex,
+    this.practice = const {},
+  });
+
+  /// Grid indexes of days with a finished drill set.
+  final Set<int> practice;
 
   final HomeSnapshot snap;
   final List<GridCellState> days;
@@ -297,7 +313,14 @@ class _ScoreGridCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 14),
-        MiniGrid(days: days, todayIndex: todayIndex, label: 'doji grid, last 12 weeks'),
+        MiniGrid(
+          days: days,
+          todayIndex: todayIndex,
+          practice: practice,
+          label: practice.isEmpty
+              ? 'doji grid, last 12 weeks'
+              : 'doji grid, last 12 weeks, ${practice.length} practice ${practice.length == 1 ? 'day' : 'days'} marked with a dot',
+        ),
         const SizedBox(height: 14),
         const GridLegend(),
       ],

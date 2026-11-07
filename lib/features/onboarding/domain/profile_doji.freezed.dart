@@ -404,7 +404,8 @@ mixin _$StrategyProfile {
  String? get template;/// text | voice | template
  String? get source; ParsedStrategy? get parsed;/// What doji measures, in order. Anything it cannot measure is a manual
 /// condition ("check on your chart").
- List<StrategyCondition> get conditions;
+ List<StrategyCondition> get conditions;/// How a backtest closes a setup. Null = not set: the backtest asks for it.
+ ExitRules? get exits;
 /// Create a copy of StrategyProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -417,16 +418,16 @@ $StrategyProfileCopyWith<StrategyProfile> get copyWith => _$StrategyProfileCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StrategyProfile&&(identical(other.rawText, rawText) || other.rawText == rawText)&&(identical(other.template, template) || other.template == template)&&(identical(other.source, source) || other.source == source)&&(identical(other.parsed, parsed) || other.parsed == parsed)&&const DeepCollectionEquality().equals(other.conditions, conditions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StrategyProfile&&(identical(other.rawText, rawText) || other.rawText == rawText)&&(identical(other.template, template) || other.template == template)&&(identical(other.source, source) || other.source == source)&&(identical(other.parsed, parsed) || other.parsed == parsed)&&const DeepCollectionEquality().equals(other.conditions, conditions)&&(identical(other.exits, exits) || other.exits == exits));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,rawText,template,source,parsed,const DeepCollectionEquality().hash(conditions));
+int get hashCode => Object.hash(runtimeType,rawText,template,source,parsed,const DeepCollectionEquality().hash(conditions),exits);
 
 @override
 String toString() {
-  return 'StrategyProfile(rawText: $rawText, template: $template, source: $source, parsed: $parsed, conditions: $conditions)';
+  return 'StrategyProfile(rawText: $rawText, template: $template, source: $source, parsed: $parsed, conditions: $conditions, exits: $exits)';
 }
 
 
@@ -437,11 +438,11 @@ abstract mixin class $StrategyProfileCopyWith<$Res>  {
   factory $StrategyProfileCopyWith(StrategyProfile value, $Res Function(StrategyProfile) _then) = _$StrategyProfileCopyWithImpl;
 @useResult
 $Res call({
- String? rawText, String? template, String? source, ParsedStrategy? parsed, List<StrategyCondition> conditions
+ String? rawText, String? template, String? source, ParsedStrategy? parsed, List<StrategyCondition> conditions, ExitRules? exits
 });
 
 
-$ParsedStrategyCopyWith<$Res>? get parsed;
+$ParsedStrategyCopyWith<$Res>? get parsed;$ExitRulesCopyWith<$Res>? get exits;
 
 }
 /// @nodoc
@@ -454,14 +455,15 @@ class _$StrategyProfileCopyWithImpl<$Res>
 
 /// Create a copy of StrategyProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? rawText = freezed,Object? template = freezed,Object? source = freezed,Object? parsed = freezed,Object? conditions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? rawText = freezed,Object? template = freezed,Object? source = freezed,Object? parsed = freezed,Object? conditions = null,Object? exits = freezed,}) {
   return _then(_self.copyWith(
 rawText: freezed == rawText ? _self.rawText : rawText // ignore: cast_nullable_to_non_nullable
 as String?,template: freezed == template ? _self.template : template // ignore: cast_nullable_to_non_nullable
 as String?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String?,parsed: freezed == parsed ? _self.parsed : parsed // ignore: cast_nullable_to_non_nullable
 as ParsedStrategy?,conditions: null == conditions ? _self.conditions : conditions // ignore: cast_nullable_to_non_nullable
-as List<StrategyCondition>,
+as List<StrategyCondition>,exits: freezed == exits ? _self.exits : exits // ignore: cast_nullable_to_non_nullable
+as ExitRules?,
   ));
 }
 /// Create a copy of StrategyProfile
@@ -475,6 +477,18 @@ $ParsedStrategyCopyWith<$Res>? get parsed {
 
   return $ParsedStrategyCopyWith<$Res>(_self.parsed!, (value) {
     return _then(_self.copyWith(parsed: value));
+  });
+}/// Create a copy of StrategyProfile
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExitRulesCopyWith<$Res>? get exits {
+    if (_self.exits == null) {
+    return null;
+  }
+
+  return $ExitRulesCopyWith<$Res>(_self.exits!, (value) {
+    return _then(_self.copyWith(exits: value));
   });
 }
 }
@@ -558,10 +572,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? rawText,  String? template,  String? source,  ParsedStrategy? parsed,  List<StrategyCondition> conditions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? rawText,  String? template,  String? source,  ParsedStrategy? parsed,  List<StrategyCondition> conditions,  ExitRules? exits)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StrategyProfile() when $default != null:
-return $default(_that.rawText,_that.template,_that.source,_that.parsed,_that.conditions);case _:
+return $default(_that.rawText,_that.template,_that.source,_that.parsed,_that.conditions,_that.exits);case _:
   return orElse();
 
 }
@@ -579,10 +593,10 @@ return $default(_that.rawText,_that.template,_that.source,_that.parsed,_that.con
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? rawText,  String? template,  String? source,  ParsedStrategy? parsed,  List<StrategyCondition> conditions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? rawText,  String? template,  String? source,  ParsedStrategy? parsed,  List<StrategyCondition> conditions,  ExitRules? exits)  $default,) {final _that = this;
 switch (_that) {
 case _StrategyProfile():
-return $default(_that.rawText,_that.template,_that.source,_that.parsed,_that.conditions);case _:
+return $default(_that.rawText,_that.template,_that.source,_that.parsed,_that.conditions,_that.exits);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -599,10 +613,10 @@ return $default(_that.rawText,_that.template,_that.source,_that.parsed,_that.con
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? rawText,  String? template,  String? source,  ParsedStrategy? parsed,  List<StrategyCondition> conditions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? rawText,  String? template,  String? source,  ParsedStrategy? parsed,  List<StrategyCondition> conditions,  ExitRules? exits)?  $default,) {final _that = this;
 switch (_that) {
 case _StrategyProfile() when $default != null:
-return $default(_that.rawText,_that.template,_that.source,_that.parsed,_that.conditions);case _:
+return $default(_that.rawText,_that.template,_that.source,_that.parsed,_that.conditions,_that.exits);case _:
   return null;
 
 }
@@ -614,7 +628,7 @@ return $default(_that.rawText,_that.template,_that.source,_that.parsed,_that.con
 @JsonSerializable()
 
 class _StrategyProfile implements StrategyProfile {
-  const _StrategyProfile({this.rawText, this.template, this.source, this.parsed, final  List<StrategyCondition> conditions = const <StrategyCondition>[]}): _conditions = conditions;
+  const _StrategyProfile({this.rawText, this.template, this.source, this.parsed, final  List<StrategyCondition> conditions = const <StrategyCondition>[], this.exits}): _conditions = conditions;
   factory _StrategyProfile.fromJson(Map<String, dynamic> json) => _$StrategyProfileFromJson(json);
 
 /// The user's own words (typed or dictated).
@@ -635,6 +649,8 @@ class _StrategyProfile implements StrategyProfile {
   return EqualUnmodifiableListView(_conditions);
 }
 
+/// How a backtest closes a setup. Null = not set: the backtest asks for it.
+@override final  ExitRules? exits;
 
 /// Create a copy of StrategyProfile
 /// with the given fields replaced by the non-null parameter values.
@@ -649,16 +665,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StrategyProfile&&(identical(other.rawText, rawText) || other.rawText == rawText)&&(identical(other.template, template) || other.template == template)&&(identical(other.source, source) || other.source == source)&&(identical(other.parsed, parsed) || other.parsed == parsed)&&const DeepCollectionEquality().equals(other._conditions, _conditions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StrategyProfile&&(identical(other.rawText, rawText) || other.rawText == rawText)&&(identical(other.template, template) || other.template == template)&&(identical(other.source, source) || other.source == source)&&(identical(other.parsed, parsed) || other.parsed == parsed)&&const DeepCollectionEquality().equals(other._conditions, _conditions)&&(identical(other.exits, exits) || other.exits == exits));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,rawText,template,source,parsed,const DeepCollectionEquality().hash(_conditions));
+int get hashCode => Object.hash(runtimeType,rawText,template,source,parsed,const DeepCollectionEquality().hash(_conditions),exits);
 
 @override
 String toString() {
-  return 'StrategyProfile(rawText: $rawText, template: $template, source: $source, parsed: $parsed, conditions: $conditions)';
+  return 'StrategyProfile(rawText: $rawText, template: $template, source: $source, parsed: $parsed, conditions: $conditions, exits: $exits)';
 }
 
 
@@ -669,11 +685,11 @@ abstract mixin class _$StrategyProfileCopyWith<$Res> implements $StrategyProfile
   factory _$StrategyProfileCopyWith(_StrategyProfile value, $Res Function(_StrategyProfile) _then) = __$StrategyProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String? rawText, String? template, String? source, ParsedStrategy? parsed, List<StrategyCondition> conditions
+ String? rawText, String? template, String? source, ParsedStrategy? parsed, List<StrategyCondition> conditions, ExitRules? exits
 });
 
 
-@override $ParsedStrategyCopyWith<$Res>? get parsed;
+@override $ParsedStrategyCopyWith<$Res>? get parsed;@override $ExitRulesCopyWith<$Res>? get exits;
 
 }
 /// @nodoc
@@ -686,14 +702,15 @@ class __$StrategyProfileCopyWithImpl<$Res>
 
 /// Create a copy of StrategyProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? rawText = freezed,Object? template = freezed,Object? source = freezed,Object? parsed = freezed,Object? conditions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? rawText = freezed,Object? template = freezed,Object? source = freezed,Object? parsed = freezed,Object? conditions = null,Object? exits = freezed,}) {
   return _then(_StrategyProfile(
 rawText: freezed == rawText ? _self.rawText : rawText // ignore: cast_nullable_to_non_nullable
 as String?,template: freezed == template ? _self.template : template // ignore: cast_nullable_to_non_nullable
 as String?,source: freezed == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String?,parsed: freezed == parsed ? _self.parsed : parsed // ignore: cast_nullable_to_non_nullable
 as ParsedStrategy?,conditions: null == conditions ? _self._conditions : conditions // ignore: cast_nullable_to_non_nullable
-as List<StrategyCondition>,
+as List<StrategyCondition>,exits: freezed == exits ? _self.exits : exits // ignore: cast_nullable_to_non_nullable
+as ExitRules?,
   ));
 }
 
@@ -709,7 +726,299 @@ $ParsedStrategyCopyWith<$Res>? get parsed {
   return $ParsedStrategyCopyWith<$Res>(_self.parsed!, (value) {
     return _then(_self.copyWith(parsed: value));
   });
+}/// Create a copy of StrategyProfile
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ExitRulesCopyWith<$Res>? get exits {
+    if (_self.exits == null) {
+    return null;
+  }
+
+  return $ExitRulesCopyWith<$Res>(_self.exits!, (value) {
+    return _then(_self.copyWith(exits: value));
+  });
 }
+}
+
+
+/// @nodoc
+mixin _$ExitRules {
+
+ StopRule get stop;/// The stop sits this share of the range past its level (0.1 = 10%).
+ double get bufferOfRange;/// Target in R (2 = twice the stop distance).
+ double get targetR;/// Closed at the close of this bar count after entry, when set; always closed
+/// at the session's end.
+ int? get maxBarsOpen;
+/// Create a copy of ExitRules
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ExitRulesCopyWith<ExitRules> get copyWith => _$ExitRulesCopyWithImpl<ExitRules>(this as ExitRules, _$identity);
+
+  /// Serializes this ExitRules to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExitRules&&(identical(other.stop, stop) || other.stop == stop)&&(identical(other.bufferOfRange, bufferOfRange) || other.bufferOfRange == bufferOfRange)&&(identical(other.targetR, targetR) || other.targetR == targetR)&&(identical(other.maxBarsOpen, maxBarsOpen) || other.maxBarsOpen == maxBarsOpen));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,stop,bufferOfRange,targetR,maxBarsOpen);
+
+@override
+String toString() {
+  return 'ExitRules(stop: $stop, bufferOfRange: $bufferOfRange, targetR: $targetR, maxBarsOpen: $maxBarsOpen)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ExitRulesCopyWith<$Res>  {
+  factory $ExitRulesCopyWith(ExitRules value, $Res Function(ExitRules) _then) = _$ExitRulesCopyWithImpl;
+@useResult
+$Res call({
+ StopRule stop, double bufferOfRange, double targetR, int? maxBarsOpen
+});
+
+
+
+
+}
+/// @nodoc
+class _$ExitRulesCopyWithImpl<$Res>
+    implements $ExitRulesCopyWith<$Res> {
+  _$ExitRulesCopyWithImpl(this._self, this._then);
+
+  final ExitRules _self;
+  final $Res Function(ExitRules) _then;
+
+/// Create a copy of ExitRules
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? stop = null,Object? bufferOfRange = null,Object? targetR = null,Object? maxBarsOpen = freezed,}) {
+  return _then(_self.copyWith(
+stop: null == stop ? _self.stop : stop // ignore: cast_nullable_to_non_nullable
+as StopRule,bufferOfRange: null == bufferOfRange ? _self.bufferOfRange : bufferOfRange // ignore: cast_nullable_to_non_nullable
+as double,targetR: null == targetR ? _self.targetR : targetR // ignore: cast_nullable_to_non_nullable
+as double,maxBarsOpen: freezed == maxBarsOpen ? _self.maxBarsOpen : maxBarsOpen // ignore: cast_nullable_to_non_nullable
+as int?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ExitRules].
+extension ExitRulesPatterns on ExitRules {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ExitRules value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ExitRules() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ExitRules value)  $default,){
+final _that = this;
+switch (_that) {
+case _ExitRules():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ExitRules value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ExitRules() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( StopRule stop,  double bufferOfRange,  double targetR,  int? maxBarsOpen)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ExitRules() when $default != null:
+return $default(_that.stop,_that.bufferOfRange,_that.targetR,_that.maxBarsOpen);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( StopRule stop,  double bufferOfRange,  double targetR,  int? maxBarsOpen)  $default,) {final _that = this;
+switch (_that) {
+case _ExitRules():
+return $default(_that.stop,_that.bufferOfRange,_that.targetR,_that.maxBarsOpen);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( StopRule stop,  double bufferOfRange,  double targetR,  int? maxBarsOpen)?  $default,) {final _that = this;
+switch (_that) {
+case _ExitRules() when $default != null:
+return $default(_that.stop,_that.bufferOfRange,_that.targetR,_that.maxBarsOpen);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _ExitRules implements ExitRules {
+  const _ExitRules({this.stop = StopRule.brokenLevel, this.bufferOfRange = 0.1, this.targetR = 2.0, this.maxBarsOpen});
+  factory _ExitRules.fromJson(Map<String, dynamic> json) => _$ExitRulesFromJson(json);
+
+@override@JsonKey() final  StopRule stop;
+/// The stop sits this share of the range past its level (0.1 = 10%).
+@override@JsonKey() final  double bufferOfRange;
+/// Target in R (2 = twice the stop distance).
+@override@JsonKey() final  double targetR;
+/// Closed at the close of this bar count after entry, when set; always closed
+/// at the session's end.
+@override final  int? maxBarsOpen;
+
+/// Create a copy of ExitRules
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ExitRulesCopyWith<_ExitRules> get copyWith => __$ExitRulesCopyWithImpl<_ExitRules>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ExitRulesToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExitRules&&(identical(other.stop, stop) || other.stop == stop)&&(identical(other.bufferOfRange, bufferOfRange) || other.bufferOfRange == bufferOfRange)&&(identical(other.targetR, targetR) || other.targetR == targetR)&&(identical(other.maxBarsOpen, maxBarsOpen) || other.maxBarsOpen == maxBarsOpen));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,stop,bufferOfRange,targetR,maxBarsOpen);
+
+@override
+String toString() {
+  return 'ExitRules(stop: $stop, bufferOfRange: $bufferOfRange, targetR: $targetR, maxBarsOpen: $maxBarsOpen)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ExitRulesCopyWith<$Res> implements $ExitRulesCopyWith<$Res> {
+  factory _$ExitRulesCopyWith(_ExitRules value, $Res Function(_ExitRules) _then) = __$ExitRulesCopyWithImpl;
+@override @useResult
+$Res call({
+ StopRule stop, double bufferOfRange, double targetR, int? maxBarsOpen
+});
+
+
+
+
+}
+/// @nodoc
+class __$ExitRulesCopyWithImpl<$Res>
+    implements _$ExitRulesCopyWith<$Res> {
+  __$ExitRulesCopyWithImpl(this._self, this._then);
+
+  final _ExitRules _self;
+  final $Res Function(_ExitRules) _then;
+
+/// Create a copy of ExitRules
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? stop = null,Object? bufferOfRange = null,Object? targetR = null,Object? maxBarsOpen = freezed,}) {
+  return _then(_ExitRules(
+stop: null == stop ? _self.stop : stop // ignore: cast_nullable_to_non_nullable
+as StopRule,bufferOfRange: null == bufferOfRange ? _self.bufferOfRange : bufferOfRange // ignore: cast_nullable_to_non_nullable
+as double,targetR: null == targetR ? _self.targetR : targetR // ignore: cast_nullable_to_non_nullable
+as double,maxBarsOpen: freezed == maxBarsOpen ? _self.maxBarsOpen : maxBarsOpen // ignore: cast_nullable_to_non_nullable
+as int?,
+  ));
+}
+
+
 }
 
 
