@@ -4,6 +4,7 @@ import 'package:doji_app/app/app.dart';
 import 'package:doji_app/app/router.dart';
 import 'package:doji_app/features/onboarding/domain/strategy_parser.dart';
 import 'package:doji_app/core/widgets/auth_method_button.dart';
+import 'package:doji_app/features/auth/data/consent_repository.dart';
 import 'package:doji_app/features/auth/data/fake_auth_repository.dart';
 import 'package:doji_app/features/auth/domain/auth_repository.dart';
 import 'package:doji_app/features/markets/domain/market_data.dart';
@@ -143,4 +144,23 @@ Map<String, Object> seedSession({String email = 'google.user@example.com'}) => {
   FakeAuthRepository.accountsKey: jsonEncode({
     'google:sample': {'method': 'google', 'email': email, 'profile': null},
   }),
+};
+
+/// A7 already agreed for [userId] on this device.
+Map<String, Object> seedConsent(String userId) => {
+  ConsentRepository.key: jsonEncode({'userId': userId, 'pending': false, 'version': kConsentVersion}),
+};
+
+/// A6: a guest setup paused on "save your setup", and the sample Google
+/// account (signed out) already holding its own setup.
+Map<String, Object> seedSetupConflict(Map<String, Object> resumeAtSave) => {
+  ...resumeAtSave,
+  FakeAuthRepository.accountsKey: jsonEncode({
+    'google:sample': {
+      'method': 'google',
+      'email': 'google.user@example.com',
+      'profile': jsonDecode(seedProfile(pendingSync: false)[PrefsOnboardingRepository.profileKey]! as String),
+    },
+  }),
+  ...seedConsent('google:sample'),
 };

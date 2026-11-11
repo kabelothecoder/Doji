@@ -28,6 +28,22 @@ Future<void> _toCodeScreen(AppHarness h, {String email = 'sam@example.com'}) asy
   expect(find.text('check your email.'), findsOneWidget);
 }
 
+/// A7 after a brand-new account: tick both boxes, agree.
+Future<void> _agree(AppHarness h) async {
+  expect(h.location, Routes.consent);
+  expect(find.text('before you start.'), findsOneWidget);
+  await h.tapText("I'm 18 or older.");
+  await h.tapText('I consent to doji processing my personal information.');
+  await h.tapText('agree and continue');
+}
+
+Future<void> _toEmail(AppHarness h, String email) async {
+  await h.tapText('continue with email');
+  await h.tester.enterText(find.byType(TextField), email);
+  await h.wait(50);
+  await h.tapText('send code', settle: 200);
+}
+
 void main() {
   testWidgets('A1 → A3 → A4 → A9 → Home: email code, success types in, haptic, hand-off', (tester) async {
     final h = await AppHarness.pump(tester, at: Routes.signIn, seed: seedProfile());
@@ -41,6 +57,7 @@ void main() {
     await tester.enterText(_codeInput, '482913');
     await h.wait(200);
 
+    await _agree(h);
     expect(h.location, Routes.authenticated);
     expect(_line('creating account… ok'), findsOneWidget);
     expect(_line('saving profile.doji… ok'), findsOneWidget);
@@ -143,6 +160,7 @@ void main() {
     final h = await AppHarness.pump(tester, at: Routes.signIn);
     await _toCodeScreen(h);
     await h.tapText('paste', settle: 200);
+    await _agree(h);
     expect(h.location, Routes.authenticated);
   }, variant: ios);
 
@@ -160,6 +178,7 @@ void main() {
   testWidgets('A2b → A9: Google returns, Home after the success lines', (tester) async {
     final h = await AppHarness.pump(tester, at: Routes.signIn, seed: seedProfile());
     await h.tapText('Sign in with Google', settle: 300);
+    await _agree(h);
     expect(h.location, Routes.authenticated);
     expect(_line('creating account… ok'), findsOneWidget);
     await h.wait(3700);
@@ -176,6 +195,7 @@ void main() {
 
     h.online = true;
     await h.tapText('try again', settle: 300);
+    await _agree(h);
     expect(h.location, Routes.authenticated);
     expect(_line('no profile.doji on this account yet'), findsOneWidget);
     expect(_line('→ opening setup'), findsOneWidget);
@@ -218,9 +238,62 @@ void main() {
   testWidgets('A2b → A9: saving to a new account hands off to plans', (tester) async {
     final h = await AppHarness.pump(tester, at: Routes.save, seed: resumeAt(StepIds.save));
     await h.tapText('Continue with Google', settle: 300);
+    await _agree(h);
     expect(h.location, Routes.authenticated);
     expect(_line('→ opening plans'), findsOneWidget);
     await h.wait(3700);
     expect(h.location, Routes.plans);
+  }, variant: ios);
+  testWidgets('A5: a Google email gets one Google button, then A7', (tester) async {
+    final h = await AppHarness.pump(tester, at: Routes.signIn);
+    await _toEmail(h, 'sam+google@example.com');
+    expect(h.location, Routes.authExists);
+    expect(find.text("you've been here before."), findsOneWidget);
+    expect(find.textContaining('you signed up with Google last time'), findsOneWidget);
+    expect(find.byType(AuthMethodButton), findsOneWidget);
+
+    await h.tapText('use a different email');
+    expect(find.text("what's your email?"), findsOneWidget);
+    await h.tapText('send code', settle: 200);
+    await h.tapText('Continue with Google', settle: 300);
+    await _agree(h);
+    expect(h.location, Routes.authenticated);
+  }, variant: ios);
+
+  testWidgets('A7: agree stays off until both boxes are ticked; no way back', (tester) async {
+    final h = await AppHarness.pump(tester, at: Routes.signIn);
+    await h.tapText('Sign in with Apple', settle: 300);
+    expect(h.location, Routes.consent);
+    expect(_button(tester, 'agree and continue').onPressed, isNull);
+    await h.tapText("I'm 18 or older.");
+    expect(_button(tester, 'agree and continue').onPressed, isNull);
+    expect(tester.getSemantics(find.text("I'm 18 or older.")), containsSemantics(isChecked: true));
+    await h.tapText('I consent to doji processing my personal information.');
+    expect(_button(tester, 'agree and continue').onPressed, isNotNull);
+
+    await tester.binding.handlePopRoute();
+    await h.wait(100);
+    expect(h.location, Routes.consent, reason: 'A7 cannot be skipped');
+
+    await h.tapText('terms of use');
+    expect(find.textContaining('published here before doji launches'), findsOneWidget);
+    await h.tapText('close');
+    await h.tapText('agree and continue', settle: 300);
+    expect(h.location, Routes.authenticated);
+  }, variant: ios);
+
+  testWidgets('A6: this device is picked by default; the account can be picked instead', (tester) async {
+    final h = await AppHarness.pump(tester, at: Routes.save, seed: seedSetupConflict(resumeAt(StepIds.save)));
+    await h.tapText('Continue with Google', settle: 300);
+    expect(h.location, Routes.merge);
+    expect(find.text("keep this device's setup?"), findsOneWidget);
+    expect(find.text('this device'), findsOneWidget);
+    expect(find.text('your account'), findsOneWidget);
+    expect(find.text("keep this device's setup"), findsOneWidget);
+
+    await h.tapText('your account');
+    await h.tapText("keep your account's setup", settle: 300);
+    expect(h.location, Routes.authenticated);
+    expect(_line('loading profile.doji… ok'), findsOneWidget);
   }, variant: ios);
 }

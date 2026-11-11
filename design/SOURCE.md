@@ -80,7 +80,7 @@ system). The real files were never attached — see *Missing*.
 | Markets list: pair detail differs from 1b | Core Tabs redraws pair detail: back label "markets" (1b: "Back to watchlist"), unnumbered brief sections (1b: 01–05), a "sessions" shading toggle (1b: Asian range band + news line), green risk meter (1b: orange risk note), status footer "not financial advice" | **Owner: keep 1b as built and add the four states.** Built: loading (cursor lines), market closed (chart at 40% + "market closed · opens …"), feed error ("price feed not responding." + try again), no strategy yet (card in place of 01/02/04). **Not built:** the card's "build my strategy" button (no strategy editor after onboarding) and the closed brief's "last session" line (doji has no record of it) |
 | Markets list: strategy state | Watchlist rows show **met / forming / waiting** (ring, half fill, full fill). The brief's conditions are met / not met / waiting (`EntryCondition`) | **Owner rule, built** (`StrategyState.of`, from the brief's conditions): met = all met; forming = at least half met, not all; waiting = fewer than half |
 | Markets list: several strategies | "MEASURED AGAINST [strategy name] v3", a strategy manager (one active, "set active"), an editor with plain language / fields and version history (v1 "from onboarding") | **Owner (2026-11-02): one strategy per trading account, no versions.** "MEASURED AGAINST [setup]" now opens the active account's editor at its strategy. Core Tabs' strategy manager / editor are not followed |
-| Practice: backtest, refine, replay, gym (slice 05) | No design file | The me tab is "practice" (`PracticeScreen`, account and settings kept on it); backtest, refine (compare), replay picker and gym keep the tab bar, a replay and the drills are full screen. Built from `core/widgets/` and Home's card. The replay is slice 04's chart with its own bars and controls. Home's grid marks drill days with a dot, apart from the trading-day fill |
+| Practice: backtest, refine, replay, gym (slice 05) | No design file **synced**: the live project holds `Doji Replay & Edge Gym`, `Doji Replay Engine` and `Doji Replay Phone` (found 2026-11-11, not compared yet) | The me tab is "practice" (`PracticeScreen`, account and settings kept on it); backtest, refine (compare), replay picker and gym keep the tab bar, a replay and the drills are full screen. Built from `core/widgets/` and Home's card. The replay is slice 04's chart with its own bars and controls. Home's grid marks drill days with a dot, apart from the trading-day fill |
 | Strategy versions (slice 05) | Reverses the 2026-11-02 "no versions" row above | Adopting a backtest draft makes it the account's strategy and keeps the old one as a numbered `StrategyVersion`; the account editor shows "version N" and the list (read-only). Still one strategy per account |
 | Accounts and the strategy editor | No design file for trading accounts (several accounts, each with its rules, prop rules and strategy) or for editing conditions | Built from design-system parts (`AuthScaffold`, `DojiTextField`, `DojiStepper`, `DojiChoiceChip`, `DojiButton`, `DojiAlert`, the onboarding `StrategyInput`). Needs a design pass in Claude Design |
 | Markets list: news buffer | Conditions and rules say "no high-impact news within **30 min**" | **Owner: 30 min.** `kNewsBufferMinutes = 30` (was 15); tests, goldens and CLAUDE.md updated |
@@ -92,9 +92,24 @@ system). The real files were never attached — see *Missing*.
 | Sample data | The handoff shows `[price]` placeholders | Prices, candles and news are sample data and the screen says "sample prices · not a live feed" |
 | 1b on the free plan | Plans say "1 ai brief a day"; the handoff has no locked state | A locked card in place of 01, 02 and 04 with the existing `aiBrief` upsell copy; conditions, chart and 05 still show |
 | 1b chart overlays for other strategies | The handoff draws the Asian range for a london break | Only a london break of the Asian range gets levels; other strategies get the news window only, and their entry shows "waiting" |
-| A5, A6, A7 | In the handoff | **Not built** (out of this slice's scope). A6's default (keep this device's setup) is applied silently |
+| A5, A6, A7 | In the handoff | **Built 2026-11-11** as drawn. A5's card shows no brand glyph (the design's "G" circle); the method name, email and "LAST USED" are there. A6's account row shows date and rank, not a line count (the account's setup has no answers to count). A7's terms / privacy links open a "published before launch" sheet until the pages exist |
 | Chart, drawing tools and co-pilot (slice 04) | No design file for the full chart (`/markets/chart/:symbol`), its toolbar, the drawings list, the "what is this?" sheet, the pre-trade check or trade detail's "how you got here" | Built 2026-11-07 from `core/widgets/` (`DojiIconButton`, `DojiButton`, `DojiChoiceChip`, `DojiTextField`, `GlassSurface` sheets like the review sheet, `TerminalLine`) and 1b's neutral grey candles. Drawings are grey (white when selected); only a position's stop / target zones are orange / green, each labelled in words. 1b opens it by tapping its chart (no visible change to 1b). Needs a design pass in Claude Design |
 | A standalone motion/haptics spec file | Not a separate file | Taken from the keyframe cards (ease + haptic per frame) and design system § Motion |
+
+## Not synced yet (live project, listed 2026-11-11)
+
+Sync each one into `design/handoff/` when its slice starts (CLAUDE.md › Phase: UI first), read-only.
+
+| File | Slice | Status in the app |
+|---|---|---|
+| `Doji Panic Phone` | panic flow (breathe, ground, pause, talk, support, later) | not built |
+| `Doji Me Phone` | Me: profile + full grid, badges, share; mind toolkit; settings | not built (me tab = practice) |
+| `Doji Share Card` | share card, story 1080×1920 and post 1080×1080 | not built |
+| `Doji Coach Phone` | coach states: thinking, transcript, voices, text mode, summary, saved, voice minutes used, distress | partly built (1c) |
+| `Doji Trade Journal Phone` | journal states + mood (check-in, emotion tracker, trends) | journal built; mood not built |
+| `Doji Journal Phone`, `Doji Journal Engine`, `Doji Insight Card`, `Doji Engine`, `Doji Engine Window` | insights / analyst | not built |
+| `Doji Replay & Edge Gym`, `Doji Replay Engine`, `Doji Replay Phone` | practice (slice 05) | built without them |
+| `Doji Home`, `Doji Home Phone`, `Doji Plans`, `Doji Plans Phone`, `Doji Rail`, `Doji Trade Journal` | built from (read live, never copied) | built |
 
 ## Text in the design files that reads like instructions
 

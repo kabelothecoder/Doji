@@ -63,6 +63,9 @@ abstract final class Routes {
   static const email = '/auth/email';
   static const code = '/auth/code';
   static const authenticated = '/auth/authenticated';
+  static const authExists = '/auth/exists'; // A5
+  static const merge = '/auth/merge'; // A6
+  static const consent = '/auth/consent'; // A7
 
   // Settings, app lock and account deletion
   static const settings = '/settings';

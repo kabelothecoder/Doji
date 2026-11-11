@@ -34,6 +34,7 @@ void main() {
       }
     }
     expect(copy, contains("'welcome back.'"));
+    expect(copy, contains("'before you start.'"), reason: 'A7 is scanned too');
     final text = ' ${copy.join(' ').toLowerCase()} ';
     for (final banned in [' buy ', ' sell ', 'signal', 'guarantee', 'profit', 'win rate']) {
       expect(text, isNot(contains(banned)), reason: banned);

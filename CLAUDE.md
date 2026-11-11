@@ -4,6 +4,21 @@ Trading-discipline app. **Not** a signals app. One Flutter codebase for
 **iOS, Android and Windows**. Dark first. Local-first onboarding; Supabase
 later.
 
+## Phase: UI first (owner decision 2026-11-11)
+
+All designed UI is built before any more backend work. While this phase lasts:
+
+- Data stays on the device or in fakes behind the existing interfaces (shared_preferences, `Fake*`).
+  No new Supabase tables, migrations or functions. Mark each spot the backend will plug in with
+  `// TODO(backend):`.
+- Order: auth A5–A7 (done) → panic flow → Me (profile + full grid, badges, share card) → coach
+  states (summary, saved, distress, transcript, voice minutes) + mood (check-in, emotion tracker,
+  trends) → mind toolkit (scorecard, prompts, affirmations, reading) → journal (insights feed,
+  imported trade).
+- Sync each slice's design file into `design/handoff/` when the slice starts (see
+  `design/SOURCE.md` › Not synced yet), read-only.
+- Backend work (sync, deploys, real billing, real sign-in, `delete-account`) starts after this list.
+
 ## Stack
 
 - Flutter 3.38 stable · Dart 3.10 · null-safe
@@ -91,8 +106,21 @@ from `config_lines.dart` and each line knows which step edits it.
 ## Auth (Supabase email code, else fake)
 
 Source: `design/handoff/Doji Auth Screen iOS.dc.html` + `Doji Sign-in iOS.dc.html`.
-Built: A1–A4e, A9, A10, A8 app lock, A11–A12. **Not built yet:** A5 (signed up
-with another method), A6 (merge setups), A7 (18+ and consent).
+Built: A1–A4e, A5–A7, A9, A10, A8 app lock, A11–A12.
+
+- **A5** (`/auth/exists`, `LinkedMethodScreen`): `sendCode` first asks `AuthRepository.lookUpEmail`; an
+  Apple / Google account gets one button for that method and no code is sent. Supabase answers null
+  until Apple / Google exist (TODO(backend)).
+- **A6** (`/auth/merge`, `KeepSetupScreen`): "save your setup" into an account that already has a
+  finished setup. This device is preselected (the most recent); `resolveMerge` keeps one, the other
+  is removed. No back.
+- **A7** (`/auth/consent`, `ConsentScreen`): new accounts only, before anything is applied
+  (`AuthFlowState.pending`). Both boxes required. `ConsentRepository` (`doji.consent.v1`, versioned
+  by `kConsentVersion`: bump it when the terms change) marks a new account pending, so launch
+  (`decideLaunchRoute(needsConsent:)`) brings A7 back until it is agreed. Terms / privacy open a
+  sheet saying they are published before launch; the "withdraw anytime in settings" row is not
+  built. Consent is device-only (TODO(backend): store it on the account).
+- After any sign-in, screens go to `AuthFlowState.next` (A7, A6 or A9), never straight to A9.
 
 - `authRepositoryProvider` picks `SupabaseAuthRepository` when Supabase started
   (`supabaseClientProvider`, set in bootstrap), else `FakeAuthRepository` (local runs, tests).
@@ -100,13 +128,15 @@ with another method), A6 (merge setups), A7 (18+ and consent).
   `{{ .Token }}`); Apple/Google answer "use your email for now". Delete removes the profile row
   and unlinks brokers; erasing the auth user needs a `delete-account` function (not built).
 - Fake email codes (FakeAuthRepository): any 6 digits work, `111111` = wrong (5 tries → 15-min lock),
-  `000000` = expired. Apple/Google return sample `@example.com` identities.
+  `000000` = expired. Apple/Google return sample `@example.com` identities. An email with `+apple` /
+  `+google` before the `@` (or a stored Apple / Google account's email) shows A5. Every new fake
+  account (including the samples on a fresh device) goes through A7.
 - Method order is Apple, Google, email on **every** platform; screens look the
   same on iOS, Android and Windows (owner decision 2026-10-07). Planned real
   channels: iOS native; Android Google via Credential Manager + Apple via web
   OAuth; Windows both via system-browser OAuth with a deep-link return.
 - Which setup wins: "welcome back" → the account's; "save your setup" → this
-  device's (A6's default, applied silently until A6 exists).
+  device's, unless the account has its own: then A6 asks (this device preselected).
 - Sign out and delete wipe local data (`AccountActions`). App lock is
   device-only and offered once, on the second Home visit.
 

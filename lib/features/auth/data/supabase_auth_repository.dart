@@ -51,6 +51,11 @@ class SupabaseAuthRepository implements AuthRepository {
     _wrong.remove(key);
   }
 
+  // TODO(backend): look the email up (an edge function over auth.identities)
+  // once Apple and Google sign-in exist; until then every account is email.
+  @override
+  Future<LinkedMethod?> lookUpEmail(String email) async => null;
+
   @override
   Future<EmailCodeTicket> sendEmailCode(String email) async {
     if (!looksLikeEmail(email)) throw const AuthUnavailable("that doesn't look like an email.");

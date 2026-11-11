@@ -46,7 +46,7 @@ class _SaveYourSetupScreenState extends ConsumerState<SaveYourSetupScreen> {
     final ok = await action();
     if (!mounted) return;
     if (ok) {
-      context.go(Routes.authenticated);
+      context.go(ref.read(authFlowProvider).next);
     } else if (ref.read(authFlowProvider).offline) {
       setState(() => _offline = true);
     }

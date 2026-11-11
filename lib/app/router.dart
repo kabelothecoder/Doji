@@ -10,6 +10,9 @@ import '../features/app_lock/presentation/app_lock_setup_screen.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/auth/presentation/auth_success_screen.dart';
 import '../features/auth/presentation/code_entry_screen.dart';
+import '../features/auth/presentation/consent_screen.dart';
+import '../features/auth/presentation/keep_setup_screen.dart';
+import '../features/auth/presentation/linked_method_screen.dart';
 import '../features/auth/presentation/email_entry_screen.dart';
 import '../features/auth/presentation/save_your_setup_screen.dart';
 import '../features/auth/presentation/sign_in_screen.dart';
@@ -83,6 +86,9 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
       ),
     ),
     GoRoute(path: Routes.code, builder: (c, s) => const CodeEntryScreen()),
+    GoRoute(path: Routes.authExists, builder: (c, s) => const LinkedMethodScreen()),
+    GoRoute(path: Routes.merge, pageBuilder: (c, s) => _fade(c, s, const KeepSetupScreen())),
+    GoRoute(path: Routes.consent, pageBuilder: (c, s) => _fade(c, s, const ConsentScreen())),
     GoRoute(path: Routes.authenticated, pageBuilder: (c, s) => _fade(c, s, const AuthSuccessScreen())),
     // Five tabs in one shell: bottom bar on phones, side rail on wide screens.
     // The coach is the centre item but not a branch: it is the cover below.

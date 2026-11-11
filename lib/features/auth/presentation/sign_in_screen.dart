@@ -42,7 +42,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     final ok = await _flow.signInWith(m, AuthIntent.signIn);
     if (!mounted) return;
     if (ok) {
-      context.go(Routes.authenticated);
+      context.go(ref.read(authFlowProvider).next);
     } else if (ref.read(authFlowProvider).offline) {
       setState(() => _offline = true);
     }
