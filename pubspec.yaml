@@ -41,6 +41,7 @@ dependencies:
   web_socket_channel: ^3.0.3
   # 1b "remind me" (Reminders in core/platform). 23.x needs Flutter 3.44.
   flutter_local_notifications: ^22.3.2
+  file_picker: ^13.3.3
 
 dev_dependencies:
   flutter_test:

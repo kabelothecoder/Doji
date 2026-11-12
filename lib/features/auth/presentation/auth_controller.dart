@@ -4,6 +4,8 @@ import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../analyst/data/analyst_repository.dart';
+import '../../analyst/presentation/analyst_controller.dart';
 import '../../backtest/data/backtest_repository.dart';
 import '../../gym/data/gym_repository.dart';
 import '../../history/history.dart';
@@ -460,6 +462,10 @@ class AccountActions {
     // Saved coach sessions ("coaching history" on the delete screen) too.
     await _ref.read(coachSessionRepositoryProvider).clear();
     await _ref.read(chartNoteRepositoryProvider).clear();
+    // Weekly reviews and the trader's sources.
+    await _ref.read(analystRepositoryProvider).clear();
+    _ref.invalidate(reviewsProvider);
+    _ref.invalidate(sourcesProvider);
     _ref.invalidate(chartNotesProvider);
     await _ref.read(briefAllowanceRepositoryProvider).clear();
     // Practice: backtest sessions, gym scores and drill answers, cached history.

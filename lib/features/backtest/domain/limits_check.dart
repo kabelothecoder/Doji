@@ -1,3 +1,4 @@
+import '../../accounts/domain/payout_readiness.dart';
 import '../../onboarding/domain/profile_doji.dart';
 import '../../onboarding/domain/prop_drawdown.dart';
 import '../../onboarding/domain/prop_rules.dart';
@@ -42,7 +43,7 @@ class LimitsCheck {
     final days = byDay.keys.toList()..sort();
     final breaches = <DayBreach>[];
     var balance = size, peak = size;
-    var best = 0.0, total = 0.0;
+    final dayMoney = <double>[];
     var drawdownBroken = false;
     for (final d in days) {
       final list = byDay[d]!;
@@ -58,9 +59,7 @@ class LimitsCheck {
       }
       balance += pct / 100 * size;
       if (balance > peak) peak = balance;
-      final money = pct / 100 * size;
-      total += money;
-      if (money > best) best = money;
+      dayMoney.add(pct / 100 * size);
       if (prop != null && !drawdownBroken) {
         final dd = PropDrawdown.evaluate(
           prop,
@@ -85,8 +84,7 @@ class LimitsCheck {
       final c = prop.consistencyPct;
       if (c == null) {
         notes.add('consistency rule: not set');
-      } else if (total > 0) {
-        final share = best / total * 100;
+      } else if (bestDayShare(dayMoney) case final share?) {
         notes.add(
           share > c
               ? 'best day ${_n(share)}% of the total gain, the rule is ${_n(c)}%: broken'

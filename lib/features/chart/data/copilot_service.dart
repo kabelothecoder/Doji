@@ -58,7 +58,7 @@ class FakeCopilot implements Copilot {
         kind: CopilotKind.rule,
       );
     }
-    final rule = _ruleMatching(r.strategyWords, r.reason);
+    final rule = ruleMatching(r.strategyWords, r.reason);
     if (rule != null) {
       final line = 'your rules say: "$rule". was that there?';
       if (_clean(line)) return CopilotReply(line, kind: CopilotKind.rule);
@@ -112,7 +112,7 @@ class FakeCopilot implements Copilot {
 
   /// The sentence of [strategy] sharing the most words with [reason] (two at
   /// least, or one of five letters or more); null when none does.
-  static String? _ruleMatching(String strategy, String reason) {
+  static String? ruleMatching(String strategy, String reason) {
     Set<String> words(String s) => RegExp(
       r"[a-z0-9']+",
     ).allMatches(s.toLowerCase()).map((m) => m[0]!).where((w) => w.length >= 3 && !_stop.contains(w)).toSet();

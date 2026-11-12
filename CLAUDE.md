@@ -85,6 +85,9 @@ lib/
     coach/        domain/ coach.dart (Coach interface, CoachContext, CoachVoice) · coach_session.dart
                   data/ fake_coach.dart (FAKE coach) · coach_session_repository.dart (shared_preferences)
                   presentation/ coach_screen (1c) · coach_controller · save_session_sheet · widgets/
+    analyst/      domain/ aggregates (AnalystFacts) · analyst (Analyst, WeeklyReview, AccountSource, focusRuleFor)
+                  data/ fake_analyst (FAKE) · analyst_repository (doji.review.v1, doji.sources.v1)
+                  presentation/ analyst_controller · weekly_review_card (+ ask sheet, FocusRuleLine) · sources_section
 app/shell/        AppShell (StatefulShellRoute): DojiBottomBar on phones, DojiNavRail when wide. main_tab.dart = the 5 items,
                   MainTab.branches = the 4 shell branches (the coach is a cover, not a branch);
                   me = PracticeScreen (backtest, replay, gym; account and settings)
@@ -549,8 +552,50 @@ to parse is skipped, not fatal. Home (and the rail docked in it) reads the same
   locked under `kInsightsFromTrades` (20). The view (period, unit, filters) is in memory.
 - Sign out and delete clear the journal along with the profile (`auth_controller.dart`).
 - Not built: Supabase sync (the plan is in the TODO in `journal_repository.dart`), broker / CSV
-  import, insights, the weekly review, the Windows workspace, the replay chart (a placeholder on
+  import, insights beyond the analyst, the Windows workspace, the replay chart (a placeholder on
   trade detail), and saving the rail's emotion log or the post-trade sheet against a trade.
+
+## Payout readiness and the analyst (on this device, fake analyst)
+
+No design file (design/SOURCE.md › Missing). Backend spec, not built: `design/analyst-plan.md`
+(`ai-analyst` contract, the full prompt, the guard order, Storage `sources` RLS policies).
+
+- **Payout readiness** (`accounts/domain/payout_readiness.dart`): `PayoutReadiness.of` returns one
+  `RuleDistance` per rule (trading days, consistency, daily loss, drawdown), each with a code-written
+  line and a standing (`kept | close | broken | notSet`, shown as a word). Trading days = local
+  dates with a closed trade. Consistency = largest positive day ÷ net total of all days, measured
+  only when the total is above 0 (`bestDayShare`, shared with `LimitsCheck`). Daily loss and the
+  drawdown are Home's own figures. Close = 80% of a limit (`kCloseShare`). Short of the minimum days
+  is "close", never broken. Copy: "best day is 48% of total gains" ("profit" is a banned word).
+  Shown on Home (`PayoutCard`, prop accounts only, `HomeSnapshot.payout`) and in the account
+  editor (rules as saved + that account's journal). Firm presets stay out.
+- **Aggregates** (`AnalystFacts.from`, pure): breaks by tag, after a loss (opened ≤ 60 min after a
+  losing close, same local day) vs the rest, by local open hour, by session (first of the trader's
+  sessions open at entry), by instrument, grade counts per ISO week (8), days past max trades with
+  the extra trade's time, chart-note reasons matching the trader's written rules
+  (`FakeCopilot.ruleMatching`) vs not, the newest auto backtest vs live trades on its instruments and
+  dates (no gap under 10 each), gym over 28 days, and the payout lines. Buckets under 5 trades are
+  `smallSample`. R counts only trades with a risk.
+- **Analyst** boundary: `Analyst` (`weeklyReview`, `reply`). `FakeAnalyst` writes only from the
+  facts (keyword intents; asked where price goes, it declines with `kAnalystNoCalls`; crisis words
+  get the coach's SADAG line). Every line passes `breaksCopyRules` and `ratesOdds`, otherwise
+  `kAnalystFallback`. TODO(backend): `SupabaseAnalyst`.
+- **Weekly review** (journal, `WeeklyReviewCard`): once the active account has
+  `kInsightsFromTrades` (20) trades, last week's review is written on first show and stored
+  (`doji.review.v1`): kept, broke, and one focus rule (`focusRuleFor`: the most used tag, or max
+  trades when more days broke it). "focus on this rule" accepts it. For the week after, it shows
+  on Home (`FocusRuleLine`) and in the rail (`DojiRailPanel.focusRule`). Under 20 the insights card
+  says why and how many the account has.
+- **Ask the analyst**: `showAnalystChatSheet` uses the brief chat's `ChatSheet` with
+  `AnalystChatController` (`ChatController` is the shared base: voice, mic, send).
+- **My sources** (account editor, `SourcesSection`): notes (text) and PDFs (file name only;
+  `file_picker` via `pickPdfProvider`), `doji.sources.v1`, saved at once. Note text joins the
+  strategy words for the analyst and the co-pilot (`strategyWordsWithSources`). PDFs are read once
+  sync is on. Sign out and delete clear reviews and sources.
+- Tests: `test/accounts/payout_readiness_test.dart`, `test/analyst/` (aggregates on fixtures,
+  analyst text + copy scan of every string in the slice, flow, a11y at 1x and 2x),
+  `test/goldens/analyst_golden_test.dart`. The Deno test (a model reply that predicts price is
+  replaced) comes with the function.
 
 ## Design tokens (mirror of `Doji Design System.dc.html`)
 

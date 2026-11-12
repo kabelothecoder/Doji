@@ -12,6 +12,7 @@ import '../../markets/presentation/pair_detail_controller.dart';
 import '../data/chart_note_repository.dart';
 import '../data/copilot_service.dart';
 import '../domain/bar_source.dart';
+import '../../analyst/presentation/analyst_controller.dart';
 import '../domain/chart_note.dart';
 import '../domain/chart_viewport.dart';
 import '../domain/copilot.dart';
@@ -275,7 +276,11 @@ class ChartController extends Notifier<ChartState> {
       timeframe: state.timeframe,
       drawing: d,
       reason: words,
-      strategyWords: profile.strategy?.rawText ?? '',
+      // The trader's note sources count as their written rules too.
+      strategyWords: strategyWordsWithSources(profile.strategy?.rawText, [
+        for (final s in ref.read(sourcesProvider))
+          if (s.accountId == profile.activeAccount?.id) s,
+      ]),
       conditions: f.conditions,
       coach: f.coach,
       r: stopDistance == 0 ? null : (d.target! - d.entry).abs() / stopDistance,

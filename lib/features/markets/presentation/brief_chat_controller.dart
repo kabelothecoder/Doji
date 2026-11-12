@@ -70,11 +70,9 @@ class BriefChatState {
 /// brief. Voice follows the coach's rule: with the voice coach (pro trader,
 /// elite prop) and dictation on the device, the mic dictates the question;
 /// otherwise it is typed. Auto-disposed with the sheet, which closes the mic.
-class BriefChatController extends Notifier<BriefChatState> {
-  BriefChatController(this.symbol);
-
-  final String symbol;
-
+/// A chat with voice or typed questions: the brief chat and the analyst share
+/// it. Subclasses only say how a question is answered.
+abstract class ChatController extends Notifier<BriefChatState> {
   /// Bumped whenever listening starts or stops, so a late speech callback
   /// never acts on a newer one.
   int _listen = 0;
@@ -92,11 +90,16 @@ class BriefChatController extends Notifier<BriefChatState> {
     return BriefChatState(voice: voice);
   }
 
+  /// False while there is nothing to ask about yet (the brief is loading).
+  bool get canAsk => true;
+
+  /// The answer to [words], given the turns before it.
+  Future<String> answer(List<BriefTurn> history, String words);
+
   /// Sends [text] and waits for the answer.
   Future<void> send(String text) async {
     final words = text.trim();
-    final brief = ref.read(pairBriefProvider(symbol)).value;
-    if (words.isEmpty || state.thinking || brief == null) return;
+    if (words.isEmpty || state.thinking || !canAsk) return;
     final history = state.turns;
     state = state.copyWith(
       turns: [
@@ -106,18 +109,12 @@ class BriefChatController extends Notifier<BriefChatState> {
       thinking: true,
       missedWords: false,
     );
-    final request = BriefRequest(
-      symbol: symbol,
-      profile: ref.read(marketsProfileProvider),
-      trades: ref.read(activeAccountTradesProvider),
-      now: clock.now(),
-    );
-    final answer = await ref.read(briefChatProvider).reply(brief, request, history, words);
+    final reply = await answer(history, words);
     if (!ref.mounted) return;
     state = state.copyWith(
       turns: [
         ...state.turns,
-        BriefTurn(fromYou: false, text: answer),
+        BriefTurn(fromYou: false, text: reply),
       ],
       thinking: false,
     );
@@ -173,6 +170,29 @@ class BriefChatController extends Notifier<BriefChatState> {
     _listen++;
     if (state.listening) state = state.copyWith(listening: false, heard: '');
     await ref.read(voiceInputProvider).stop();
+  }
+}
+
+/// The chat scoped to one instrument's brief.
+class BriefChatController extends ChatController {
+  BriefChatController(this.symbol);
+
+  final String symbol;
+
+  @override
+  bool get canAsk => ref.read(pairBriefProvider(symbol)).value != null;
+
+  @override
+  Future<String> answer(List<BriefTurn> history, String words) {
+    final request = BriefRequest(
+      symbol: symbol,
+      profile: ref.read(marketsProfileProvider),
+      trades: ref.read(activeAccountTradesProvider),
+      now: clock.now(),
+    );
+    return ref
+        .read(briefChatProvider)
+        .reply(ref.read(pairBriefProvider(symbol)).value!, request, history, words);
   }
 }
 

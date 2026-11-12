@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +10,10 @@ import '../../../app/routes.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../analyst/presentation/sources_section.dart';
 import '../../auth/presentation/widgets/auth_scaffold.dart';
+import '../../home/domain/home_models.dart';
+import '../../journal/presentation/journal_controller.dart';
 import '../../markets/domain/currency.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/onboarding_catalog.dart';
@@ -24,7 +28,9 @@ import '../data/strategy_reader.dart';
 import '../domain/condition_eval.dart';
 import '../domain/trading_account.dart';
 import 'accounts_controller.dart';
+import '../domain/payout_readiness.dart';
 import 'broker_link_section.dart';
+import 'widgets/payout_card.dart';
 
 /// Edits one account: name, kind, currency, starting size, risk and limits,
 /// prop rules, and the strategy (its own words + the conditions doji
@@ -58,6 +64,22 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
   late StrategyProfile? _savedStrategy;
   static final _strategyStep = buildOnboardingSteps().firstWhere((s) => s.id == StepIds.strategy);
   bool _dirty = false;
+
+  /// Payout distances for this account as saved (its rules, its trades).
+  List<RuleDistance>? _payout() {
+    final saved = ref.watch(accountsControllerProvider);
+    if (saved.accounts.where((a) => a.id == widget.accountId).firstOrNull?.prop == null) return null;
+    final trades = [
+      for (final t in ref.watch(journalControllerProvider))
+        if (t.accountId == widget.accountId) t,
+    ];
+    return HomeSnapshot.fromJournal(
+      saved.copyWith(activeAccountId: widget.accountId),
+      trades: trades,
+      now: clock.now().toUtc(),
+    ).payout;
+  }
+
   bool _saving = false;
 
   /// Set when the parser failed on save: the words are saved, not read.
@@ -334,9 +356,23 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
               onChanged: (p) => _edit((a) => a.copyWith(prop: p)),
             ),
           ],
+          if (_payout() case final rules? when rules.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const _Label('PAYOUT READINESS'),
+            Text("from the rules as saved and this account's journal.", style: DojiType.hint),
+            const SizedBox(height: 8),
+            for (final r in rules)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: PayoutRuleRow(rule: r),
+              ),
+          ],
           const SizedBox(height: 28),
           const _Section('broker'),
           BrokerLinkSection(account: a, onChanged: _linkChanged),
+          const SizedBox(height: 28),
+          const _Section('my sources'),
+          SourcesSection(accountId: widget.accountId),
           const SizedBox(height: 28),
           KeyedSubtree(key: _strategyKey, child: const _Section('strategy')),
           Text('version ${a.strategyVersion}', style: DojiType.label),

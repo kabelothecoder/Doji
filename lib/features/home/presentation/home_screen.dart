@@ -13,6 +13,9 @@ import '../../../core/platform/platform_info.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../accounts/presentation/widgets/payout_card.dart';
+import '../../analyst/presentation/analyst_controller.dart';
+import '../../analyst/presentation/weekly_review_card.dart';
 import '../../app_lock/presentation/app_lock_controller.dart';
 import '../../onboarding/presentation/onboarding_controller.dart';
 import '../../markets/domain/instrument_catalog.dart';
@@ -87,6 +90,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // The docked rail shows the first instrument's brief (the same one as 1b).
     final railBrief = wide ? ref.watch(pairBriefProvider(snap.instruments.first)).value : null;
     final zone = userZoneFromProfile(profile);
+    final focus = ref.watch(focusRuleProvider);
 
     final evening = isEvening();
     final zero = isDayZero(profile);
@@ -109,6 +113,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           lossesToCooldown: snap.lossesToCooldown,
           onCoach: () => context.push(Routes.coach),
         ),
+      if (focus != null) const FocusRuleLine(),
       if (state.dayClosed)
         const DayClosedCard()
       else if (evening)
@@ -148,6 +153,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         OpenCard(doneAt: state.openDoneAt, mood: state.mood, onStart: _startOpen),
         AiBriefCard(instruments: snap.instruments),
         RulesTodayCard(usage: snap.usage, note: snap.accountNote, onLogTrade: _logTrade),
+        if (snap.payout.isNotEmpty) PayoutCard(rules: snap.payout),
         InsightCard(onTap: () => context.go(Routes.journal)),
         if (!evening && !state.dayClosed)
           CloseDayRow(onStart: () => unawaited(context.push(Routes.closeDay))),
@@ -209,6 +215,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   nextNews: '[US CPI]',
                                   newsCountdown: '02:15:00',
                                   logged: state.lastEmotion,
+                                  focusRule: focus,
                                   onLogEmotion: _logEmotion,
                                   onClose: () => setState(() => _railOpen = false),
                                 )

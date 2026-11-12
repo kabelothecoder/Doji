@@ -1,4 +1,5 @@
 import '../../../core/widgets/grid_cell.dart';
+import '../../accounts/domain/payout_readiness.dart';
 import '../../journal/domain/journal_stats.dart';
 import '../../journal/domain/trade.dart';
 import '../../markets/domain/instrument_catalog.dart';
@@ -64,6 +65,7 @@ class HomeSnapshot {
     required this.score,
     required this.streak,
     this.accountNote,
+    this.payout = const [],
   });
 
   final String name;
@@ -81,6 +83,9 @@ class HomeSnapshot {
   /// Where the loss % and drawdown come from when the account is linked:
   /// "broker figures · as of 14:02", or why the journal is used instead.
   final String? accountNote;
+
+  /// Prop accounts only: distance to each payout rule (empty otherwise).
+  final List<RuleDistance> payout;
 
   /// Shown after two losses in a row.
   bool get tilt => losses >= 2;
@@ -158,6 +163,15 @@ class HomeSnapshot {
       score: 812, // sample data, labelled as such on screen
       streak: null, // TODO(next-slice): "[n] days" from the grid
       accountNote: accountNote,
+      payout: prop == null
+          ? const []
+          : PayoutReadiness.of(
+              trades: trades,
+              prop: prop,
+              dailyLossUsedPct: _round2(lossPct),
+              dailyLossLimitPct: lossLimit,
+              drawdown: drawdown,
+            ),
     );
   }
 }

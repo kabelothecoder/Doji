@@ -41,7 +41,7 @@ Future<void> showBriefChatSheet(
   );
 }
 
-class BriefChatSheet extends ConsumerStatefulWidget {
+class BriefChatSheet extends ConsumerWidget {
   const BriefChatSheet({super.key, required this.symbol, this.ask, this.listen = false});
 
   final String symbol;
@@ -49,10 +49,62 @@ class BriefChatSheet extends ConsumerStatefulWidget {
   final bool listen;
 
   @override
-  ConsumerState<BriefChatSheet> createState() => _BriefChatSheetState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final brief = ref.watch(pairBriefProvider(symbol)).value;
+    final zone = userZoneFromProfile(ref.watch(marketsProfileProvider));
+    final name = displaySymbol(symbol);
+    return ChatSheet(
+      title: 'ask about this brief',
+      scope: brief == null
+          ? 'scoped to your $name brief'
+          : 'scoped to your $name brief · updated ${clockTime(zone, brief.updatedAt)}',
+      hint: 'ask about this brief',
+      fieldLabel: 'question about this brief',
+      footer: 'Measured against your strategy. Not financial advice.',
+      followUps: brief?.followUps ?? const [],
+      watch: (ref) => ref.watch(briefChatControllerProvider(symbol)),
+      controller: (ref) => ref.read(briefChatControllerProvider(symbol).notifier),
+      ask: ask,
+      listen: listen,
+    );
+  }
 }
 
-class _BriefChatSheetState extends ConsumerState<BriefChatSheet> {
+/// The chat sheet body shared by the brief chat and the analyst: turns,
+/// listening, thinking, follow-ups, a typed field with the mic when voice is on.
+class ChatSheet extends ConsumerStatefulWidget {
+  const ChatSheet({
+    super.key,
+    required this.title,
+    required this.scope,
+    required this.hint,
+    required this.fieldLabel,
+    required this.footer,
+    required this.watch,
+    required this.controller,
+    this.followUps = const [],
+    this.ask,
+    this.listen = false,
+  });
+
+  final String title;
+
+  /// The line under the title: what the chat reads.
+  final String scope;
+  final String hint;
+  final String fieldLabel;
+  final String footer;
+  final List<String> followUps;
+  final BriefChatState Function(WidgetRef ref) watch;
+  final ChatController Function(WidgetRef ref) controller;
+  final String? ask;
+  final bool listen;
+
+  @override
+  ConsumerState<ChatSheet> createState() => _ChatSheetState();
+}
+
+class _ChatSheetState extends ConsumerState<ChatSheet> {
   final _text = TextEditingController();
   final _focus = FocusNode();
 
@@ -65,12 +117,12 @@ class _BriefChatSheetState extends ConsumerState<BriefChatSheet> {
     _text.addListener(() => setState(() {}));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final c = ref.read(briefChatControllerProvider(widget.symbol).notifier);
+      final c = widget.controller(ref);
       final ask = widget.ask;
       if (ask != null) {
         unawaited(c.send(ask));
       } else if (widget.listen) {
-        if (ref.read(briefChatControllerProvider(widget.symbol)).voice == ChatVoice.available) {
+        if (widget.watch(ref).voice == ChatVoice.available) {
           unawaited(c.toggleMic());
         } else {
           setState(() => _wantedVoice = true);
@@ -90,23 +142,20 @@ class _BriefChatSheetState extends ConsumerState<BriefChatSheet> {
   void _send() {
     final words = _text.text.trim();
     if (words.isEmpty) return;
-    unawaited(ref.read(briefChatControllerProvider(widget.symbol).notifier).send(words));
+    unawaited(widget.controller(ref).send(words));
     _text.clear();
   }
 
   Future<void> _close() async {
-    await ref.read(briefChatControllerProvider(widget.symbol).notifier).end();
+    await widget.controller(ref).end();
     if (mounted) Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    final s = ref.watch(briefChatControllerProvider(widget.symbol));
-    final c = ref.read(briefChatControllerProvider(widget.symbol).notifier);
-    final brief = ref.watch(pairBriefProvider(widget.symbol)).value;
-    final zone = userZoneFromProfile(ref.watch(marketsProfileProvider));
+    final s = widget.watch(ref);
+    final c = widget.controller(ref);
     final ios = PlatformInfo.isIOS;
-    final name = displaySymbol(widget.symbol);
     final insets = MediaQuery.viewInsetsOf(context).bottom;
 
     Widget content(ScrollController scroll) => Column(
@@ -130,7 +179,7 @@ class _BriefChatSheetState extends ConsumerState<BriefChatSheet> {
                 child: Semantics(
                   header: true,
                   child: Text(
-                    'ask about this brief',
+                    widget.title,
                     textAlign: ios ? TextAlign.center : TextAlign.start,
                     style: DojiType.headline.copyWith(fontSize: 17),
                   ),
@@ -151,12 +200,7 @@ class _BriefChatSheetState extends ConsumerState<BriefChatSheet> {
             controller: scroll,
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
             children: [
-              Text(
-                brief == null
-                    ? 'scoped to your $name brief'
-                    : 'scoped to your $name brief · updated ${clockTime(zone, brief.updatedAt)}',
-                style: DojiType.hint,
-              ),
+              Text(widget.scope, style: DojiType.hint),
               const SizedBox(height: 16),
               for (final t in s.turns) ...[_Turn(t), const SizedBox(height: 14)],
               if (s.listening) ...[
@@ -178,13 +222,13 @@ class _BriefChatSheetState extends ConsumerState<BriefChatSheet> {
               if (s.missedWords)
                 const TerminalLine("didn't catch that. tap the mic and speak.", tone: TerminalTone.primary),
               if (_wantedVoice || s.voice == ChatVoice.microphone) _VoiceNotice(voice: s.voice),
-              if (s.turns.isEmpty && !s.thinking && brief != null && brief.followUps.isNotEmpty) ...[
+              if (s.turns.isEmpty && !s.thinking && widget.followUps.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    for (final q in brief.followUps) FollowUpChip(label: q, onPressed: () => c.send(q)),
+                    for (final q in widget.followUps) FollowUpChip(label: q, onPressed: () => c.send(q)),
                   ],
                 ),
               ],
@@ -201,8 +245,8 @@ class _BriefChatSheetState extends ConsumerState<BriefChatSheet> {
                 controller: _text,
                 focusNode: _focus,
                 large: false,
-                hint: 'ask about this brief',
-                semanticLabel: 'question about this brief',
+                hint: widget.hint,
+                semanticLabel: widget.fieldLabel,
                 textInputAction: TextInputAction.send,
                 textCapitalization: TextCapitalization.sentences,
                 onSubmitted: (_) => _send(),
@@ -231,7 +275,7 @@ class _BriefChatSheetState extends ConsumerState<BriefChatSheet> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Measured against your strategy. Not financial advice.',
+                widget.footer,
                 textAlign: TextAlign.center,
                 style: DojiType.callout.copyWith(fontSize: 13),
               ),
