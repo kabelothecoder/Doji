@@ -12,7 +12,10 @@ import '../../home/presentation/widgets/home_card.dart';
 import '../../chart/data/chart_note_repository.dart';
 import '../../chart/domain/chart_note.dart';
 import '../../markets/domain/instrument_catalog.dart';
+import '../../markets/data/sample_news_calendar.dart';
+import '../../markets/domain/news.dart';
 import '../domain/formatting.dart';
+import '../domain/guardrails.dart';
 import '../domain/journal_stats.dart';
 import '../domain/process_grade.dart';
 import '../domain/trade.dart';
@@ -194,6 +197,7 @@ class _TradeDetailScreenState extends ConsumerState<TradeDetailScreen> {
         if (t.reviewed && grade != null)
           _GradeReasons(trade: t, grade: grade, riskPercent: profile.rules?.riskPerTrade),
         if (t.reviewed) _ReviewBlock(trade: t),
+        _Guardrails(trade: t),
         _ChartNotes(tradeId: t.id, decimals: decimals),
         _DeleteRow(
           confirming: _confirmDelete,
@@ -464,6 +468,48 @@ class _DeleteRow extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// High-impact news around a trade's open, for its guardrail flags.
+final _newsNearProvider = FutureProvider.autoDispose.family<List<NewsEvent>, Trade>((ref, t) async {
+  final currencies = newsCurrencies(instrumentBySymbol(t.symbol));
+  if (currencies.isEmpty) return const [];
+  const buffer = Duration(minutes: kNewsBufferMinutes);
+  return ref
+      .watch(newsCalendarProvider)
+      .highImpact(currencies: currencies, from: t.openedAt.subtract(buffer), to: t.openedAt.add(buffer));
+});
+
+/// GUARDRAILS: how the trade was taken against the account's own rules (`guardrailFlags`).
+/// Hidden when there is nothing to say.
+class _Guardrails extends ConsumerWidget {
+  const _Guardrails({required this.trade});
+
+  final Trade trade;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final p = ref.watch(journalProfileProvider);
+    final account = p.accounts.where((a) => a.id == trade.accountId).firstOrNull ?? p.activeAccount;
+    final news = ref.watch(_newsNearProvider(trade)).value ?? const <NewsEvent>[];
+    final flags = guardrailFlags(trade, account: account, news: news);
+    if (flags.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(header: true, child: Text('GUARDRAILS', style: DojiType.label)),
+          const SizedBox(height: 8),
+          for (final f in flags)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text('· $f', style: DojiType.callout),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -1321,7 +1321,11 @@ mixin _$TradingRules {
 
 /// Percent of account per trade (1.0 = 1%).
  double? get riskPerTrade; int? get maxTradesPerDay;/// Percent of account; stop for the day at -x%.
- double? get dailyLossLimit;
+ double? get dailyLossLimit;/// Walk-away rules (`WalkAway`), all optional. Stop for the day at +x%.
+ double? get dailyGainCap;/// Stop after giving back x% of today's best running result.
+ double? get giveBackPct;/// Stop after the first winning trade of the day.
+ bool? get oneAndDone;/// Trading window inside the session, local HH:mm (`outsideWindow`). Either may be null.
+ String? get noTradesBefore; String? get noTradesAfter;
 /// Create a copy of TradingRules
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1334,16 +1338,16 @@ $TradingRulesCopyWith<TradingRules> get copyWith => _$TradingRulesCopyWithImpl<T
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TradingRules&&(identical(other.riskPerTrade, riskPerTrade) || other.riskPerTrade == riskPerTrade)&&(identical(other.maxTradesPerDay, maxTradesPerDay) || other.maxTradesPerDay == maxTradesPerDay)&&(identical(other.dailyLossLimit, dailyLossLimit) || other.dailyLossLimit == dailyLossLimit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TradingRules&&(identical(other.riskPerTrade, riskPerTrade) || other.riskPerTrade == riskPerTrade)&&(identical(other.maxTradesPerDay, maxTradesPerDay) || other.maxTradesPerDay == maxTradesPerDay)&&(identical(other.dailyLossLimit, dailyLossLimit) || other.dailyLossLimit == dailyLossLimit)&&(identical(other.dailyGainCap, dailyGainCap) || other.dailyGainCap == dailyGainCap)&&(identical(other.giveBackPct, giveBackPct) || other.giveBackPct == giveBackPct)&&(identical(other.oneAndDone, oneAndDone) || other.oneAndDone == oneAndDone)&&(identical(other.noTradesBefore, noTradesBefore) || other.noTradesBefore == noTradesBefore)&&(identical(other.noTradesAfter, noTradesAfter) || other.noTradesAfter == noTradesAfter));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,riskPerTrade,maxTradesPerDay,dailyLossLimit);
+int get hashCode => Object.hash(runtimeType,riskPerTrade,maxTradesPerDay,dailyLossLimit,dailyGainCap,giveBackPct,oneAndDone,noTradesBefore,noTradesAfter);
 
 @override
 String toString() {
-  return 'TradingRules(riskPerTrade: $riskPerTrade, maxTradesPerDay: $maxTradesPerDay, dailyLossLimit: $dailyLossLimit)';
+  return 'TradingRules(riskPerTrade: $riskPerTrade, maxTradesPerDay: $maxTradesPerDay, dailyLossLimit: $dailyLossLimit, dailyGainCap: $dailyGainCap, giveBackPct: $giveBackPct, oneAndDone: $oneAndDone, noTradesBefore: $noTradesBefore, noTradesAfter: $noTradesAfter)';
 }
 
 
@@ -1354,7 +1358,7 @@ abstract mixin class $TradingRulesCopyWith<$Res>  {
   factory $TradingRulesCopyWith(TradingRules value, $Res Function(TradingRules) _then) = _$TradingRulesCopyWithImpl;
 @useResult
 $Res call({
- double? riskPerTrade, int? maxTradesPerDay, double? dailyLossLimit
+ double? riskPerTrade, int? maxTradesPerDay, double? dailyLossLimit, double? dailyGainCap, double? giveBackPct, bool? oneAndDone, String? noTradesBefore, String? noTradesAfter
 });
 
 
@@ -1371,12 +1375,17 @@ class _$TradingRulesCopyWithImpl<$Res>
 
 /// Create a copy of TradingRules
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? riskPerTrade = freezed,Object? maxTradesPerDay = freezed,Object? dailyLossLimit = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? riskPerTrade = freezed,Object? maxTradesPerDay = freezed,Object? dailyLossLimit = freezed,Object? dailyGainCap = freezed,Object? giveBackPct = freezed,Object? oneAndDone = freezed,Object? noTradesBefore = freezed,Object? noTradesAfter = freezed,}) {
   return _then(_self.copyWith(
 riskPerTrade: freezed == riskPerTrade ? _self.riskPerTrade : riskPerTrade // ignore: cast_nullable_to_non_nullable
 as double?,maxTradesPerDay: freezed == maxTradesPerDay ? _self.maxTradesPerDay : maxTradesPerDay // ignore: cast_nullable_to_non_nullable
 as int?,dailyLossLimit: freezed == dailyLossLimit ? _self.dailyLossLimit : dailyLossLimit // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,dailyGainCap: freezed == dailyGainCap ? _self.dailyGainCap : dailyGainCap // ignore: cast_nullable_to_non_nullable
+as double?,giveBackPct: freezed == giveBackPct ? _self.giveBackPct : giveBackPct // ignore: cast_nullable_to_non_nullable
+as double?,oneAndDone: freezed == oneAndDone ? _self.oneAndDone : oneAndDone // ignore: cast_nullable_to_non_nullable
+as bool?,noTradesBefore: freezed == noTradesBefore ? _self.noTradesBefore : noTradesBefore // ignore: cast_nullable_to_non_nullable
+as String?,noTradesAfter: freezed == noTradesAfter ? _self.noTradesAfter : noTradesAfter // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1461,10 +1470,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double? riskPerTrade,  int? maxTradesPerDay,  double? dailyLossLimit)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( double? riskPerTrade,  int? maxTradesPerDay,  double? dailyLossLimit,  double? dailyGainCap,  double? giveBackPct,  bool? oneAndDone,  String? noTradesBefore,  String? noTradesAfter)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TradingRules() when $default != null:
-return $default(_that.riskPerTrade,_that.maxTradesPerDay,_that.dailyLossLimit);case _:
+return $default(_that.riskPerTrade,_that.maxTradesPerDay,_that.dailyLossLimit,_that.dailyGainCap,_that.giveBackPct,_that.oneAndDone,_that.noTradesBefore,_that.noTradesAfter);case _:
   return orElse();
 
 }
@@ -1482,10 +1491,10 @@ return $default(_that.riskPerTrade,_that.maxTradesPerDay,_that.dailyLossLimit);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double? riskPerTrade,  int? maxTradesPerDay,  double? dailyLossLimit)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( double? riskPerTrade,  int? maxTradesPerDay,  double? dailyLossLimit,  double? dailyGainCap,  double? giveBackPct,  bool? oneAndDone,  String? noTradesBefore,  String? noTradesAfter)  $default,) {final _that = this;
 switch (_that) {
 case _TradingRules():
-return $default(_that.riskPerTrade,_that.maxTradesPerDay,_that.dailyLossLimit);case _:
+return $default(_that.riskPerTrade,_that.maxTradesPerDay,_that.dailyLossLimit,_that.dailyGainCap,_that.giveBackPct,_that.oneAndDone,_that.noTradesBefore,_that.noTradesAfter);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1502,10 +1511,10 @@ return $default(_that.riskPerTrade,_that.maxTradesPerDay,_that.dailyLossLimit);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double? riskPerTrade,  int? maxTradesPerDay,  double? dailyLossLimit)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( double? riskPerTrade,  int? maxTradesPerDay,  double? dailyLossLimit,  double? dailyGainCap,  double? giveBackPct,  bool? oneAndDone,  String? noTradesBefore,  String? noTradesAfter)?  $default,) {final _that = this;
 switch (_that) {
 case _TradingRules() when $default != null:
-return $default(_that.riskPerTrade,_that.maxTradesPerDay,_that.dailyLossLimit);case _:
+return $default(_that.riskPerTrade,_that.maxTradesPerDay,_that.dailyLossLimit,_that.dailyGainCap,_that.giveBackPct,_that.oneAndDone,_that.noTradesBefore,_that.noTradesAfter);case _:
   return null;
 
 }
@@ -1517,7 +1526,7 @@ return $default(_that.riskPerTrade,_that.maxTradesPerDay,_that.dailyLossLimit);c
 @JsonSerializable()
 
 class _TradingRules implements TradingRules {
-  const _TradingRules({this.riskPerTrade, this.maxTradesPerDay, this.dailyLossLimit});
+  const _TradingRules({this.riskPerTrade, this.maxTradesPerDay, this.dailyLossLimit, this.dailyGainCap, this.giveBackPct, this.oneAndDone, this.noTradesBefore, this.noTradesAfter});
   factory _TradingRules.fromJson(Map<String, dynamic> json) => _$TradingRulesFromJson(json);
 
 /// Percent of account per trade (1.0 = 1%).
@@ -1525,6 +1534,15 @@ class _TradingRules implements TradingRules {
 @override final  int? maxTradesPerDay;
 /// Percent of account; stop for the day at -x%.
 @override final  double? dailyLossLimit;
+/// Walk-away rules (`WalkAway`), all optional. Stop for the day at +x%.
+@override final  double? dailyGainCap;
+/// Stop after giving back x% of today's best running result.
+@override final  double? giveBackPct;
+/// Stop after the first winning trade of the day.
+@override final  bool? oneAndDone;
+/// Trading window inside the session, local HH:mm (`outsideWindow`). Either may be null.
+@override final  String? noTradesBefore;
+@override final  String? noTradesAfter;
 
 /// Create a copy of TradingRules
 /// with the given fields replaced by the non-null parameter values.
@@ -1539,16 +1557,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TradingRules&&(identical(other.riskPerTrade, riskPerTrade) || other.riskPerTrade == riskPerTrade)&&(identical(other.maxTradesPerDay, maxTradesPerDay) || other.maxTradesPerDay == maxTradesPerDay)&&(identical(other.dailyLossLimit, dailyLossLimit) || other.dailyLossLimit == dailyLossLimit));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TradingRules&&(identical(other.riskPerTrade, riskPerTrade) || other.riskPerTrade == riskPerTrade)&&(identical(other.maxTradesPerDay, maxTradesPerDay) || other.maxTradesPerDay == maxTradesPerDay)&&(identical(other.dailyLossLimit, dailyLossLimit) || other.dailyLossLimit == dailyLossLimit)&&(identical(other.dailyGainCap, dailyGainCap) || other.dailyGainCap == dailyGainCap)&&(identical(other.giveBackPct, giveBackPct) || other.giveBackPct == giveBackPct)&&(identical(other.oneAndDone, oneAndDone) || other.oneAndDone == oneAndDone)&&(identical(other.noTradesBefore, noTradesBefore) || other.noTradesBefore == noTradesBefore)&&(identical(other.noTradesAfter, noTradesAfter) || other.noTradesAfter == noTradesAfter));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,riskPerTrade,maxTradesPerDay,dailyLossLimit);
+int get hashCode => Object.hash(runtimeType,riskPerTrade,maxTradesPerDay,dailyLossLimit,dailyGainCap,giveBackPct,oneAndDone,noTradesBefore,noTradesAfter);
 
 @override
 String toString() {
-  return 'TradingRules(riskPerTrade: $riskPerTrade, maxTradesPerDay: $maxTradesPerDay, dailyLossLimit: $dailyLossLimit)';
+  return 'TradingRules(riskPerTrade: $riskPerTrade, maxTradesPerDay: $maxTradesPerDay, dailyLossLimit: $dailyLossLimit, dailyGainCap: $dailyGainCap, giveBackPct: $giveBackPct, oneAndDone: $oneAndDone, noTradesBefore: $noTradesBefore, noTradesAfter: $noTradesAfter)';
 }
 
 
@@ -1559,7 +1577,7 @@ abstract mixin class _$TradingRulesCopyWith<$Res> implements $TradingRulesCopyWi
   factory _$TradingRulesCopyWith(_TradingRules value, $Res Function(_TradingRules) _then) = __$TradingRulesCopyWithImpl;
 @override @useResult
 $Res call({
- double? riskPerTrade, int? maxTradesPerDay, double? dailyLossLimit
+ double? riskPerTrade, int? maxTradesPerDay, double? dailyLossLimit, double? dailyGainCap, double? giveBackPct, bool? oneAndDone, String? noTradesBefore, String? noTradesAfter
 });
 
 
@@ -1576,12 +1594,17 @@ class __$TradingRulesCopyWithImpl<$Res>
 
 /// Create a copy of TradingRules
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? riskPerTrade = freezed,Object? maxTradesPerDay = freezed,Object? dailyLossLimit = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? riskPerTrade = freezed,Object? maxTradesPerDay = freezed,Object? dailyLossLimit = freezed,Object? dailyGainCap = freezed,Object? giveBackPct = freezed,Object? oneAndDone = freezed,Object? noTradesBefore = freezed,Object? noTradesAfter = freezed,}) {
   return _then(_TradingRules(
 riskPerTrade: freezed == riskPerTrade ? _self.riskPerTrade : riskPerTrade // ignore: cast_nullable_to_non_nullable
 as double?,maxTradesPerDay: freezed == maxTradesPerDay ? _self.maxTradesPerDay : maxTradesPerDay // ignore: cast_nullable_to_non_nullable
 as int?,dailyLossLimit: freezed == dailyLossLimit ? _self.dailyLossLimit : dailyLossLimit // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,dailyGainCap: freezed == dailyGainCap ? _self.dailyGainCap : dailyGainCap // ignore: cast_nullable_to_non_nullable
+as double?,giveBackPct: freezed == giveBackPct ? _self.giveBackPct : giveBackPct // ignore: cast_nullable_to_non_nullable
+as double?,oneAndDone: freezed == oneAndDone ? _self.oneAndDone : oneAndDone // ignore: cast_nullable_to_non_nullable
+as bool?,noTradesBefore: freezed == noTradesBefore ? _self.noTradesBefore : noTradesBefore // ignore: cast_nullable_to_non_nullable
+as String?,noTradesAfter: freezed == noTradesAfter ? _self.noTradesAfter : noTradesAfter // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

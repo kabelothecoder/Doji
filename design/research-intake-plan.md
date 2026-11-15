@@ -13,6 +13,7 @@ no profit promises, measured facts only, strategies stay personal.
 | S3 | YouTube, Trading Fanatic | how to backtest, 10 data points, forward testing |
 | S4 | YouTube, Forex Tester 5 sponsor video | backtest process, confidence from reps |
 | S5 | YouTube, Brad (Market Mechanics) | small accounts blowing up; 5 rules; sells Edgeflow (competitor) |
+| S6 | YouTube, Brad (Market Mechanics) | building a trading plan; a demo of Edgeflow's plan builder |
 
 ## Shortlist (proposed slices, in order)
 
@@ -29,7 +30,7 @@ no profit promises, measured facts only, strategies stay personal.
   window → "3 changes in 6 weeks; each version has too few trades to judge." Analyst + coach fact.
 - Later: evening "orders for tomorrow" plan on close-your-day (entry, stop, target R) for busy traders.
 
-### 2. Rules slice: walk-away rules + guardrail flags (S2, S5)
+### 2. Rules slice: walk-away rules + guardrail flags (S2, S5) — gain cap, give-back, one-and-done built 2026-11-15 (Home + editor); windows and guardrail flags built the same day (trade detail)
 
 New optional `TradingRules` fields, measured from the journal, shown on Home, the rail meters, the
 analyst and `PayoutReadiness`-style lines:
@@ -46,6 +47,20 @@ Guardrail flags on journal save (feed the process grade):
 - **Opened in the news window** (`kNewsBufferMinutes`).
 
 All nullable → no `kOnboardingVersion` bump.
+
+### 2b. Strategy version on trades + plan-kept rate (S6) — do before 3
+
+- **Tag trades with the strategy version** at save (`Trade.strategyVersion`, like `accountId`). Needed by
+  the hopping guard (1), the backtest-vs-live comparison (3) and the analyst.
+- **Plan-kept rate per version**: "you kept the plan on 14 of 20 trades" from the review's `PlanFollowed`,
+  next to R totals. A process measure; no win rate.
+- **Plan review at the Open**: the strategy words, conditions and exits as one step of the Open ritual,
+  ticked with "read it". No separate banner.
+- **Editing the strategy words makes a new version** (today only adopting a backtest draft does), so
+  stats never mix two plans. `StrategyVersion` already exists.
+- **Structured free text** in the editor: "where i'm wrong", "where i'm right", "when i don't trade".
+  The coach, co-pilot and analyst read them as the trader's words. No fixed checklists.
+- **Pinned example charts per setup** (same as the playbook in 5).
 
 ### 3. Backtest from replay + room-to-run + streak context (S3, S4)
 
@@ -107,6 +122,11 @@ For `_shared/voice.ts` and each `spec.ts` when backend work resumes. Every line 
 - Greed and fear show up as broken rules: name the emotion, then point at the rule. (S5)
 - A small account is tuition, not a lottery ticket. (S5)
 
+- "Discipline gets easier when the plan is clear": on a rule break, ask whether the plan said what to
+  do there before talking about willpower. (S6)
+- "Plan first, trade second": the pre-trade check asks whether this was decided before the chart moved. (S6)
+- A plan evolves by data: one change at a time, then compare versions. (S6)
+
 ## Rejected (and why)
 
 | Idea | Source | Why |
@@ -120,12 +140,18 @@ For `_shared/voice.ts` and each `spec.ts` when backend work resumes. Every line 
 | "Follow the banks", structural flips, float filters, HH/LL entries | S1, S2 | strategy content; strategies are personal |
 | "Background position hedges your losses" | S1 | unsupported claim |
 | Diet chapter (plant-based, processed meat) | S2 | medical opinion, out of scope |
+| Win rate and P&L per plan | S6 | doji shows R and plan-kept rate |
+| "Proven" preset plan templates from a paid mentorship | S6 | unverifiable; strategies are personal |
+| "If price comes here, I'm going to buy" | S6 | direction language |
+| A+/B/C setup grades as a fixed scale | S6 | the process grade covers it |
 | Course, platform and affiliate pitches (Falcon, FX Replay, Forex Tester, Notion, Edgeflow) | all | promotion |
 
 ## Competitor note
 
 Edgeflow (S5): forex "trading super app" with plan, journal and guardrails against blowing accounts.
-Overlaps doji's core. Doji's difference: rules measured on the trader's own words, practice (gym),
+Overlaps doji's core. Demo (S6): plan builder with sections, read-only once saved, daily "review your
+plan" banner, active plan auto-tags journal trades, per-plan stats with compliance % and win rate,
+universal guardrails, preset templates. Doji's difference: rules measured on the trader's own words, practice (gym),
 prop payout tracking, coach.
 
 ## Phase fit

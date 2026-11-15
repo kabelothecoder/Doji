@@ -225,6 +225,19 @@ abstract class TradingRules with _$TradingRules {
 
     /// Percent of account; stop for the day at -x%.
     double? dailyLossLimit,
+
+    /// Walk-away rules (`WalkAway`), all optional. Stop for the day at +x%.
+    double? dailyGainCap,
+
+    /// Stop after giving back x% of today's best running result.
+    double? giveBackPct,
+
+    /// Stop after the first winning trade of the day.
+    bool? oneAndDone,
+
+    /// Trading window inside the session, local HH:mm (`outsideWindow`). Either may be null.
+    String? noTradesBefore,
+    String? noTradesAfter,
   }) = _TradingRules;
 
   factory TradingRules.fromJson(Map<String, dynamic> json) => _$TradingRulesFromJson(json);

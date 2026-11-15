@@ -113,6 +113,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           lossesToCooldown: snap.lossesToCooldown,
           onCoach: () => context.push(Routes.coach),
         ),
+      if (snap.walkAway case final line?) WalkAwayCard(line: line),
       if (focus != null) const FocusRuleLine(),
       if (state.dayClosed)
         const DayClosedCard()

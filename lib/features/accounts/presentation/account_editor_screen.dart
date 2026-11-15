@@ -16,6 +16,7 @@ import '../../home/domain/home_models.dart';
 import '../../journal/presentation/journal_controller.dart';
 import '../../markets/domain/currency.dart';
 import '../../onboarding/data/onboarding_repository.dart';
+import '../../journal/domain/guardrails.dart';
 import '../../onboarding/domain/availability.dart';
 import '../../onboarding/domain/onboarding_catalog.dart';
 import '../../onboarding/domain/profile_doji.dart';
@@ -341,6 +342,49 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
             format: (v) => '${_fmt(v)}%',
             semanticUnit: 'percent',
             onChanged: (v) => _edit((a) => a.copyWith(rules: _rules.copyWith(dailyLossLimit: v))),
+          ),
+          const SizedBox(height: 20),
+          const _Label('WALK AWAY'),
+          Text('optional. doji says when one is reached; it never blocks a trade.', style: DojiType.hint),
+          const SizedBox(height: 8),
+          _OptionalPct(
+            label: 'stop at a gain of',
+            value: _rules.dailyGainCap,
+            initial: 2,
+            onChanged: (v) => _edit((a) => a.copyWith(rules: _rules.copyWith(dailyGainCap: v))),
+          ),
+          const SizedBox(height: 12),
+          _OptionalPct(
+            label: "stop after giving back of today's best",
+            value: _rules.giveBackPct,
+            initial: 50,
+            min: 10,
+            max: 90,
+            step: 10,
+            onChanged: (v) => _edit((a) => a.copyWith(rules: _rules.copyWith(giveBackPct: v))),
+          ),
+          const SizedBox(height: 12),
+          _OptionalTime(
+            label: 'no trades before',
+            value: _rules.noTradesBefore,
+            initial: '09:00',
+            onChanged: (v) => _edit((a) => a.copyWith(rules: _rules.copyWith(noTradesBefore: v))),
+          ),
+          const SizedBox(height: 12),
+          _OptionalTime(
+            label: 'no trades after',
+            value: _rules.noTradesAfter,
+            initial: '12:00',
+            onChanged: (v) => _edit((a) => a.copyWith(rules: _rules.copyWith(noTradesAfter: v))),
+          ),
+          const SizedBox(height: 12),
+          _Chips<bool>(
+            options: const {
+              false: 'keep trading after a win',
+              true: 'one and done: stop after the first win',
+            },
+            selected: _rules.oneAndDone ?? false,
+            onTap: (on) => _edit((a) => a.copyWith(rules: _rules.copyWith(oneAndDone: on ? true : null))),
           ),
           const SizedBox(height: 28),
           const _Section('prop rules'),
@@ -825,6 +869,95 @@ class _AvailabilityFit extends ConsumerWidget {
         if (fit != null) ...[
           const SizedBox(height: 8),
           Text('${fit.fits ? 'fits' : 'check this'} · ${fit.line}', style: DojiType.callout),
+        ],
+      ],
+    );
+  }
+}
+
+/// An optional percent rule: off, or on with a stepper. Off stores null.
+class _OptionalPct extends StatelessWidget {
+  const _OptionalPct({
+    required this.label,
+    required this.value,
+    required this.initial,
+    required this.onChanged,
+    this.min = 0.5,
+    this.max = 10,
+    this.step = 0.5,
+  });
+
+  final String label;
+  final double? value;
+  final double initial;
+  final double min;
+  final double max;
+  final double step;
+  final ValueChanged<double?> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      _Chips<bool>(
+        options: {false: 'no limit', true: label},
+        selected: value != null,
+        onTap: (on) => onChanged(on ? (value ?? initial) : null),
+      ),
+      if (value case final v?) ...[
+        const SizedBox(height: 8),
+        DojiStepper(
+          label: label,
+          value: v,
+          min: min,
+          max: max,
+          step: step,
+          format: (x) => '${_AccountEditorScreenState._fmt(x)}%',
+          semanticUnit: 'percent',
+          onChanged: onChanged,
+        ),
+      ],
+    ],
+  );
+}
+
+/// An optional local time (HH:mm, 15-minute steps): off, or on with a stepper. Off stores null.
+class _OptionalTime extends StatelessWidget {
+  const _OptionalTime({
+    required this.label,
+    required this.value,
+    required this.initial,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String? value;
+  final String initial;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final minutes = minutesOf(value);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _Chips<bool>(
+          options: {false: 'any time', true: label},
+          selected: minutes != null,
+          onTap: (on) => onChanged(on ? (value ?? initial) : null),
+        ),
+        if (minutes != null) ...[
+          const SizedBox(height: 8),
+          DojiStepper(
+            label: '$label (your time)',
+            value: minutes.toDouble(),
+            min: 0,
+            max: 23 * 60 + 45,
+            step: 15,
+            format: (x) => hhmm(x.round()),
+            semanticUnit: 'minutes after midnight',
+            onChanged: (x) => onChanged(hhmm(x.round())),
+          ),
         ],
       ],
     );

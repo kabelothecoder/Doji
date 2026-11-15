@@ -17,6 +17,7 @@ import '../../onboarding/domain/sessions.dart';
 import '../domain/backtest.dart';
 import '../domain/fills.dart';
 import '../domain/limits_check.dart';
+import '../domain/risk_of_ruin.dart';
 import 'backtest_controller.dart';
 import 'widgets/practice_widgets.dart';
 
@@ -116,6 +117,49 @@ class BacktestScreen extends ConsumerWidget {
       'stop: ${e.stop.label} (+${(e.bufferOfRange * 100).round()}% of the range) · target ${fmtR(e.targetR).replaceFirst('+', '')}'
       '${e.maxBarsOpen == null ? '' : ' · at most ${e.maxBarsOpen} bars'} · closed at the session end';
 
+  static Widget _ruinCard(TradingAccount account, BacktestResult r) {
+    final prop = account.prop;
+    final target = prop?.profitTargetPct ?? 100;
+    final ruin = prop?.maxDrawdownPct ?? 50;
+    final mine = account.rules?.riskPerTrade;
+    final risks = {0.5, 1.0, 2.0, 5.0, 10.0, 20.0, ?mine}.toList()..sort();
+    final rows = riskOfRuin(
+      [for (final t in r.trades.where((t) => t.closed)) t.r],
+      risks: risks,
+      targetPct: target,
+      ruinPct: ruin,
+    );
+    String pct(double v) => '${v == v.roundToDouble() ? v.toInt() : v}%';
+    return PracticeCard(
+      label: 'risk of ruin',
+      children: [
+        Text(
+          'these ${r.stats.setups} setups drawn in random order, 1,000 runs of up to 200 trades each. '
+          'up ${pct(target)} or down ${pct(ruin)} from the start, whichever comes first.',
+          style: DojiType.callout,
+        ),
+        const SizedBox(height: 10),
+        StatsTable(
+          columns: ['up ${pct(target)}', 'down ${pct(ruin)}', 'neither'],
+          rows: [
+            for (final row in rows)
+              (
+                '${pct(row.riskPct)} a trade${row.riskPct == mine ? ' (yours)' : ''}',
+                ['${row.reached}', '${row.ruined}', '${row.neither}'],
+              ),
+          ],
+        ),
+        HintText(
+          prop == null
+              ? 'counts out of 1,000 runs. risk is a % of the starting size. the target and floor are doji\'s '
+                    'defaults: set prop rules to use a firm\'s.'
+              : 'counts out of 1,000 runs. risk is a % of the starting size, as the firm counts it.',
+        ),
+        const HintText('same setups, different order. a sample of the past, not a forecast.'),
+      ],
+    );
+  }
+
   List<Widget> _results(BuildContext context, WidgetRef ref, TradingAccount account, BacktestResult r) {
     final s = r.stats;
     final samplePrices = r.trades
@@ -213,6 +257,7 @@ class BacktestScreen extends ConsumerWidget {
           const HintText('closed trades only: losses open inside a day are not in this check.'),
         ],
       ),
+      if (s.setups > 0) _ruinCard(account, r),
       if (r.trades.isNotEmpty)
         PracticeCard(
           label: 'setups',

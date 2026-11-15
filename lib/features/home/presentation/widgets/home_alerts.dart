@@ -61,6 +61,32 @@ class TiltBanner extends StatelessWidget {
   }
 }
 
+/// A walk-away rule reached today (`HomeSnapshot.walkAway`). Neutral: stopping keeps a rule.
+class WalkAwayCard extends StatelessWidget {
+  const WalkAwayCard({super.key, required this.line});
+
+  final String line;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    liveRegion: true,
+    child: HomeCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const HomeEyebrow('WALK AWAY'),
+          const SizedBox(height: 6),
+          Text(line, style: DojiType.body.copyWith(fontSize: 16, height: 1.4)),
+          const SizedBox(height: 6),
+          Text('your rule, set in the account editor.', style: DojiType.hint),
+        ],
+      ),
+    ),
+  );
+}
+
 /// Design spec `CloseDayCard`, the evening form: opens the 2-prompt reflection
 /// and mindset score.
 class CloseDayCard extends StatelessWidget {

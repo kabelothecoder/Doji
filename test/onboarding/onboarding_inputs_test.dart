@@ -53,7 +53,11 @@ void main() {
       for (final a in ['careful', 'balanced', 'aggressive']) {
         for (final d in ['lt_500', '500_5k', '5k_25k', '25k_plus']) {
           final want = a == 'aggressive' || d == '25k_plus' ? PlanId.pro : PlanId.basic;
-          expect(recommendPlan(ProfileDoji(riskAppetite: a, usualDeposit: d)), want, reason: '$a $d');
+          expect(
+            recommendPlan(ProfileDoji(riskAppetite: a, usualDeposit: d)),
+            want,
+            reason: '$a $d',
+          );
           expect(
             recommendPlan(ProfileDoji(goal: 'prop_challenge', riskAppetite: a, usualDeposit: d)),
             PlanId.elite,

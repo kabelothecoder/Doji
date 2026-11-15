@@ -116,12 +116,22 @@ _TradingRules _$TradingRulesFromJson(Map<String, dynamic> json) => _TradingRules
   riskPerTrade: (json['riskPerTrade'] as num?)?.toDouble(),
   maxTradesPerDay: (json['maxTradesPerDay'] as num?)?.toInt(),
   dailyLossLimit: (json['dailyLossLimit'] as num?)?.toDouble(),
+  dailyGainCap: (json['dailyGainCap'] as num?)?.toDouble(),
+  giveBackPct: (json['giveBackPct'] as num?)?.toDouble(),
+  oneAndDone: json['oneAndDone'] as bool?,
+  noTradesBefore: json['noTradesBefore'] as String?,
+  noTradesAfter: json['noTradesAfter'] as String?,
 );
 
 Map<String, dynamic> _$TradingRulesToJson(_TradingRules instance) => <String, dynamic>{
   'riskPerTrade': ?instance.riskPerTrade,
   'maxTradesPerDay': ?instance.maxTradesPerDay,
   'dailyLossLimit': ?instance.dailyLossLimit,
+  'dailyGainCap': ?instance.dailyGainCap,
+  'giveBackPct': ?instance.giveBackPct,
+  'oneAndDone': ?instance.oneAndDone,
+  'noTradesBefore': ?instance.noTradesBefore,
+  'noTradesAfter': ?instance.noTradesAfter,
 };
 
 _CoachProfile _$CoachProfileFromJson(Map<String, dynamic> json) =>

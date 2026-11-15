@@ -1,5 +1,7 @@
 import '../../../core/widgets/grid_cell.dart';
+import '../../accounts/domain/walk_away.dart';
 import '../../accounts/domain/payout_readiness.dart';
+import '../../journal/domain/guardrails.dart';
 import '../../journal/domain/journal_stats.dart';
 import '../../journal/domain/trade.dart';
 import '../../markets/domain/instrument_catalog.dart';
@@ -66,6 +68,7 @@ class HomeSnapshot {
     required this.streak,
     this.accountNote,
     this.payout = const [],
+    this.walkAway,
   });
 
   final String name;
@@ -86,6 +89,9 @@ class HomeSnapshot {
 
   /// Prop accounts only: distance to each payout rule (empty otherwise).
   final List<RuleDistance> payout;
+
+  /// A walk-away rule reached today (`WalkAway`), said plainly; null while none is.
+  final String? walkAway;
 
   /// Shown after two losses in a row.
   bool get tilt => losses >= 2;
@@ -143,6 +149,11 @@ class HomeSnapshot {
         'max ${rules?.maxTradesPerDay ?? '[3]'} trades',
         'stop at ${_n(lossLimit)}% daily loss',
         if (drawdown != null) 'prop max drawdown ${_n(drawdown.limitPct)}% (${prop!.drawdownLabel})',
+        if (rules?.dailyGainCap case final g?) 'stop at +${_n(g)}% today',
+        if (rules?.giveBackPct case final g?) "stop after giving back ${_n(g)}% of today's best",
+        if (rules?.noTradesBefore != null || rules?.noTradesAfter != null)
+          'trade ${rules?.noTradesBefore ?? 'from the open'} to ${rules?.noTradesAfter ?? 'the close'}',
+        if (rules?.oneAndDone ?? false) 'one and done: stop after the first win',
         'no entries $kNewsBufferMinutes min around high-impact news',
         'only [setup name] setups',
       ],
@@ -163,6 +174,18 @@ class HomeSnapshot {
       score: 812, // sample data, labelled as such on screen
       streak: null, // TODO(next-slice): "[n] days" from the grid
       accountNote: accountNote,
+      walkAway:
+          WalkAway.of(
+            trades,
+            at,
+            rules: rules,
+            accountSize: accountSize,
+            riskPerTradePct: rules?.riskPerTrade ?? 1.0,
+          ).hit ??
+          switch (outsideWindow(rules, at)) {
+            final why? => 'outside your trading window: $why.',
+            null => null,
+          },
       payout: prop == null
           ? const []
           : PayoutReadiness.of(

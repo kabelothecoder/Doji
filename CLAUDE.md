@@ -282,6 +282,18 @@ so Home, the journal, 1b, the brief, the coach and the rail follow it; writes go
   on a busy week does not); shown as the onboarding reply and under YOUR WEEK in the account editor
   (chips save at once). Plan: `design/research-intake-plan.md` › 1; the 90-day re-check and hopping guard
   are not built.
+- **Walk-away rules** (`accounts/domain/walk_away.dart`): optional `TradingRules` fields `dailyGainCap` (stop at
+  +x% today), `giveBackPct` (stop after giving back x% of today's best running result) and `oneAndDone`.
+  `WalkAway.of` measures today's closed trades (money over the starting size, else R × risk %, like
+  `DaySummary.lossPercent`); the first rule reached shows as `WalkAwayCard` on Home and the rules list
+  names the set ones. Edited under WALK AWAY in the account editor (off = null). Never blocks a trade.
+  Not wired yet: the rail, the coach, the pre-trade check.
+- **Trading window + guardrails** (`journal/domain/guardrails.dart`): `TradingRules.noTradesBefore` /
+  `noTradesAfter` (local HH:mm, editor steppers in 15-min steps, off = null); Home shows "outside your
+  trading window" in the walk-away card. `guardrailFlags` (worked out when shown, never stored, not part of
+  the grade): no stop, risk over the account's risk % (10% tolerance, needs a starting size), opened within
+  `kNewsBufferMinutes` of high-impact news (sample calendar), opened outside the window. Shown as GUARDRAILS
+  on trade detail.
 - Not built: reading the trader's sources (only their words); per-account sessions; per-account coach
   voice; syncing accounts; moving a trade to another account.
 
