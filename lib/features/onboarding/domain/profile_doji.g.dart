@@ -69,6 +69,9 @@ _StrategyProfile _$StrategyProfileFromJson(Map<String, dynamic> json) => _Strate
           .toList() ??
       const <StrategyCondition>[],
   exits: json['exits'] == null ? null : ExitRules.fromJson(json['exits'] as Map<String, dynamic>),
+  wrongWhen: json['wrongWhen'] as String?,
+  rightWhen: json['rightWhen'] as String?,
+  stayOutWhen: json['stayOutWhen'] as String?,
 );
 
 Map<String, dynamic> _$StrategyProfileToJson(_StrategyProfile instance) => <String, dynamic>{
@@ -78,6 +81,9 @@ Map<String, dynamic> _$StrategyProfileToJson(_StrategyProfile instance) => <Stri
   'parsed': ?instance.parsed?.toJson(),
   'conditions': instance.conditions.map((e) => e.toJson()).toList(),
   'exits': ?instance.exits?.toJson(),
+  'wrongWhen': ?instance.wrongWhen,
+  'rightWhen': ?instance.rightWhen,
+  'stayOutWhen': ?instance.stayOutWhen,
 };
 
 _ExitRules _$ExitRulesFromJson(Map<String, dynamic> json) => _ExitRules(

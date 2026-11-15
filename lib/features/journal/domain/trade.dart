@@ -93,6 +93,7 @@ class Trade {
     this.reviewedAt,
     this.source = 'manual',
     this.accountId,
+    this.strategyVersion,
   });
 
   final String id;
@@ -131,6 +132,10 @@ class Trade {
   /// those show under "all accounts" only.
   final String? accountId;
 
+  /// The account's strategy version when the trade was saved (`TradingAccount.strategyVersion`),
+  /// so stats never mix two plans. Null on older trades.
+  final int? strategyVersion;
+
   bool get reviewed => reviewedAt != null;
   bool get isWin => pnl > 0;
   bool get isLoss => pnl < 0;
@@ -147,6 +152,32 @@ class Trade {
     if (!reviewed || p == null) return null;
     return ProcessGrade.of(plan: p, mistakes: mistakes, setup: setup);
   }
+
+  /// This trade stamped with [version] (the journal does it on save).
+  Trade withStrategyVersion(int? version) => Trade(
+    id: id,
+    symbol: symbol,
+    direction: direction,
+    openedAt: openedAt,
+    closedAt: closedAt,
+    entry: entry,
+    exit: exit,
+    size: size,
+    pnl: pnl,
+    stop: stop,
+    target: target,
+    riskMoney: riskMoney,
+    setup: setup,
+    plan: plan,
+    mistakes: mistakes,
+    before: before,
+    after: after,
+    note: note,
+    reviewedAt: reviewedAt,
+    source: source,
+    accountId: accountId,
+    strategyVersion: version,
+  );
 
   Duration get timeInTrade => closedAt.difference(openedAt);
 
@@ -172,6 +203,7 @@ class Trade {
     reviewedAt: at,
     source: source,
     accountId: accountId,
+    strategyVersion: strategyVersion,
   );
 
   Map<String, Object?> toJson() => {
@@ -196,6 +228,7 @@ class Trade {
     'reviewedAt': reviewedAt?.toUtc().toIso8601String(),
     'source': source,
     'accountId': accountId,
+    'strategyVersion': strategyVersion,
   };
 
   /// Null for a record that is missing its essentials (skipped, never a crash).
@@ -234,6 +267,7 @@ class Trade {
       reviewedAt: reviewed is String ? DateTime.tryParse(reviewed)?.toUtc() : null,
       source: (json['source'] as String?) ?? 'manual',
       accountId: json['accountId'] as String?,
+      strategyVersion: (json['strategyVersion'] as num?)?.toInt(),
     );
   }
 }

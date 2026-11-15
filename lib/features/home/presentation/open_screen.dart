@@ -11,15 +11,16 @@ import '../../../core/platform/platform_info.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../accounts/domain/condition_eval.dart';
 import '../../markets/domain/instrument_catalog.dart';
 import '../domain/home_models.dart';
 import 'home_controller.dart';
 import 'widgets/home_card.dart';
 
-enum _OpenStep { mood, pledge, brief, done }
+enum _OpenStep { mood, plan, pledge, brief, done }
 
-/// The Open: 60 seconds before the market (Doji Home › 02). Mood, rules
-/// pledge, today's line, done. Closing at any point goes back without
+/// The Open: 60 seconds before the market (Doji Home › 02). Mood, the plan
+/// in the trader's words (research-intake-plan › 2b), rules pledge, today's line, done. Closing at any point goes back without
 /// completing the open.
 class OpenScreen extends ConsumerStatefulWidget {
   const OpenScreen({super.key});
@@ -39,7 +40,7 @@ class _OpenScreenState extends ConsumerState<OpenScreen> {
   Widget build(BuildContext context) {
     final margin = PlatformInfo.isAndroid ? DojiSpace.screenMarginAndroid : DojiSpace.screenMargin;
     final index = _OpenStep.values.indexOf(_step);
-    final progress = (index + 1).clamp(1, 3);
+    final progress = (index + 1).clamp(1, 4);
     return Scaffold(
       backgroundColor: DojiColors.bg,
       body: SafeArea(
@@ -70,7 +71,7 @@ class _OpenScreenState extends ConsumerState<OpenScreen> {
                           child: ExcludeSemantics(
                             child: Row(
                               children: [
-                                for (var i = 1; i <= 3; i++) ...[
+                                for (var i = 1; i <= 4; i++) ...[
                                   if (i > 1) const SizedBox(width: 4),
                                   Expanded(
                                     child: Container(
@@ -88,8 +89,8 @@ class _OpenScreenState extends ConsumerState<OpenScreen> {
                         ),
                         const SizedBox(width: 12),
                         Semantics(
-                          label: 'step $progress of 3',
-                          child: Text('$progress/3', style: DojiType.hint),
+                          label: 'step $progress of 4',
+                          child: Text('$progress/4', style: DojiType.hint),
                         ),
                       ],
                     ),
@@ -97,7 +98,8 @@ class _OpenScreenState extends ConsumerState<OpenScreen> {
                   const SizedBox(height: 20),
                   Expanded(
                     child: switch (_step) {
-                      _OpenStep.mood => _MoodStep(onNext: () => _go(_OpenStep.pledge)),
+                      _OpenStep.mood => _MoodStep(onNext: () => _go(_OpenStep.plan)),
+                      _OpenStep.plan => _PlanStep(onRead: () => _go(_OpenStep.pledge)),
                       _OpenStep.pledge => _PledgeStep(onPledged: () => _go(_OpenStep.brief)),
                       _OpenStep.brief => _BriefStep(onReady: () => _go(_OpenStep.done)),
                       _OpenStep.done => _DoneStep(
@@ -185,6 +187,77 @@ class _MoodStep extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         DojiButton(label: 'continue', onPressed: mood == null ? null : onNext),
+      ],
+    );
+  }
+}
+
+/// The trader's own plan, read once before the session: their words, what doji measures, and
+/// their lines for wrong, right and staying out.
+class _PlanStep extends ConsumerWidget {
+  const _PlanStep({required this.onRead});
+
+  final VoidCallback onRead;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final p = ref.watch(homeProfileProvider);
+    final s = p.strategy;
+    final version = p.activeAccount?.strategyVersion;
+    final lines = <(String, String)>[
+      if (s?.rawText case final w? when w.trim().isNotEmpty) ('my setup', w),
+      if (s?.wrongWhen case final w?) ("where i'm wrong", w),
+      if (s?.rightWhen case final w?) ("where i'm right", w),
+      if (s?.stayOutWhen case final w?) ("when i don't trade", w),
+      if (s != null && s.conditions.isNotEmpty)
+        ('doji measures', s.conditions.map(conditionLabel).join(' · ')),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _StepHeader(
+                  tag: version == null ? 'your plan' : 'your plan · version $version',
+                  title: 'read it once.',
+                  body: lines.isEmpty ? 'no plan written yet. add it in settings › accounts.' : null,
+                ),
+                const SizedBox(height: 20),
+                if (lines.isNotEmpty)
+                  HomeCard(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var i = 0; i < lines.length; i++)
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              border: i == 0
+                                  ? null
+                                  : const Border(top: BorderSide(color: DojiColors.divider)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(lines[i].$1.toUpperCase(), style: DojiType.label),
+                                const SizedBox(height: 4),
+                                Text(lines[i].$2, style: DojiType.body.copyWith(fontSize: 16, height: 1.4)),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        DojiButton(label: "i've read it", onPressed: onRead),
       ],
     );
   }

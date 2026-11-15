@@ -151,3 +151,23 @@ abstract class StrategyCondition with _$StrategyCondition {
 
   factory StrategyCondition.fromJson(Map<String, dynamic> json) => _$StrategyConditionFromJson(json);
 }
+
+/// [next] with its strategy words compared to [saved]'s: new words on a strategy that had words
+/// make a new version, the old one kept and numbered, so stats never mix two plans.
+TradingAccount versionOnNewWords(TradingAccount saved, TradingAccount next, {required DateTime now}) {
+  final before = saved.strategy?.rawText?.trim() ?? '';
+  final after = next.strategy?.rawText?.trim() ?? '';
+  if (before.isEmpty || before == after) return next;
+  return next.copyWith(
+    strategyVersions: [
+      ...saved.strategyVersions,
+      StrategyVersion(
+        number: saved.strategyVersion,
+        replacedAt: now.toUtc(),
+        strategy: saved.strategy,
+        rules: saved.rules,
+        note: 'replaced by new words',
+      ),
+    ],
+  );
+}

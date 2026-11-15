@@ -76,6 +76,8 @@ void main() {
 
       await h.tapText('calm');
       await h.tapText('continue');
+      expect(find.text('read it once.'), findsOneWidget);
+      await h.tapText("i've read it");
       expect(find.text('your rules for today.'), findsOneWidget);
 
       final hold = await tester.startGesture(tester.getCenter(find.byType(HoldToPledgeButton)));

@@ -17,6 +17,7 @@ import '../../journal/presentation/journal_controller.dart';
 import '../../markets/domain/currency.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../journal/domain/guardrails.dart';
+import '../../journal/domain/plan_kept.dart';
 import '../../onboarding/domain/availability.dart';
 import '../../onboarding/domain/onboarding_catalog.dart';
 import '../../onboarding/domain/profile_doji.dart';
@@ -60,6 +61,9 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
   late final _name = TextEditingController(text: _draft?.name ?? '');
   late final _size = TextEditingController(text: _fmt(_draft?.startingSize));
   late final _manual = TextEditingController();
+  late final _wrong = TextEditingController(text: _draft?.strategy?.wrongWhen ?? '');
+  late final _right = TextEditingController(text: _draft?.strategy?.rightWhen ?? '');
+  late final _stayOut = TextEditingController(text: _draft?.strategy?.stayOutWhen ?? '');
 
   /// The strategy as stored, to tell whether its words changed. Read in
   /// initState: a lazy initialiser would see the edited draft.
@@ -126,6 +130,9 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
     _name.dispose();
     _size.dispose();
     _manual.dispose();
+    _wrong.dispose();
+    _right.dispose();
+    _stayOut.dispose();
     super.dispose();
   }
 
@@ -197,7 +204,10 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
       ),
       strategy: strategy,
     );
-    await ref.read(accountsControllerProvider.notifier).save(account);
+    final saved = ref.read(accountsControllerProvider).accounts.where((x) => x.id == account.id).firstOrNull;
+    await ref
+        .read(accountsControllerProvider.notifier)
+        .save(saved == null ? account : versionOnNewWords(saved, account, now: clock.now()));
     if (!mounted) return;
     setState(() {
       _saving = false;
@@ -427,6 +437,8 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
               '${v.strategy?.rawText == null ? '' : ' · "${v.strategy!.rawText}"'}${v.note == null ? '' : ' · ${v.note}'}',
               style: DojiType.hint,
             ),
+          for (final k in PlanKept.byVersion(ref.watch(journalControllerProvider), a.id))
+            Text('${k.line} · ${k.r >= 0 ? '+' : ''}${k.r.toStringAsFixed(1)}R', style: DojiType.hint),
           const SizedBox(height: 8),
           Text('in your own words. say it or type it.', style: DojiType.callout),
           const SizedBox(height: 12),
@@ -470,6 +482,22 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
             ),
           ],
           const SizedBox(height: 20),
+          const _Label('YOUR PLAN, IN YOUR WORDS'),
+          for (final (label, c, set) in [
+            ("where i'm wrong (my stop)", _wrong, (String? v) => _strategy.copyWith(wrongWhen: v)),
+            ("where i'm right (my target)", _right, (String? v) => _strategy.copyWith(rightWhen: v)),
+            ("when i don't trade", _stayOut, (String? v) => _strategy.copyWith(stayOutWhen: v)),
+          ]) ...[
+            DojiTextField(
+              controller: c,
+              hint: label,
+              semanticLabel: label,
+              large: false,
+              onChanged: (v) => _edit((a) => a.copyWith(strategy: set(v.trim().isEmpty ? null : v.trim()))),
+            ),
+            const SizedBox(height: 8),
+          ],
+          const SizedBox(height: 12),
           const _Label('YOUR WEEK'),
           Text(
             'how often you can look at the charts in the hours you trade. all accounts.',

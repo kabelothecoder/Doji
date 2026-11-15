@@ -294,6 +294,13 @@ so Home, the journal, 1b, the brief, the coach and the rail follow it; writes go
   the grade): no stop, risk over the account's risk % (10% tolerance, needs a starting size), opened within
   `kNewsBufferMinutes` of high-impact news (sample calendar), opened outside the window. Shown as GUARDRAILS
   on trade detail.
+- **Plan per version** (slice 2b): `Trade.strategyVersion` is stamped on save from the account
+  (`JournalController.add`); older trades have none. `versionOnNewWords`: saving new strategy words on a
+  strategy that had words keeps the old one as a numbered version ("replaced by new words").
+  `PlanKept.byVersion` (journal/domain/plan_kept.dart): plan kept on n of m reviewed trades per version
+  (partly = not kept), shown under the strategy's versions in the editor. `StrategyProfile.wrongWhen` /
+  `rightWhen` / `stayOutWhen`: the trader's own plan lines, edited under YOUR PLAN, IN YOUR WORDS. The Open
+  has a plan step (mood → plan → pledge → line → done) showing the words, these lines and the conditions.
 - Not built: reading the trader's sources (only their words); per-account sessions; per-account coach
   voice; syncing accounts; moving a trade to another account.
 

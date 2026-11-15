@@ -37,6 +37,11 @@ class JournalController extends Notifier<List<Trade>> {
   /// Saves [trade] and links the chart notes that led to it (same account
   /// and instrument, made in the day before it opened).
   Future<void> add(Trade trade) async {
+    if (trade.strategyVersion == null) {
+      final p = ref.read(journalProfileProvider);
+      final account = p.accounts.where((a) => a.id == trade.accountId).firstOrNull;
+      if (account != null) trade = trade.withStrategyVersion(account.strategyVersion);
+    }
     await _set([...state, trade]);
     await ref
         .read(chartNotesProvider.notifier)

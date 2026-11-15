@@ -48,7 +48,7 @@ Guardrail flags on journal save (feed the process grade):
 
 All nullable → no `kOnboardingVersion` bump.
 
-### 2b. Strategy version on trades + plan-kept rate (S6) — do before 3
+### 2b. Strategy version on trades + plan-kept rate (S6) — built 2026-11-15 (pinned example charts not built)
 
 - **Tag trades with the strategy version** at save (`Trade.strategyVersion`, like `accountId`). Needed by
   the hopping guard (1), the backtest-vs-live comparison (3) and the analyst.

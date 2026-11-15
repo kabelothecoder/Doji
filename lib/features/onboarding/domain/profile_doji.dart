@@ -144,6 +144,13 @@ abstract class StrategyProfile with _$StrategyProfile {
 
     /// How a backtest closes a setup. Null = not set: the backtest asks for it.
     ExitRules? exits,
+
+    /// The trader's own plan lines (design/research-intake-plan.md › 2b), free text, read by the
+    /// Open, the coach and the analyst. Where they are wrong (the stop), where they are right
+    /// (the target), and when they stay out.
+    String? wrongWhen,
+    String? rightWhen,
+    String? stayOutWhen,
   }) = _StrategyProfile;
 
   factory StrategyProfile.fromJson(Map<String, dynamic> json) => _$StrategyProfileFromJson(json);
