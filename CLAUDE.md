@@ -276,6 +276,12 @@ so Home, the journal, 1b, the brief, the coach and the rail follow it; writes go
   Still one strategy per account. `StrategyProfile.exits` (`ExitRules`: stop rule, buffer, target R, max bars)
   is what the backtest runs; null = doji's defaults, said on screen. `PropRules` gained `minTradingDays`
   and `consistencyPct` (backtest only). All nullable: no `kOnboardingVersion` bump.
+- **Availability** (`onboarding/domain/availability.dart`, step after sessions): how often the trader can
+  look at the charts in their hours (`not_flexible | semi_flexible | fully_flexible`), on `ProfileDoji`
+  (profile-wide). `availabilityFit(availability, style)` says whether the style fits (scalping / day trading
+  on a busy week does not); shown as the onboarding reply and under YOUR WEEK in the account editor
+  (chips save at once). Plan: `design/research-intake-plan.md` › 1; the 90-day re-check and hopping guard
+  are not built.
 - Not built: reading the trader's sources (only their words); per-account sessions; per-account coach
   voice; syncing accounts; moving a trade to another account.
 

@@ -11,10 +11,13 @@ _ProfileDoji _$ProfileDojiFromJson(Map<String, dynamic> json) => _ProfileDoji(
   experience: json['experience'] as String?,
   style: json['style'] as String?,
   sessions: (json['sessions'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
+  availability: json['availability'] as String?,
   timeZone: json['timeZone'] as String?,
   utcOffsetMinutes: (json['utcOffsetMinutes'] as num?)?.toInt(),
   goal: json['goal'] as String?,
   struggles: (json['struggles'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
+  riskAppetite: json['riskAppetite'] as String?,
+  usualDeposit: json['usualDeposit'] as String?,
   accounts:
       (json['accounts'] as List<dynamic>?)
           ?.map((e) => TradingAccount.fromJson(e as Map<String, dynamic>))
@@ -36,10 +39,13 @@ Map<String, dynamic> _$ProfileDojiToJson(_ProfileDoji instance) => <String, dyna
   'experience': ?instance.experience,
   'style': ?instance.style,
   'sessions': instance.sessions,
+  'availability': ?instance.availability,
   'timeZone': ?instance.timeZone,
   'utcOffsetMinutes': ?instance.utcOffsetMinutes,
   'goal': ?instance.goal,
   'struggles': instance.struggles,
+  'riskAppetite': ?instance.riskAppetite,
+  'usualDeposit': ?instance.usualDeposit,
   'accounts': instance.accounts.map((e) => e.toJson()).toList(),
   'activeAccountId': ?instance.activeAccountId,
   'coach': ?instance.coach?.toJson(),

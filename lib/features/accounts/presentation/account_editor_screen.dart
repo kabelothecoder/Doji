@@ -16,6 +16,7 @@ import '../../home/domain/home_models.dart';
 import '../../journal/presentation/journal_controller.dart';
 import '../../markets/domain/currency.dart';
 import '../../onboarding/data/onboarding_repository.dart';
+import '../../onboarding/domain/availability.dart';
 import '../../onboarding/domain/onboarding_catalog.dart';
 import '../../onboarding/domain/profile_doji.dart';
 import '../../onboarding/domain/prop_rules.dart';
@@ -425,6 +426,14 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
             ),
           ],
           const SizedBox(height: 20),
+          const _Label('YOUR WEEK'),
+          Text(
+            'how often you can look at the charts in the hours you trade. all accounts.',
+            style: DojiType.hint,
+          ),
+          const SizedBox(height: 8),
+          const _AvailabilityFit(),
+          const SizedBox(height: 20),
           const _Label('CONDITIONS DOJI MEASURES'),
           Text(
             'doji measures these from the clock, the calendar, the journal and the chart. '
@@ -795,6 +804,31 @@ class _ConditionTile extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Availability chips (saved at once, profile-wide) and whether the trading style fits them.
+class _AvailabilityFit extends ConsumerWidget {
+  const _AvailabilityFit();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final p = ref.watch(accountsControllerProvider);
+    final fit = availabilityFit(p.availability, p.style);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _Chips<String>(
+          options: {for (final o in availabilityOptions) o.value: o.label},
+          selected: p.availability,
+          onTap: (v) => unawaited(ref.read(accountsControllerProvider.notifier).setAvailability(v)),
+        ),
+        if (fit != null) ...[
+          const SizedBox(height: 8),
+          Text('${fit.fits ? 'fits' : 'check this'} · ${fit.line}', style: DojiType.callout),
+        ],
+      ],
+    );
+  }
 }
 
 class _Chips<T> extends StatelessWidget {

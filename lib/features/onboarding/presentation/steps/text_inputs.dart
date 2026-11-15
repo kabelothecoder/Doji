@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,7 +8,10 @@ import '../../../../core/theme/motion.dart';
 import '../../../../core/theme/tokens.dart';
 import '../../../../core/theme/typography.dart';
 import '../../../../core/widgets/widgets.dart';
+import '../../../analyst/presentation/analyst_controller.dart';
 import '../../data/voice_input.dart';
+import '../../domain/profile_mapper.dart';
+import '../../domain/strategy_files.dart';
 import '../../domain/onboarding_step.dart';
 import '../../domain/strategy_parser.dart';
 import 'step_input.dart';
@@ -53,6 +57,19 @@ class _TextAnswerInputState extends State<TextAnswerInput> {
 /// Handoff 4a: `TextField(maxLines: 5) · MicButton(speech_to_text) ·
 /// ActionChip × 5`. "While parsing, the blinking cursor is the only loading
 /// state; no spinner."
+/// Opens the system picker for one strategy file; null when cancelled. A
+/// provider so tests can answer without a platform channel.
+final pickStrategyFileProvider = Provider<Future<({String name, int size})?> Function()>(
+  (ref) => () async {
+    final files = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: kStrategyFileExtensions,
+    );
+    final f = files.firstOrNull;
+    return f == null ? null : (name: f.name, size: await f.length() ?? 0);
+  },
+);
+
 class StrategyInput extends ConsumerStatefulWidget {
   const StrategyInput(this.args, {super.key, required this.parsing});
 
@@ -69,6 +86,7 @@ class _StrategyInputState extends ConsumerState<StrategyInput> {
   late final _c = TextEditingController(text: A.mapStr(widget.args.draft, 'raw') ?? '');
   _Mic _mic = _Mic.idle;
   String _beforeDictation = '';
+  String? _fileProblem;
 
   VoiceInput get _voice => ref.read(voiceInputProvider);
 
@@ -94,6 +112,38 @@ class _StrategyInputState extends ConsumerState<StrategyInput> {
     if (template != null) m['template'] = template;
     m['source'] = source ?? (m['raw'] != null ? (m['source'] == 'voice' ? 'voice' : 'text') : 'template');
     widget.args.onChanged(m);
+  }
+
+  List<Map<String, Object?>> get _files => [
+    for (final f in (widget.args.draftMap['files'] as List?) ?? const [])
+      if (f is Map) {for (final e in f.entries) e.key.toString(): e.value},
+  ];
+
+  Future<void> _attach() async {
+    final picked = await ref.read(pickStrategyFileProvider)();
+    if (picked == null || !mounted) return;
+    final problem = strategyFileProblem(picked.name, picked.size);
+    setState(() => _fileProblem = problem);
+    if (problem != null || _files.any((f) => f['name'] == picked.name)) return;
+    final m = widget.args.draftMap;
+    m['files'] = [
+      ..._files,
+      {'name': picked.name, 'kind': strategyFileKind(picked.name)!.name},
+    ];
+    widget.args.onChanged(m);
+    await ref.read(sourcesProvider.notifier).addFile(kFirstAccountId, picked.name);
+  }
+
+  Future<void> _detach(String name) async {
+    final m = widget.args.draftMap;
+    final rest = _files.where((f) => f['name'] != name).toList();
+    rest.isEmpty ? m.remove('files') : m['files'] = rest;
+    widget.args.onChanged(m);
+    final source = ref
+        .read(sourcesProvider)
+        .where((s) => s.accountId == kFirstAccountId && s.fileName == name)
+        .firstOrNull;
+    if (source != null) await ref.read(sourcesProvider.notifier).remove(source.id);
   }
 
   Future<void> _toggleMic() async {
@@ -137,6 +187,10 @@ class _StrategyInputState extends ConsumerState<StrategyInput> {
         : switch (_mic) {
             _Mic.listening => ('listening', TerminalTone.muted),
             _Mic.denied => ('mic is off. typing works too.', TerminalTone.tilt), // doji voice
+            _Mic.unsupported => (
+              'no dictation on this device. typing works.',
+              TerminalTone.muted,
+            ), // doji voice
             _ => (null, TerminalTone.muted),
           };
     return Column(
@@ -190,6 +244,11 @@ class _StrategyInputState extends ConsumerState<StrategyInput> {
                             style: DojiType.hint.copyWith(fontSize: 13, color: DojiColors.dojiGreen),
                           ),
                   ),
+                  DojiIconButton(
+                    icon: Icons.attach_file_rounded,
+                    semanticLabel: 'Attach a pdf, image or video',
+                    onPressed: widget.parsing ? null : _attach,
+                  ),
                   if (_mic == _Mic.idle || _mic == _Mic.listening)
                     DojiIconButton(
                       icon: Icons.mic_rounded,
@@ -202,6 +261,26 @@ class _StrategyInputState extends ConsumerState<StrategyInput> {
             ],
           ),
         ),
+        if (_fileProblem != null) ...[const SizedBox(height: 8), InfoNote(text: _fileProblem!)],
+        if (_files.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final f in _files)
+                DojiChoiceChip(
+                  style: DojiChoiceStyle.chip,
+                  label: 'remove ${f['kind']} ${f['name']}',
+                  minHeight: 44,
+                  selected: false,
+                  onTap: widget.parsing ? null : () => _detach(f['name']! as String),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('doji reads these once your account syncs.', style: DojiType.hint), // doji voice
+        ],
         const SizedBox(height: 12),
         Text('OR START FROM A TEMPLATE', style: DojiType.label.copyWith(letterSpacing: 0.5)),
         const SizedBox(height: 8),

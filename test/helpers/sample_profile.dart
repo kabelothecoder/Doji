@@ -17,6 +17,7 @@ const Answers handoffAnswers = {
   StepIds.style: 'day_trader',
   StepIds.markets: ['XAUUSD', 'NAS100'],
   StepIds.sessions: ['london'],
+  StepIds.availability: 'semi_flexible',
   StepIds.goal: {'goal': 'prop_challenge', 'propSize': 50000},
   StepIds.struggles: ['revenge', 'fomo', 'moving_stop'],
   StepIds.strategy: {

@@ -69,6 +69,9 @@ class AccountsController extends Notifier<ProfileDoji> {
   /// The last account cannot be deleted (a trader always has one).
   Future<void> delete(String id) => _set(state.removeAccount(id));
 
+  /// How often the trader can look at the charts (profile-wide, saved at once).
+  Future<void> setAvailability(String value) => _set(state.copyWith(availability: value));
+
   Future<void> _set(ProfileDoji next) async {
     state = next;
     await ref.read(onboardingRepositoryProvider).saveProfile(next);

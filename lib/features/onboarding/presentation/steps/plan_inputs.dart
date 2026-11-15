@@ -27,6 +27,9 @@ class RiskInput extends StatelessWidget {
     final dailyLoss = A.mapNum(args.draft, 'dailyLoss') ?? 2;
     final note = riskNote(risk);
     final currency = AccountCurrency.fromCode(A.mapStr(args.draft, 'currency')) ?? AccountCurrency.fallback;
+    final appetite = A.mapStr(args.draft, 'appetite');
+    final deposit = A.mapStr(args.draft, 'deposit');
+    final prop = A.mapStr(args.answers[StepIds.goal], 'goal') == 'prop_challenge';
 
     final chips = [
       for (var i = 0; i < riskOptions.length; i++)
@@ -76,6 +79,51 @@ class RiskInput extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
+        Text('HOW YOU LIKE TO TRADE', style: DojiType.label.copyWith(letterSpacing: 0.5)),
+        const SizedBox(height: 8),
+        EqualColumns(
+          columns: args.wide ? 3 : 1,
+          gap: args.wide ? 10 : 8,
+          children: [
+            for (final o in appetiteOptions)
+              DojiChoiceChip(
+                label: o.label,
+                sub: o.sub,
+                exclusive: true,
+                minHeight: 52,
+                selected: appetite == o.value,
+                onTap: () {
+                  final (r, d) = appetitePresets[o.value]!;
+                  _set({'appetite': o.value, 'custom': false, 'riskPct': r, 'dailyLoss': d});
+                },
+              ),
+          ],
+        ),
+        SizedBox(height: args.wide ? 14 : 12),
+        Text(
+          prop ? 'YOUR PERSONAL ACCOUNT, USUALLY FUNDED WITH' : 'YOU USUALLY FUND AN ACCOUNT WITH',
+          style: DojiType.label.copyWith(letterSpacing: 0.5),
+        ),
+        const SizedBox(height: 8),
+        EqualColumns(
+          columns: args.wide ? 4 : 2,
+          gap: args.wide ? 10 : 8,
+          children: [
+            for (final o in depositOptions)
+              DojiChoiceChip(
+                label: '${o.label} ${currency.code}',
+                mono: true,
+                center: true,
+                exclusive: true,
+                minHeight: 48,
+                selected: deposit == o.value,
+                onTap: () => deposit == o.value
+                    ? args.onChanged({...args.draftMap}..remove('deposit'))
+                    : _set({'deposit': o.value}),
+              ),
+          ],
+        ),
+        SizedBox(height: args.wide ? 14 : 12),
         if (!args.wide) ...[
           Text('RISK PER TRADE', style: DojiType.label.copyWith(letterSpacing: 0.5)),
           const SizedBox(height: 8),

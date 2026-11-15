@@ -37,12 +37,15 @@ ProfileDoji profileFromAnswers(Answers a) {
   return ProfileDoji(
     name: A.str(a, StepIds.name)?.trim(),
     experience: A.str(a, StepIds.experience),
-    style: A.str(a, StepIds.style),
+    style: styleFromAnswer(a[StepIds.style]),
     sessions: A.list(a, StepIds.sessions),
+    availability: A.str(a, StepIds.availability),
     timeZone: A.mapStr(tz, 'id'),
     utcOffsetMinutes: A.mapNum(tz, 'offsetMinutes')?.round(),
     goal: A.mapStr(goal, 'goal'),
     struggles: A.list(a, StepIds.struggles),
+    riskAppetite: A.mapStr(risk, 'appetite'),
+    usualDeposit: A.mapStr(risk, 'deposit'),
     accounts: [
       _firstAccount(
         goal: goal,
@@ -89,6 +92,13 @@ PropRules? _propRules(Object? goal) {
 }
 
 /// The id of the account onboarding creates.
+/// Style was one value before it became a multi-select; both shapes read.
+String? styleFromAnswer(Object? v) {
+  if (v is String) return v.trim().isEmpty ? null : v;
+  final xs = v is List ? v.whereType<String>().toList() : const <String>[];
+  return xs.isEmpty ? null : xs.join(',');
+}
+
 const kFirstAccountId = 'account_1';
 
 /// The first account, from the onboarding answers. A prop goal makes a prop

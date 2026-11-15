@@ -140,6 +140,8 @@ const List<FeatureRow> featureRows = [
 PlanId recommendPlan(ProfileDoji p) {
   if (p.goal == 'prop_challenge') return PlanId.elite;
   if (p.struggles.any(const {'revenge', 'overtrading', 'fomo'}.contains)) return PlanId.pro;
+  // Aggressive risk, or a large personal account, gets the guard and the coach.
+  if (p.riskAppetite == 'aggressive' || p.usualDeposit == '25k_plus') return PlanId.pro;
   return PlanId.basic;
 }
 

@@ -31,11 +31,15 @@ abstract class ProfileDoji with _$ProfileDoji {
     /// lt_6m | 6_24m | 2_5y | 5y_plus
     String? experience,
 
-    /// scalper | day_trader | swing | undecided
+    /// scalper | day_trader | swing | undecided; several joined with ",".
     String? style,
 
     /// sydney | tokyo | london | new_york | around_job
     @Default(<String>[]) List<String> sessions,
+
+    /// not_flexible | semi_flexible | fully_flexible: how often the trader can look at the
+    /// charts in those hours (`availabilityFit`). Nullable: no version bump.
+    String? availability,
 
     /// IANA id when detected (e.g. Africa/Johannesburg).
     String? timeZone,
@@ -46,6 +50,13 @@ abstract class ProfileDoji with _$ProfileDoji {
 
     /// revenge | fomo | overtrading | hesitation | moving_stop | oversizing | bored
     @Default(<String>[]) List<String> struggles,
+
+    /// careful | balanced | aggressive (the risk step). Feeds `recommendPlan`.
+    String? riskAppetite,
+
+    /// How the trader usually funds a personal account: lt_500 | 500_5k | 5k_25k | 25k_plus.
+    /// TODO(backend): store on the account for plan offers.
+    String? usualDeposit,
 
     /// The trader's accounts, each with its own rules and strategy. Onboarding
     /// creates the first one.
