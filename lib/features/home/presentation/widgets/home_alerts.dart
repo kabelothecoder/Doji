@@ -87,6 +87,39 @@ class WalkAwayCard extends StatelessWidget {
   );
 }
 
+/// Every 90 days: does the strategy still fit the trader's week? (research-intake-plan › 1)
+class FitRecheckCard extends StatelessWidget {
+  const FitRecheckCard({super.key, required this.onStillFits, required this.onReview});
+
+  final VoidCallback onStillFits;
+  final VoidCallback onReview;
+
+  @override
+  Widget build(BuildContext context) => HomeCard(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const HomeEyebrow('YOUR WEEK'),
+        const SizedBox(height: 6),
+        Text(
+          'three months on. does your strategy still fit how often you can look at the charts?',
+          style: DojiType.body.copyWith(fontSize: 16, height: 1.4),
+        ),
+        const SizedBox(height: 12),
+        DojiButton(label: 'still fits', size: DojiButtonSize.small, onPressed: onStillFits),
+        const SizedBox(height: 8),
+        DojiButton(
+          label: 'review it',
+          variant: DojiButtonVariant.secondary,
+          size: DojiButtonSize.small,
+          onPressed: onReview,
+        ),
+      ],
+    ),
+  );
+}
+
 /// Design spec `CloseDayCard`, the evening form: opens the 2-prompt reflection
 /// and mindset score.
 class CloseDayCard extends StatelessWidget {

@@ -12,6 +12,9 @@ _ProfileDoji _$ProfileDojiFromJson(Map<String, dynamic> json) => _ProfileDoji(
   style: json['style'] as String?,
   sessions: (json['sessions'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
   availability: json['availability'] as String?,
+  availabilityCheckedAt: json['availabilityCheckedAt'] == null
+      ? null
+      : DateTime.parse(json['availabilityCheckedAt'] as String),
   timeZone: json['timeZone'] as String?,
   utcOffsetMinutes: (json['utcOffsetMinutes'] as num?)?.toInt(),
   goal: json['goal'] as String?,
@@ -40,6 +43,7 @@ Map<String, dynamic> _$ProfileDojiToJson(_ProfileDoji instance) => <String, dyna
   'style': ?instance.style,
   'sessions': instance.sessions,
   'availability': ?instance.availability,
+  'availabilityCheckedAt': ?instance.availabilityCheckedAt?.toIso8601String(),
   'timeZone': ?instance.timeZone,
   'utcOffsetMinutes': ?instance.utcOffsetMinutes,
   'goal': ?instance.goal,

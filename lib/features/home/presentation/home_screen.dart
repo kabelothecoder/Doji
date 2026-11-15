@@ -13,6 +13,8 @@ import '../../../core/platform/platform_info.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../accounts/domain/strategy_checks.dart';
+import '../../accounts/presentation/accounts_controller.dart';
 import '../../accounts/presentation/widgets/payout_card.dart';
 import '../../analyst/presentation/analyst_controller.dart';
 import '../../analyst/presentation/weekly_review_card.dart';
@@ -115,6 +117,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       if (snap.walkAway case final line?) WalkAwayCard(line: line),
       if (focus != null) const FocusRuleLine(),
+      if (fitRecheckDue(
+            availability: profile.availability,
+            checkedAt: profile.availabilityCheckedAt ?? profile.completedAt,
+            now: now,
+          ) &&
+          profile.activeAccount != null)
+        FitRecheckCard(
+          onStillFits: () => unawaited(ref.read(accountsControllerProvider.notifier).confirmFit()),
+          onReview: () => unawaited(context.push(Routes.accountEditor(profile.activeAccount!.id))),
+        ),
       if (state.dayClosed)
         const DayClosedCard()
       else if (evening)

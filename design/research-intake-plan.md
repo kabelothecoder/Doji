@@ -17,7 +17,7 @@ no profit promises, measured facts only, strategies stay personal.
 
 ## Shortlist (proposed slices, in order)
 
-### 1. Availability profile + fit check (S1) — step, profile field and editor fit line built 2026-11-15
+### 1. Availability profile + fit check (S1) — built 2026-11-15 (step, editor + 1b fit line, 90-day re-check, hopping guard; evening order plan not built)
 
 - **Onboarding step** (catalog only, `onboarding_catalog.dart`): chart access during work hours and
   after: `not_flexible | semi_flexible | fully_flexible` (semi = 2–3 short checks a day). Stored on

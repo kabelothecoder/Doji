@@ -15,6 +15,7 @@ import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../home/domain/home_models.dart';
 import '../../home/presentation/home_controller.dart';
+import '../../onboarding/domain/availability.dart';
 import '../../onboarding/domain/user_zone.dart';
 import '../../plans/presentation/upsell_sheet.dart';
 import '../domain/candle.dart';
@@ -194,13 +195,29 @@ class _PairDetailScreenState extends ConsumerState<PairDetailScreen> {
     );
   }
 
+  AvailabilityFit? get _fit {
+    final p = ref.read(homeProfileProvider);
+    return availabilityFit(p.availability, p.style);
+  }
+
   List<Widget> _briefSections(PairBrief b, BriefAccess access, UserZone zone, DateTime? reminderAt) {
     final conditions = BriefSection(
       number: '03',
       title: 'YOUR ENTRY CONDITIONS',
-      child: b.conditions.isEmpty
-          ? const TerminalLine('no conditions to check yet. set your rules in your setup.', liveRegion: false)
-          : ConditionList(conditions: b.conditions),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (b.conditions.isEmpty)
+            const TerminalLine('no conditions to check yet. set your rules in your setup.', liveRegion: false)
+          else
+            ConditionList(conditions: b.conditions),
+          // The availability fit, only when it does not fit (research-intake-plan › 1).
+          if (_fit case final fit? when !fit.fits) ...[
+            const SizedBox(height: 10),
+            Text('check this · ${fit.line}', style: DojiType.hint),
+          ],
+        ],
+      ),
     );
     final check = b.checkAgain;
     final checkCard = check == null

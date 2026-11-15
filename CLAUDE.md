@@ -280,8 +280,11 @@ so Home, the journal, 1b, the brief, the coach and the rail follow it; writes go
   look at the charts in their hours (`not_flexible | semi_flexible | fully_flexible`), on `ProfileDoji`
   (profile-wide). `availabilityFit(availability, style)` says whether the style fits (scalping / day trading
   on a busy week does not); shown as the onboarding reply and under YOUR WEEK in the account editor
-  (chips save at once). Plan: `design/research-intake-plan.md` › 1; the 90-day re-check and hopping guard
-  are not built.
+  (chips save at once). Plan: `design/research-intake-plan.md` › 1. The 90-day re-check and hopping guard
+  are built too (`accounts/domain/strategy_checks.dart`): `hoppingLine` (2+ strategy changes in 42 days →
+  "version n has x trades; under 30 is too few", in the editor) and `fitRecheckDue` (90 days after
+  `availabilityCheckedAt` or `completedAt` → `FitRecheckCard` on Home: still fits / review it). 1b shows the fit
+  line under YOUR ENTRY CONDITIONS when it does not fit.
 - **Walk-away rules** (`accounts/domain/walk_away.dart`): optional `TradingRules` fields `dailyGainCap` (stop at
   +x% today), `giveBackPct` (stop after giving back x% of today's best running result) and `oneAndDone`.
   `WalkAway.of` measures today's closed trades (money over the starting size, else R × risk %, like

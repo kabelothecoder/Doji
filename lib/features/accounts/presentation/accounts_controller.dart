@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import 'package:uuid/uuid.dart';
@@ -70,7 +71,11 @@ class AccountsController extends Notifier<ProfileDoji> {
   Future<void> delete(String id) => _set(state.removeAccount(id));
 
   /// How often the trader can look at the charts (profile-wide, saved at once).
-  Future<void> setAvailability(String value) => _set(state.copyWith(availability: value));
+  Future<void> setAvailability(String value) =>
+      _set(state.copyWith(availability: value, availabilityCheckedAt: clock.now().toUtc()));
+
+  /// "still fits": the 90-day re-check answered without a change.
+  Future<void> confirmFit() => _set(state.copyWith(availabilityCheckedAt: clock.now().toUtc()));
 
   Future<void> _set(ProfileDoji next) async {
     state = next;

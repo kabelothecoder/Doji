@@ -41,6 +41,10 @@ abstract class ProfileDoji with _$ProfileDoji {
     /// charts in those hours (`availabilityFit`). Nullable: no version bump.
     String? availability,
 
+    /// When the trader last said their strategy fits their week; null = since onboarding
+    /// (`completedAt`). Asked again every 90 days (`fitRecheckDue`).
+    DateTime? availabilityCheckedAt,
+
     /// IANA id when detected (e.g. Africa/Johannesburg).
     String? timeZone,
     int? utcOffsetMinutes,

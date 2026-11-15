@@ -28,6 +28,7 @@ import '../../onboarding/domain/strategy_parser.dart';
 import '../../onboarding/presentation/steps/step_input.dart';
 import '../../onboarding/presentation/steps/text_inputs.dart';
 import '../data/strategy_reader.dart';
+import '../domain/strategy_checks.dart';
 import '../domain/condition_eval.dart';
 import '../domain/trading_account.dart';
 import 'accounts_controller.dart';
@@ -437,6 +438,8 @@ class _AccountEditorScreenState extends ConsumerState<AccountEditorScreen> {
               '${v.strategy?.rawText == null ? '' : ' · "${v.strategy!.rawText}"'}${v.note == null ? '' : ' · ${v.note}'}',
               style: DojiType.hint,
             ),
+          if (hoppingLine(a, ref.watch(journalControllerProvider), clock.now()) case final h?)
+            Text('check this · $h', style: DojiType.callout),
           for (final k in PlanKept.byVersion(ref.watch(journalControllerProvider), a.id))
             Text('${k.line} · ${k.r >= 0 ? '+' : ''}${k.r.toStringAsFixed(1)}R', style: DojiType.hint),
           const SizedBox(height: 8),
