@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 import 'package:uuid/uuid.dart';
+import '../../mood/data/mood_repository.dart';
 
 import '../../analyst/presentation/analyst_controller.dart';
 import '../../chart/presentation/chart_controller.dart';
@@ -42,6 +43,8 @@ void invalidateAccountReaders(ProviderContainer c) {
     analystFactsProvider,
     latestReviewProvider,
     focusRuleProvider,
+    activeMoodProvider,
+    moodTrendsProvider,
   ]) {
     c.invalidate(p);
   }

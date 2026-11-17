@@ -21,6 +21,18 @@ import 'widgets/journal_stat_row.dart';
 import 'widgets/result_heatmap.dart';
 import 'widgets/trade_row.dart';
 
+/// Mood: check-in, tracker and trends.
+class _MoodButton extends StatelessWidget {
+  const _MoodButton();
+
+  @override
+  Widget build(BuildContext context) => DojiButton(
+    label: 'mood · check in and trends',
+    variant: DojiButtonVariant.outline,
+    onPressed: () => unawaited(context.push(Routes.mood)),
+  );
+}
+
 /// Insights unlock at this many trades (patterns from a handful are noise).
 const int kInsightsFromTrades = 20;
 
@@ -65,6 +77,7 @@ class JournalScreen extends ConsumerWidget {
         children: [
           header,
           const TerminalLine('no trades yet. add your first one.', cursor: true, liveRegion: false),
+          const _MoodButton(),
           Text(
             'every trade gets a process grade, and after $kInsightsFromTrades trades doji starts finding the '
             'patterns in them.',
@@ -115,6 +128,7 @@ class JournalScreen extends ConsumerWidget {
             ),
           ],
         ),
+        const _MoodButton(),
         if (all.length < kInsightsFromTrades) _TooFewBanner(count: all.length),
         JournalStatRow(stats: JournalStatRow.from(stats, currency.symbol)),
         EquityCurve(stats: stats, currencySymbol: currency.symbol),

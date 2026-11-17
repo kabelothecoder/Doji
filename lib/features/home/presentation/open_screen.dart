@@ -15,6 +15,8 @@ import '../../accounts/domain/condition_eval.dart';
 import '../../markets/domain/instrument_catalog.dart';
 import '../domain/home_models.dart';
 import 'home_controller.dart';
+import '../../mood/data/mood_repository.dart';
+import '../../mood/domain/mood.dart';
 import 'widgets/home_card.dart';
 
 enum _OpenStep { mood, plan, pledge, brief, done }
@@ -186,7 +188,18 @@ class _MoodStep extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
-        DojiButton(label: 'continue', onPressed: mood == null ? null : onNext),
+        DojiButton(
+          label: 'continue',
+          onPressed: mood == null
+              ? null
+              : () {
+                  // The open asks no intensity.
+                  unawaited(
+                    ref.read(moodControllerProvider.notifier).log(feeling: mood, moment: MoodMoment.open),
+                  );
+                  onNext();
+                },
+        ),
       ],
     );
   }

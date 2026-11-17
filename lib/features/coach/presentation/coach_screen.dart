@@ -14,8 +14,13 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../plans/domain/plans.dart';
+import '../../plans/presentation/upsell_sheet.dart';
+import '../data/voice_minutes_repository.dart';
+import '../domain/session_summary.dart';
 import 'coach_controller.dart';
 import 'save_session_sheet.dart';
+import 'session_summary_view.dart';
+import 'widgets/distress_card.dart';
 import 'widgets/coach_text_input.dart';
 import 'widgets/live_transcript.dart';
 import 'widgets/push_to_talk_button.dart';
@@ -45,6 +50,9 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
 
   /// Set once leaving is decided, so the route may pop.
   bool _closing = false;
+
+  /// Shown after "end" when the trader said something.
+  SessionSummary? _summary;
 
   @override
   void initState() {
@@ -88,6 +96,35 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
     }
   }
 
+  /// "end": the summary of what was said, or straight out when nothing was.
+  Future<void> _endSession() async {
+    if (_leaving || _closing) return;
+    final c = ref.read(coachControllerProvider.notifier);
+    await c.end();
+    if (!mounted) return;
+    final s = ref.read(coachControllerProvider);
+    if (!s.hasYou) return _leave();
+    setState(() => _summary = SessionSummary.of(s.turns, startedAt: s.startedAt, endedAt: clock.now()));
+  }
+
+  /// Leaves from the summary: the trader already chose to save or not.
+  void _finish() {
+    setState(() => _closing = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.canPop() ? context.pop() : context.go(Routes.home);
+    });
+  }
+
+  void _showMinutesUpsell() => unawaited(
+    showUpsellSheet(
+      context,
+      kind: UpsellKind.voice,
+      voiceMinutes: kProVoiceMinutes,
+      resetsOn: voiceMinutesResetOn(clock.now()),
+    ),
+  );
+
   Future<void> _save() async {
     await ref.read(coachControllerProvider.notifier).save();
     unawaited(ref.read(hapticsProvider).light());
@@ -103,6 +140,17 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   Widget build(BuildContext context) {
     final s = ref.watch(coachControllerProvider);
     final c = ref.read(coachControllerProvider.notifier);
+    // The minutes ran out during this session: say so once with the upsell.
+    ref.listen(coachControllerProvider.select((s) => s.textReason), (was, now) {
+      if (now == TextReason.minutes && was != TextReason.minutes) _showMinutesUpsell();
+    });
+    final summary = _summary;
+    if (summary != null) {
+      return PopScope(
+        canPop: true,
+        child: SessionSummaryView(summary: summary, saved: s.saved, onSave: _save, onClose: _finish),
+      );
+    }
     final margin = PlatformInfo.isAndroid ? DojiSpace.screenMarginAndroid : DojiSpace.screenMargin;
     final target = DojiTokens.of(context).minTarget;
     final voice = s.mode == CoachInputMode.voice;
@@ -147,10 +195,29 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
                                 children: [
                                   _CloseButton(size: target, onPressed: _leave),
                                   VoicePicker(value: s.voice, onChanged: c.setVoice),
-                                  SizedBox(width: target),
+                                  if (s.textReason == TextReason.none)
+                                    DojiIconButton(
+                                      icon: voice ? Icons.keyboard_outlined : Icons.graphic_eq_rounded,
+                                      semanticLabel: voice ? 'switch to text mode' : 'switch to voice',
+                                      outlined: false,
+                                      background: Colors.transparent,
+                                      foreground: DojiColors.textSecondary,
+                                      onPressed: c.toggleMode,
+                                    )
+                                  else
+                                    SizedBox(width: target),
                                 ],
                               ),
                             ),
+                            if (s.minutesLeft case final left?)
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(margin, 8, margin, 0),
+                                child: Text(
+                                  'pro · $left min left this month',
+                                  textAlign: TextAlign.end,
+                                  style: DojiType.hint.copyWith(fontSize: 12),
+                                ),
+                              ),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
                               child: LiveTranscript(
@@ -169,7 +236,11 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    VoiceOrb(state: s.orb, size: 200),
+                                    // Distress: a still orb, nothing moving.
+                                    VoiceOrb(
+                                      state: s.distress ? VoiceOrbState.idle : s.orb,
+                                      size: s.distress ? 140 : 200,
+                                    ),
                                     const SizedBox(height: 12),
                                     Semantics(
                                       liveRegion: true,
@@ -182,49 +253,58 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
                                         ),
                                       ),
                                     ),
-                                    _Notice(state: s, margin: margin),
+                                    _Notice(state: s, margin: margin, onAddMinutes: _showMinutesUpsell),
                                   ],
                                 ),
                               ),
                             ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: margin),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _RoundControl(
-                                    icon: s.saved
-                                        ? Icons.bookmark_added_rounded
-                                        : Icons.bookmark_add_outlined,
-                                    label: s.saved ? 'saved' : 'save',
-                                    semanticLabel: s.saved ? 'session saved' : 'save session',
-                                    onPressed: s.hasYou && !s.saved ? _save : null,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: voice
-                                        ? PushToTalkButton(
-                                            state: s.orb,
-                                            tapToSend: s.tapToSend,
-                                            enabled: !s.thinking,
-                                            onPress: c.press,
-                                            onRelease: c.release,
-                                          )
-                                        : CoachTextInput(
-                                            onSend: c.send,
-                                            autofocus: widget.listen || isWideLayout(context),
-                                          ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  _RoundControl(
-                                    icon: Icons.stop_outlined,
-                                    label: 'end',
-                                    semanticLabel: 'end session',
-                                    onPressed: _leave,
-                                  ),
-                                ],
+                            if (s.distress)
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: margin),
+                                child: DistressCard(
+                                  onPanic: () => unawaited(context.push(Routes.panic)),
+                                  onKeepTalking: c.keepTalking,
+                                ),
+                              )
+                            else
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: margin),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _RoundControl(
+                                      icon: s.saved
+                                          ? Icons.bookmark_added_rounded
+                                          : Icons.bookmark_add_outlined,
+                                      label: s.saved ? 'saved' : 'save',
+                                      semanticLabel: s.saved ? 'session saved' : 'save session',
+                                      onPressed: s.hasYou && !s.saved ? _save : null,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: voice
+                                          ? PushToTalkButton(
+                                              state: s.orb,
+                                              tapToSend: s.tapToSend,
+                                              enabled: !s.thinking,
+                                              onPress: c.press,
+                                              onRelease: c.release,
+                                            )
+                                          : CoachTextInput(
+                                              onSend: c.send,
+                                              autofocus: widget.listen || isWideLayout(context),
+                                            ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    _RoundControl(
+                                      icon: Icons.stop_outlined,
+                                      label: 'end',
+                                      semanticLabel: 'end session',
+                                      onPressed: _endSession,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
                             const _Footer(),
                           ],
                         ),
@@ -244,10 +324,11 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
 /// Under the orb's state: why this session is text, or that the mic heard
 /// nothing. Never colour alone; plain words.
 class _Notice extends StatelessWidget {
-  const _Notice({required this.state, required this.margin});
+  const _Notice({required this.state, required this.margin, required this.onAddMinutes});
 
   final CoachState state;
   final double margin;
+  final VoidCallback onAddMinutes;
 
   @override
   Widget build(BuildContext context) {
@@ -258,6 +339,9 @@ class _Notice extends StatelessWidget {
             TextReason.device => "voice isn't on this ${PlatformInfo.deviceNoun} yet. type to your coach.",
             TextReason.plan => 'voice coaching comes with pro trader. text coaching is on.',
             TextReason.microphone => 'the microphone is off for doji. type here, or turn it on in settings.',
+            TextReason.minutes =>
+              "this month's voice minutes are used. text mode stays unlimited. voice resets on "
+                  '${voiceMinutesResetOn(clock.now())}.',
           };
     if (text == null) return const SizedBox.shrink();
     return Padding(
@@ -276,6 +360,14 @@ class _Notice extends StatelessWidget {
               size: DojiButtonSize.small,
               expand: false,
               onPressed: () => context.push('${Routes.plans}?plan=${PlanId.pro.name}'),
+            ),
+          if (!state.missedWords && state.textReason == TextReason.minutes)
+            DojiButton(
+              label: 'add minutes',
+              variant: DojiButtonVariant.ghost,
+              size: DojiButtonSize.small,
+              expand: false,
+              onPressed: onAddMinutes,
             ),
         ],
       ),

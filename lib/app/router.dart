@@ -24,7 +24,9 @@ import '../features/gym/presentation/drills_screen.dart';
 import '../features/gym/presentation/gym_screen.dart';
 import '../features/replay/presentation/replay_pick_screen.dart';
 import '../features/replay/presentation/replay_screen.dart';
+import '../features/coach/presentation/coach_history_screen.dart';
 import '../features/coach/presentation/coach_screen.dart';
+import '../features/mood/presentation/mood_screen.dart';
 import '../features/home/presentation/close_day_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/home/presentation/open_screen.dart';
@@ -48,6 +50,7 @@ import '../features/panic/presentation/panic_screen.dart';
 import '../features/me/presentation/me_screen.dart';
 import '../features/me/presentation/share_card_screen.dart';
 import 'routes.dart';
+import '../features/mind/presentation/mind_screens.dart';
 import 'shell/app_shell.dart';
 import 'shell/main_tab.dart';
 import 'shell/tab_placeholder_screen.dart';
@@ -115,13 +118,44 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
                 ),
                 // The trades list and market search keep the tab bar (as drawn).
                 routes: [
-                  if (tab == MainTab.journal)
+                  if (tab == MainTab.journal) ...[
                     GoRoute(path: 'trades', builder: (c, s) => const TradesScreen()),
+                    GoRoute(path: 'mood', builder: (c, s) => const MoodScreen()),
+                  ],
                   if (tab == MainTab.markets)
                     GoRoute(path: 'search', builder: (c, s) => const MarketSearchScreen()),
                   if (tab == MainTab.me) ...[
                     GoRoute(path: 'practice', builder: (c, s) => const PracticeScreen()),
                     GoRoute(path: 'badges', builder: (c, s) => const BadgesScreen()),
+                    GoRoute(
+                      path: 'mind',
+                      builder: (c, s) => const MindToolkitScreen(),
+                      routes: [
+                        GoRoute(path: 'scorecard', builder: (c, s) => const ScorecardScreen()),
+                        GoRoute(path: 'prompts', builder: (c, s) => const PromptsScreen()),
+                        GoRoute(path: 'affirmations', builder: (c, s) => const AffirmationsScreen()),
+                        GoRoute(
+                          path: 'reading',
+                          builder: (c, s) => const ReadingScreen(),
+                          routes: [
+                            GoRoute(
+                              path: ':id',
+                              builder: (c, s) => ReadingArticleScreen(id: s.pathParameters['id'] ?? ''),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    GoRoute(
+                      path: 'coach-history',
+                      builder: (c, s) => const CoachHistoryScreen(),
+                      routes: [
+                        GoRoute(
+                          path: ':id',
+                          builder: (c, s) => CoachTranscriptScreen(sessionId: s.pathParameters['id'] ?? ''),
+                        ),
+                      ],
+                    ),
                     GoRoute(
                       path: 'backtest',
                       builder: (c, s) => const BacktestScreen(),

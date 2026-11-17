@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0..1,0&display=block">
+<style>
+@keyframes dojiBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+@keyframes sheetUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes barFill{from{width:0}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+a{color:#2FD67B;}a:hover{color:#F5F5F7;}
+input::placeholder,textarea::placeholder{color:#6E7279;}
+</style>
+</helmet>
+<div data-screen-label="{{ label }}" style="position:relative;width:{{ dim.w }}px;height:{{ dim.h }}px;border-radius:{{ dim.r }}px;overflow:hidden;background:#050607;border:1px solid #26292E;box-shadow:0 40px 80px rgba(0,0,0,0.5);font-family:'Geist',system-ui,sans-serif;color:#F5F5F7;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;flex:none;">
+
+<div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;z-index:8;height:{{ dim.sb }}px;display:flex;align-items:center;justify-content:space-between;padding:0 {{ dim.sbp }}px;font-size:15px;font-weight:600;pointer-events:none;background:rgba(5,6,7,0.85);">
+  <span>9:41</span>
+  <sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:50%;top:11px;width:124px;height:36px;margin-left:-62px;border-radius:18px;background:#000;"></span></sc-if>
+  <span style="display:flex;gap:4px;align-items:center;font-family:'Material Symbols Rounded';font-size:17px;line-height:1;"><span>signal_cellular_alt</span><span>wifi</span><span>battery_full</span></span>
+</div>
+
+<sc-if value="{{ is.home }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:16px;padding:{{ dim.top }}px 20px 24px;zoom:{{ zoom }};">
+  <div style="display:flex;align-items:center;gap:4px;min-height:44px;flex:none;">
+    <h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;">journal</h1>
+    <sc-if value="{{ h.hasData }}" hint-placeholder-val="{{ true }}"><button onClick="{{ go.ask }}" aria-label="ask your journal" style="margin-left:auto;width:44px;height:44px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">forum</button></sc-if>
+    <button onClick="{{ go.addSheet }}" aria-label="add trades" style="margin-left:{{ h.addMl }};margin-right:-6px;width:44px;height:44px;border-radius:22px;border:none;background:#F5F5F7;color:#050607;cursor:pointer;font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">add</button>
+  </div>
+
+  <sc-if value="{{ h.hasData }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:8px;margin-top:-8px;flex:none;">
+      <span role="status" style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;"><span style="color:{{ sync.c }};">&gt;</span> {{ sync.t }}</span>
+      <button onClick="{{ cycleAcct }}" aria-label="account filter" style="margin-left:auto;height:32px;display:flex;align-items:center;gap:4px;padding:0 6px 0 10px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;white-space:nowrap;">{{ acct }}<span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:16px;color:#A1A1A6;">expand_more</span></button>
+    </div>
+    <div style="display:flex;gap:8px;flex:none;">
+      <div role="radiogroup" aria-label="period" style="flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:3px;border-radius:11px;background:#0F1113;border:1px solid #26292E;"><sc-for list="{{ periods }}" as="p" hint-placeholder-count="4"><button role="radio" aria-checked="{{ p.on }}" onClick="{{ p.pick }}" style="height:32px;border-radius:8px;border:none;background:{{ p.bg }};color:{{ p.fg }};font-family:inherit;font-size:13px;cursor:pointer;padding:0;">{{ p.l }}</button></sc-for></div>
+      <div role="radiogroup" aria-label="show results in" style="display:grid;grid-template-columns:repeat(2,40px);padding:3px;border-radius:11px;background:#0F1113;border:1px solid #26292E;"><sc-for list="{{ units }}" as="u" hint-placeholder-count="2"><button role="radio" aria-checked="{{ u.on }}" aria-label="{{ u.aria }}" onClick="{{ u.pick }}" style="height:32px;border-radius:8px;border:none;background:{{ u.bg }};color:{{ u.fg }};font-family:'Geist Mono',monospace;font-size:13px;cursor:pointer;padding:0;">{{ u.l }}</button></sc-for></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ h.banner }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-radius:14px;background:#0F1113;border:1px solid {{ bn.bd }};animation:rise 320ms ease-out;flex:none;">
+      <span style="font-family:'Geist Mono',monospace;font-size:13px;line-height:1.5;"><span style="color:{{ bn.c }};">&gt;</span> {{ bn.t }}<sc-if value="{{ bn.cursor }}" hint-placeholder-val="{{ false }}"><span style="animation:dojiBlink 1s steps(1) infinite;">_</span></sc-if></span>
+      <sc-if value="{{ bn.sub }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">{{ bn.subT }}</span></sc-if>
+      <sc-if value="{{ bn.bar }}" hint-placeholder-val="{{ false }}"><div role="progressbar" aria-label="{{ bn.barAria }}" style="height:6px;border-radius:3px;background:#17191C;overflow:hidden;"><div style="height:100%;width:{{ bn.pct }};border-radius:3px;background:#2FD67B;animation:barFill 900ms ease-out;"></div></div></sc-if>
+      <sc-if value="{{ bn.btns }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:8px;"><sc-for list="{{ bn.actions }}" as="a" hint-placeholder-count="2"><button onClick="{{ a.go }}" style="flex:1;height:40px;border-radius:999px;border:{{ a.bd }};background:{{ a.bg }};color:{{ a.fg }};font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;">{{ a.l }}</button></sc-for></div></sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ h.empty }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;padding:12px 0 24px;">
+      <p style="margin:0;font-family:'Geist Mono',monospace;font-size:19px;line-height:1.5;"><span style="color:#2FD67B;">&gt;</span> no trades yet. connect an account or import a csv.<span style="animation:dojiBlink 1s steps(1) infinite;">_</span></p>
+      <p style="margin:0;font-size:15px;line-height:1.5;color:#A1A1A6;text-wrap:pretty;">every trade gets a process grade, and after 20 trades doji starts finding the patterns in them.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ addOpts }}" as="o" hint-placeholder-count="3">
+          <button onClick="{{ o.go }}" style="display:flex;align-items:center;gap:14px;min-height:68px;padding:0 16px;border-radius:16px;background:#0F1113;border:1px solid {{ o.bd }};color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;">
+            <span aria-hidden="true" style="width:36px;height:36px;flex:none;border-radius:10px;background:#17191C;display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:20px;">{{ o.icon }}</span>
+            <span style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="font-size:16px;font-weight:600;">{{ o.t }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ o.s }}</span></span>
+            <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#6E7279;">chevron_right</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ h.skeleton }}" hint-placeholder-val="{{ false }}">
+    <div aria-hidden="true" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;flex:none;"><span style="height:76px;border-radius:12px;background:#0F1113;"></span><span style="height:76px;border-radius:12px;background:#0F1113;"></span><span style="height:76px;border-radius:12px;background:#0F1113;"></span></div>
+    <div aria-hidden="true" style="height:200px;border-radius:16px;background:#0F1113;flex:none;"></div>
+    <div aria-hidden="true" style="display:flex;flex-direction:column;gap:10px;flex:none;"><span style="height:14px;width:60%;border-radius:4px;background:#0F1113;"></span><span style="height:14px;width:80%;border-radius:4px;background:#0F1113;"></span><span style="height:14px;width:45%;border-radius:4px;background:#0F1113;"></span></div>
+  </sc-if>
+
+  <sc-if value="{{ h.content }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px;flex:none;">
+      <sc-for list="{{ stats }}" as="s" hint-placeholder-count="7">
+        <div style="flex:none;min-width:118px;display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:12px;background:#0F1113;border:1px solid #26292E;">
+          <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;white-space:nowrap;">{{ s.l }}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:20px;font-weight:500;white-space:nowrap;color:{{ s.c }};">{{ s.v }}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:10px;color:#6E7279;white-space:nowrap;">{{ s.n }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;padding:14px 14px 12px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">EQUITY · {{ unitL }}</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;border:1px dashed #26292E;border-radius:6px;padding:2px 6px;">sample shape</span></div>
+      <div style="position:relative;height:140px;">
+        <span aria-hidden="true" style="position:absolute;left:0;right:0;top:{{ eq.zero }};border-top:1px dashed #26292E;"></span>
+        <span aria-hidden="true" style="position:absolute;left:0;top:{{ eq.zero }};margin-top:2px;font-family:'Geist Mono',monospace;font-size:10px;color:#6E7279;">0{{ unitS }}</span>
+        <svg viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="{{ eq.aria }}" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
+          <polyline points="{{ eq.ghost }}" fill="none" stroke="#2FD67B" stroke-width="1.5" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" stroke-linejoin="round"></polyline>
+          <polyline points="{{ eq.actual }}" fill="none" stroke="#F5F5F7" stroke-width="1.75" vector-effect="non-scaling-stroke" stroke-linejoin="round"></polyline>
+          <line x1="298" x2="298" y1="{{ eq.gy }}" y2="{{ eq.ay }}" stroke="#FF9F0A" stroke-width="2" vector-effect="non-scaling-stroke"></line>
+        </svg>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;flex-wrap:wrap;">
+        <span style="display:flex;align-items:center;gap:6px;"><span style="width:16px;border-top:2px solid #F5F5F7;"></span>actual</span>
+        <span style="display:flex;align-items:center;gap:6px;"><span style="width:16px;border-top:2px dashed #2FD67B;"></span>if you'd followed your rules</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding-top:10px;border-top:1px solid #26292E;">
+        <span aria-hidden="true" style="width:10px;height:14px;box-sizing:border-box;border:2px solid #FF9F0A;border-left:none;"></span>
+        <span style="font-family:'Geist Mono',monospace;font-size:13px;">cost of breaking rules: <span style="color:#FF9F0A;">{{ eq.cost }}</span></span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;flex:none;">
+      <div style="display:flex;align-items:center;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">INSIGHTS</span><button onClick="{{ go.insights }}" style="margin-left:auto;margin-right:-8px;height:44px;padding:0 8px;border:none;background:transparent;color:#2FD67B;font-family:inherit;font-size:14px;cursor:pointer;">{{ h.insightsCta }}</button></div>
+      <sc-if value="{{ h.locked }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;border:1px dashed #3A3D42;">
+          <span style="display:flex;align-items:center;gap:8px;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:16px;">lock</span>locked until 20 trades</span>
+          <p style="margin:0;font-size:14px;line-height:1.5;color:#A1A1A6;text-wrap:pretty;">patterns from a handful of trades are mostly noise. your process grades already count.</p>
+        </div>
+      </sc-if>
+      <sc-if value="{{ h.unlocked }}" hint-placeholder-val="{{ true }}">
+        <sc-for list="{{ homeIns }}" as="c" hint-placeholder-count="2"><dc-import name="Doji Insight Card" ins="{{ c.ins }}" state="{{ c.state }}" watching="{{ c.watching }}" on-open="{{ c.open }}" on-see="{{ c.see }}" on-primary="{{ c.primary }}" on-watch="{{ c.watch }}" on-dismiss="{{ c.dismiss }}" on-undo="{{ c.dismiss }}" hint-size="100%,220px"></dc-import></sc-for>
+      </sc-if>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">CALENDAR · [MONTH]</span><span style="margin-left:auto;display:flex;align-items:center;gap:4px;font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:14px;">lock</span>private</span></div>
+      <div aria-hidden="true" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;font-family:'Geist Mono',monospace;font-size:10px;color:#6E7279;text-align:center;"><span>m</span><span>t</span><span>w</span><span>t</span><span>f</span><span>s</span><span>s</span></div>
+      <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;">
+        <sc-for list="{{ heat }}" as="d" hint-placeholder-count="35"><button onClick="{{ d.pick }}" aria-label="{{ d.aria }}" disabled="{{ d.off }}" style="position:relative;height:40px;padding:0;border-radius:8px;box-sizing:border-box;border:{{ d.bd }};background:{{ d.bg }};color:{{ d.fg }};cursor:pointer;font-family:'Geist Mono',monospace;outline:{{ d.ol }};outline-offset:1px;"><span style="position:absolute;left:5px;top:3px;font-size:9px;color:#6E7279;">{{ d.n }}</span><span style="font-size:14px;font-weight:600;">{{ d.g }}</span></button></sc-for>
+      </div>
+      <div role="status" style="min-height:18px;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ heatSel }}</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;">
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;box-sizing:border-box;border-radius:4px;background:rgba(47,214,123,0.22);border:1.5px solid #2FD67B;color:#2FD67B;display:flex;align-items:center;justify-content:center;font-size:10px;">+</span>up day</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;box-sizing:border-box;border-radius:4px;border:1.5px solid #FF9F0A;color:#FF9F0A;display:flex;align-items:center;justify-content:center;font-size:10px;">−</span>down day</span>
+        <span style="display:flex;align-items:center;gap:5px;"><span style="width:14px;height:14px;box-sizing:border-box;border-radius:4px;border:1.5px solid #3A3D42;"></span>no trades</span>
+      </div>
+      <span style="padding-top:10px;border-top:1px solid #26292E;font-family:'Geist Mono',monospace;font-size:11px;line-height:1.5;color:#A1A1A6;">only you see this. your public doji grid shows discipline, never results.</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;flex:none;">
+      <div style="display:flex;align-items:center;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">RECENT TRADES</span><button onClick="{{ go.trades }}" style="margin-left:auto;margin-right:-8px;height:44px;padding:0 8px;border:none;background:transparent;color:#2FD67B;font-family:inherit;font-size:14px;cursor:pointer;">all trades</button></div>
+      <sc-for list="{{ homeRows }}" as="t" hint-placeholder-count="4">
+        <button onClick="{{ t.open }}" style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border:none;border-top:1px solid #17191C;background:{{ t.hl }};color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;width:100%;animation:{{ t.an }};">
+          <span aria-label="{{ t.gAria }}" style="width:32px;height:32px;flex:none;box-sizing:border-box;border-radius:9px;border:1.5px {{ t.gs }} {{ t.gc }};color:{{ t.gc }};display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:14px;font-weight:600;">{{ t.grade }}</span>
+          <span style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0;">
+            <span style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Geist Mono',monospace;font-size:15px;font-weight:500;">{{ t.pair }}</span><span style="display:flex;align-items:center;gap:2px;font-size:12px;color:#A1A1A6;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:14px;">{{ t.dirG }}</span>{{ t.dir }}</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:15px;color:{{ t.rc }};">{{ t.res }}</span></span>
+            <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">{{ t.setup }} · {{ t.date }}</span>
+            <sc-if value="{{ t.hasTags }}" hint-placeholder-val="{{ false }}"><span style="display:flex;flex-wrap:wrap;gap:4px;"><sc-for list="{{ t.tags }}" as="g" hint-placeholder-count="2"><span style="height:22px;display:flex;align-items:center;gap:3px;padding:0 7px;border-radius:6px;border:1px {{ g.bs }} {{ g.bd }};color:{{ g.c }};font-size:11px;white-space:nowrap;">{{ g.l }}</span></sc-for></span></sc-if>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;flex-direction:column;padding:4px 16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+      <sc-for list="{{ reportRows }}" as="r" hint-placeholder-count="2">
+        <button onClick="{{ r.go }}" style="display:flex;align-items:center;gap:12px;min-height:60px;padding:0;border:none;border-top:{{ r.bt }};background:transparent;color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;">
+          <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;color:#A1A1A6;">{{ r.icon }}</span>
+          <span style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="font-size:15px;font-weight:600;">{{ r.t }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ r.s }}</span></span>
+          <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#6E7279;">chevron_right</span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.trades }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;padding:{{ dim.top }}px 20px 24px;">
+  <sc-if value="{{ tl.fromInsight }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;height:44px;flex:none;margin-left:-12px;"><button onClick="{{ go.insight }}" style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 4px;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;">chevron_left</span>insight</button></div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:14px;background:#0F1113;border:1px solid {{ tl.kc }};flex:none;">
+      <div style="display:flex;align-items:center;gap:8px;"><span aria-hidden="true" style="width:18px;height:18px;box-sizing:border-box;border-radius:9px;border:2px solid {{ tl.kc }};background:{{ tl.kfill }};color:{{ tl.kgc }};display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:13px;font-weight:600;line-height:1;">{{ tl.kg }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">FILTERED BY INSIGHT</span><button onClick="{{ go.tradesPlain }}" aria-label="clear filter" style="margin-left:auto;margin-right:-10px;width:40px;height:32px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:20px;">close</button></div>
+      <span style="font-size:15px;line-height:1.4;text-wrap:pretty;">{{ tl.h }}</span>
+      <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ tl.filt }} · {{ tl.count }} shown · <span style="color:{{ tl.kc }};">{{ tl.total }}</span></span>
+    </div>
+  </sc-if>
+  <sc-if value="{{ tl.plain }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:baseline;gap:10px;min-height:44px;flex:none;"><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;">trades</h1><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">{{ tl.count }} of [142]</span></div>
+    <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px;flex:none;">
+      <button onClick="{{ go.filters }}" style="flex:none;height:36px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;border:1px solid #F5F5F7;background:{{ tl.fBg }};color:{{ tl.fFg }};font-family:inherit;font-size:13px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:16px;">tune</span>{{ tl.fLabel }}</button>
+      <sc-for list="{{ fchips }}" as="f" hint-placeholder-count="7"><button onClick="{{ go.filters }}" style="flex:none;height:36px;display:flex;align-items:center;gap:4px;padding:0 10px 0 12px;border-radius:999px;border:1px solid {{ f.bd }};background:transparent;color:{{ f.fg }};font-family:inherit;font-size:13px;cursor:pointer;white-space:nowrap;">{{ f.l }}<span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:16px;color:#6E7279;">expand_more</span></button></sc-for>
+    </div>
+  </sc-if>
+  <div style="display:flex;flex-direction:column;flex:none;">
+    <sc-for list="{{ rows }}" as="t" hint-placeholder-count="6">
+      <button onClick="{{ t.open }}" style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border:none;border-top:1px solid #17191C;background:transparent;color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;width:100%;">
+        <span aria-label="{{ t.gAria }}" style="width:32px;height:32px;flex:none;box-sizing:border-box;border-radius:9px;border:1.5px {{ t.gs }} {{ t.gc }};color:{{ t.gc }};display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:14px;font-weight:600;">{{ t.grade }}</span>
+        <span style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0;">
+          <span style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Geist Mono',monospace;font-size:15px;font-weight:500;">{{ t.pair }}</span><span style="display:flex;align-items:center;gap:2px;font-size:12px;color:#A1A1A6;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:14px;">{{ t.dirG }}</span>{{ t.dir }}</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:15px;color:{{ t.rc }};">{{ t.res }}</span></span>
+          <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">{{ t.setup }} · {{ t.session }} · {{ t.date }}</span>
+          <sc-if value="{{ t.hasTags }}" hint-placeholder-val="{{ false }}"><span style="display:flex;flex-wrap:wrap;gap:4px;"><sc-for list="{{ t.tags }}" as="g" hint-placeholder-count="2"><span style="height:22px;display:flex;align-items:center;gap:3px;padding:0 7px;border-radius:6px;border:1px {{ g.bs }} {{ g.bd }};color:{{ g.c }};font-size:11px;white-space:nowrap;">{{ g.l }}</span></sc-for></span></sc-if>
+        </span>
+      </button>
+    </sc-for>
+    <sc-if value="{{ tl.none }}" hint-placeholder-val="{{ false }}"><p style="margin:0;padding:24px 0;font-family:'Geist Mono',monospace;font-size:14px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> no trades match these filters.</p></sc-if>
+  </div>
+</div>
+<sc-if value="{{ tl.fromInsight }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:none;display:flex;flex-direction:column;gap:6px;padding:12px 20px;border-top:1px solid #26292E;background:#0B0C0E;">
+    <button onClick="{{ tl.ruleGo }}" disabled="{{ tl.ruleDone }}" style="height:52px;border-radius:999px;border:{{ tl.rbd }};background:{{ tl.rbg }};color:{{ tl.rfg }};font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;">{{ tl.rg }}</span>{{ tl.rl }}</button>
+    <span style="text-align:center;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">"{{ tl.rule }}"</span>
+  </div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ is.trade }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+  <div style="flex:none;display:flex;align-items:center;height:44px;margin-top:{{ dim.top }}px;padding:0 8px;">
+    <button onClick="{{ go.back }}" style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 0;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;">chevron_left</span>{{ td.backL }}</button>
+    <button onClick="{{ go.reviewAgain }}" style="margin-left:auto;height:36px;padding:0 12px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#A1A1A6;font-family:inherit;font-size:13px;cursor:pointer;">edit review</button>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:16px;padding:8px 20px {{ dim.bot }}px;">
+    <div style="display:flex;align-items:flex-start;gap:12px;flex:none;">
+      <div style="display:flex;flex-direction:column;gap:6px;flex:1;">
+        <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ td.date }} · {{ td.session }} · {{ td.setup }}</span>
+        <h1 style="margin:0;display:flex;align-items:baseline;gap:10px;font-size:28px;font-weight:600;letter-spacing:-0.02em;"><span style="font-family:'Geist Mono',monospace;font-weight:500;">{{ td.pair }}</span><span style="font-size:17px;font-weight:500;color:#A1A1A6;">{{ td.dir }}</span></h1>
+        <span style="font-family:'Geist Mono',monospace;font-size:22px;color:{{ td.rc }};">{{ td.res }}</span>
+      </div>
+      <div aria-label="{{ td.gAria }}" style="width:64px;height:64px;flex:none;box-sizing:border-box;border-radius:16px;border:2px solid {{ td.gc }};color:{{ td.gc }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;"><span style="font-family:'Geist Mono',monospace;font-size:30px;font-weight:600;line-height:1;">{{ td.grade }}</span><span style="font-family:'Geist Mono',monospace;font-size:9px;color:#A1A1A6;">process</span></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;padding:12px 12px 10px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">REPLAY · M5</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;border:1px dashed #26292E;border-radius:6px;padding:2px 6px;">sample candles</span></div>
+      <div role="img" aria-label="{{ td.chartAria }}" style="position:relative;height:200px;margin-right:58px;">
+        <sc-for list="{{ td.candles }}" as="k" hint-placeholder-count="40"><span style="position:absolute;left:{{ k.x }};top:{{ k.wt }};height:{{ k.wh }};width:1px;background:#6E7279;opacity:{{ k.op }};"></span><span style="position:absolute;left:{{ k.x }};top:{{ k.bt }};height:{{ k.bh }};width:5px;margin-left:-2px;box-sizing:border-box;border:1px solid {{ k.bd }};background:{{ k.bg }};opacity:{{ k.op }};"></span></sc-for>
+        <sc-for list="{{ td.lines }}" as="l" hint-placeholder-count="4"><span style="position:absolute;left:0;right:-58px;top:{{ l.y }};border-top:1px {{ l.st }} {{ l.c }};"><span style="position:absolute;right:0;top:-8px;padding:0 3px;background:#0F1113;font-family:'Geist Mono',monospace;font-size:9px;line-height:16px;color:{{ l.c }};white-space:nowrap;">{{ l.l }}</span></span></sc-for>
+        <span aria-hidden="true" style="position:absolute;left:{{ td.ex }};top:{{ td.ey }};width:12px;height:12px;margin:-6px 0 0 -6px;box-sizing:border-box;border-radius:6px;border:2px solid #F5F5F7;background:#050607;"></span>
+        <sc-if value="{{ td.showExit }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="position:absolute;left:{{ td.xx }};top:{{ td.xy }};width:12px;height:12px;margin:-6px 0 0 -6px;transform:rotate(45deg);box-sizing:border-box;border:2px solid #FF9F0A;background:#050607;"></span><span style="position:absolute;left:{{ td.xx }};top:{{ td.xy }};margin:10px 0 0 -12px;font-family:'Geist Mono',monospace;font-size:9px;color:#FF9F0A;">exit</span></sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onClick="{{ td.play }}" aria-label="{{ td.playAria }}" style="width:36px;height:36px;flex:none;border-radius:18px;border:1px solid #26292E;background:#17191C;color:#F5F5F7;cursor:pointer;font-family:'Material Symbols Rounded';font-size:20px;">{{ td.playG }}</button>
+        <div style="flex:1;height:4px;border-radius:2px;background:#17191C;overflow:hidden;"><div style="height:100%;width:{{ td.rpPct }};background:#A1A1A6;"></div></div>
+        <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">{{ td.rpT }}</span>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;">
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:10px;background:#F5F5F7;"></span>closed higher</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:10px;box-sizing:border-box;border:1px solid #A1A1A6;"></span>closed lower</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;box-sizing:border-box;border-radius:5px;border:2px solid #F5F5F7;"></span>entry</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;transform:rotate(45deg);box-sizing:border-box;border:2px solid #FF9F0A;"></span>exit</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;border:1px solid #26292E;flex:none;">
+      <div style="width:96px;height:60px;flex:none;border-radius:8px;background:repeating-linear-gradient(135deg,#0F1113 0 6px,#17191C 6px 12px);display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:9px;color:#A1A1A6;text-align:center;">your screenshot</div>
+      <span style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="font-size:14px;">chart screenshot</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">added at [time] · tap to view</span></span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;padding:4px 14px 8px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+      <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 20px;align-items:center;gap:8px;height:36px;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;"><span>PLAN VS ACTUAL</span><span>plan</span><span>actual</span><span></span></div>
+      <sc-for list="{{ td.pva }}" as="r" hint-placeholder-count="6">
+        <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr 20px;align-items:center;gap:8px;min-height:40px;border-top:1px solid #17191C;">
+          <span style="font-size:14px;">{{ r.l }}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">{{ r.p }}</span>
+          <span style="font-family:'Geist Mono',monospace;font-size:13px;">{{ r.a }}</span>
+          <span aria-label="{{ r.aria }}" style="font-family:'Material Symbols Rounded';font-size:18px;color:{{ r.c }};">{{ r.g }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">PROCESS GRADE · {{ td.grade }}</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">process, not result</span></div>
+      <sc-for list="{{ td.reasons }}" as="r" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:10px;min-height:32px;"><span aria-hidden="true" style="width:20px;height:20px;flex:none;box-sizing:border-box;border-radius:6px;border:1.5px solid {{ r.c }};background:{{ r.bg }};color:{{ r.gc }};display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:14px;font-weight:600;">{{ r.g }}</span><span style="font-size:14px;">{{ r.t }}</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:{{ r.c }};">{{ r.w }}</span></div></sc-for>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;flex:none;">
+      <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">TAGS</span>
+      <sc-if value="{{ td.hasTags }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ td.tags }}" as="g" hint-placeholder-count="2"><span style="height:28px;display:flex;align-items:center;padding:0 10px;border-radius:8px;border:1px solid rgba(255,159,10,0.55);font-size:13px;">{{ g }}</span></sc-for></div></sc-if>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span style="height:30px;display:flex;align-items:center;gap:6px;padding:0 10px;border-radius:999px;border:1px solid #26292E;font-size:13px;"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">before</span>{{ td.eb }}</span>
+        <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;color:#A1A1A6;">arrow_forward</span>
+        <span style="height:30px;display:flex;align-items:center;gap:6px;padding:0 10px;border-radius:999px;border:1px solid #26292E;font-size:13px;"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">after</span>{{ td.ea }}</span>
+      </div>
+      <p style="margin:0;padding:12px 14px;border-radius:12px;background:#0F1113;font-size:15px;line-height:1.45;color:#F5F5F7;">"{{ td.note }}"</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid rgba(47,214,123,0.45);flex:none;font-family:'Geist Mono',monospace;">
+      <span style="font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">AI TRADE REVIEW</span>
+      <sc-for list="{{ td.review }}" as="n" hint-placeholder-count="3"><p style="margin:0;font-size:14px;line-height:1.55;"><span style="color:{{ n.c }};">&gt; {{ n.k }}: </span>{{ n.t }}</p></sc-for>
+      <span style="padding-top:10px;border-top:1px solid #26292E;font-size:11px;color:#A1A1A6;">reviewed against your strategy. about this trade only, not the market.</span>
+    </div>
+    <button onClick="{{ go.tradesPlain }}" style="display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border-radius:14px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:15px;cursor:pointer;text-align:left;flex:none;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#A1A1A6;">stacks</span>similar trades ([n])<span aria-hidden="true" style="margin-left:auto;font-family:'Material Symbols Rounded';font-size:20px;color:#6E7279;">chevron_right</span></button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.insights }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;padding:{{ dim.top }}px 20px 24px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;margin-left:-12px;"><button onClick="{{ go.home }}" style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 4px;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;">chevron_left</span>journal</button></div>
+  <div style="display:flex;flex-direction:column;gap:6px;flex:none;"><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;">insights</h1><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> from your [142] trades · updated [time]</span></div>
+  <div role="radiogroup" aria-label="filter insights" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:3px;border-radius:11px;background:#0F1113;border:1px solid #26292E;flex:none;"><sc-for list="{{ ifs }}" as="f" hint-placeholder-count="4"><button role="radio" aria-checked="{{ f.on }}" onClick="{{ f.pick }}" style="height:34px;border-radius:8px;border:none;background:{{ f.bg }};color:{{ f.fg }};font-family:inherit;font-size:13px;cursor:pointer;padding:0;">{{ f.l }}</button></sc-for></div>
+  <button onClick="{{ go.ask }}" style="display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;border:1px solid #26292E;background:#0B0C0E;color:#A1A1A6;font-family:'Geist Mono',monospace;font-size:13px;cursor:pointer;text-align:left;flex:none;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;">forum</span>ask your journal…</button>
+  <div style="display:flex;flex-direction:column;gap:10px;flex:none;">
+    <sc-for list="{{ feed }}" as="c" hint-placeholder-count="5"><dc-import name="Doji Insight Card" ins="{{ c.ins }}" state="{{ c.state }}" watching="{{ c.watching }}" on-open="{{ c.open }}" on-see="{{ c.see }}" on-primary="{{ c.primary }}" on-watch="{{ c.watch }}" on-dismiss="{{ c.dismiss }}" on-undo="{{ c.dismiss }}" hint-size="100%,220px"></dc-import></sc-for>
+    <sc-if value="{{ feedEmpty }}" hint-placeholder-val="{{ false }}"><p style="margin:0;padding:16px 0;font-family:'Geist Mono',monospace;font-size:14px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> nothing pinned yet. tap the pin on any insight to watch it.</p></sc-if>
+  </div>
+  <span style="font-family:'Geist Mono',monospace;font-size:11px;line-height:1.5;color:#A1A1A6;">from your own past trades. not a forecast, not financial advice.</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.insight }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+  <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:16px;padding:{{ dim.top }}px 20px 24px;">
+    <div style="display:flex;align-items:center;height:44px;flex:none;margin-left:-12px;"><button onClick="{{ go.insights }}" style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 4px;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;">chevron_left</span>insights</button></div>
+    <div style="display:flex;flex-direction:column;gap:10px;flex:none;">
+      <span style="display:flex;align-items:center;gap:8px;"><span aria-hidden="true" style="width:22px;height:22px;box-sizing:border-box;border-radius:11px;border:2px solid {{ idt.kc }};background:{{ idt.kfill }};color:{{ idt.kgc }};display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:16px;font-weight:600;line-height:1;">{{ idt.kg }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;letter-spacing:0.08em;color:{{ idt.kc }};">{{ idt.kl }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">· {{ idt.type }}</span></span>
+      <h1 style="margin:0;font-size:26px;font-weight:600;letter-spacing:-0.02em;line-height:1.2;text-wrap:pretty;">{{ idt.h }}</h1>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;flex:none;">
+      <sc-for list="{{ idt.ev }}" as="e" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:12px;background:#0F1113;border:1px solid #26292E;"><span style="font-family:'Geist Mono',monospace;font-size:18px;color:{{ e.c }};">{{ e.v }}</span><span style="font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;">{{ e.l }}</span></div></sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+      <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">{{ idt.chartT }}</span>
+      <div role="img" aria-label="{{ idt.chartAria }}" style="position:relative;height:120px;display:flex;gap:4px;">
+        <span aria-hidden="true" style="position:absolute;left:0;right:0;top:50%;border-top:1px solid #26292E;"></span>
+        <sc-if value="{{ idt.isTime }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="position:absolute;top:-4px;bottom:-4px;left:{{ idt.cut }};border-left:1px dashed #FF9F0A;"></span><span style="position:absolute;top:-6px;left:{{ idt.cut }};margin-left:4px;font-family:'Geist Mono',monospace;font-size:9px;color:#FF9F0A;">15:00</span></sc-if>
+        <sc-for list="{{ idt.bars }}" as="b" hint-placeholder-count="14"><span style="flex:1;position:relative;"><span style="position:absolute;left:0;right:0;top:{{ b.t }};height:{{ b.h }};box-sizing:border-box;border-radius:2px;background:{{ b.bg }};border:1.5px solid {{ b.bd }};"></span></span></sc-for>
+      </div>
+      <div aria-hidden="true" style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:10px;color:#6E7279;"><span>{{ idt.x0 }}</span><span>{{ idt.x1 }}</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;flex:none;font-family:'Geist Mono',monospace;">
+      <span style="font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">HOW DOJI FOUND THIS</span>
+      <sc-for list="{{ idt.how }}" as="n" hint-placeholder-count="3"><p style="margin:0;font-size:13px;line-height:1.55;"><span style="color:#2FD67B;">&gt; </span>{{ n }}</p></sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:12px;border:1px dashed {{ idt.confBd }};flex:none;">
+      <div style="display:flex;align-items:center;gap:8px;font-family:'Geist Mono',monospace;font-size:12px;"><span>sample: {{ idt.n }} trades</span><span style="margin-left:auto;color:#A1A1A6;">{{ idt.confW }}</span></div>
+      <div aria-hidden="true" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;"><sc-for list="{{ idt.conf }}" as="c" hint-placeholder-count="5"><span style="height:6px;border-radius:2px;background:{{ c }};"></span></sc-for></div>
+      <sc-if value="{{ idt.hasNote }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">&gt; {{ idt.note }}</span></sc-if>
+    </div>
+    <div style="display:flex;gap:8px;flex:none;">
+      <button onClick="{{ idt.watch }}" aria-pressed="{{ idt.watchS }}" style="flex:1;height:44px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:14px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;font-variation-settings:{{ idt.watchFill }};">push_pin</span>{{ idt.watchL }}</button>
+      <button onClick="{{ idt.dismiss }}" style="flex:1;height:44px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#A1A1A6;font-family:inherit;font-size:14px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;">thumb_down</span>not useful</button>
+    </div>
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;line-height:1.5;color:#A1A1A6;">from your own past trades. not a forecast, not financial advice.</span>
+  </div>
+  <div style="flex:none;display:flex;gap:8px;padding:12px 20px;border-top:1px solid #26292E;background:#0B0C0E;">
+    <button onClick="{{ idt.see }}" style="flex:1;height:52px;border-radius:999px;border:1px solid #F5F5F7;background:transparent;color:#F5F5F7;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;">see the trades</button>
+    <button onClick="{{ idt.rule }}" disabled="{{ idt.ruleDone }}" style="flex:1;height:52px;border-radius:999px;border:{{ idt.rbd }};background:{{ idt.rbg }};color:{{ idt.rfg }};font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;">{{ idt.rl }}</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.ask }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+  <div style="flex:none;display:flex;align-items:center;gap:6px;height:44px;margin-top:{{ dim.top }}px;padding:0 8px;">
+    <button onClick="{{ go.home }}" aria-label="back to journal" style="width:44px;height:44px;border:none;background:transparent;color:#F5F5F7;cursor:pointer;font-family:'Material Symbols Rounded';font-size:26px;">chevron_left</button>
+    <span style="display:flex;flex-direction:column;"><span style="font-size:16px;font-weight:600;">ask your journal</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">answers from your [142] trades only</span></span>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:18px;padding:16px 20px;">
+    <sc-for list="{{ ask.msgs }}" as="m" hint-placeholder-count="2">
+      <div style="display:flex;flex-direction:column;gap:12px;animation:rise 320ms ease-out;">
+        <span style="align-self:flex-end;max-width:80%;padding:10px 14px;border-radius:18px 18px 4px 18px;background:#17191C;font-size:15px;line-height:1.4;">{{ m.q }}</span>
+        <div style="display:flex;flex-direction:column;gap:6px;font-family:'Geist Mono',monospace;">
+          <sc-for list="{{ m.lines }}" as="l" hint-placeholder-count="3"><p style="margin:0;font-size:14px;line-height:1.55;"><span style="color:#2FD67B;">&gt; </span>{{ l }}</p></sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;border-radius:12px;border:1px solid #26292E;overflow:hidden;">
+          <span style="padding:8px 12px;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;background:#0F1113;">{{ m.basis }}</span>
+          <sc-for list="{{ m.cites }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.open }}" style="display:flex;align-items:center;gap:10px;min-height:44px;padding:0 12px;border:none;border-top:1px solid #17191C;background:transparent;color:#F5F5F7;font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;text-align:left;"><span style="color:#A1A1A6;">[{{ c.i }}]</span><span>{{ c.pair }}</span><span style="color:#A1A1A6;">{{ c.day }}</span><span style="margin-left:auto;color:{{ c.rc }};">{{ c.res }}</span><span style="width:22px;height:22px;box-sizing:border-box;border-radius:6px;border:1.5px solid {{ c.gc }};color:{{ c.gc }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;">{{ c.grade }}</span></button></sc-for>
+        </div>
+      </div>
+    </sc-for>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">{{ ask.sugL }}</span>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ ask.sug }}" as="s" hint-placeholder-count="3"><button onClick="{{ s.go }}" style="height:40px;padding:0 14px;border-radius:999px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:inherit;font-size:14px;cursor:pointer;">{{ s.t }}</button></sc-for></div>
+    </div>
+  </div>
+  <div style="flex:none;display:flex;flex-direction:column;gap:6px;padding:10px 16px {{ dim.bot }}px;border-top:1px solid #26292E;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input aria-label="ask about your trades" placeholder="ask about your trades" value="{{ ask.q }}" onChange="{{ ask.setQ }}" onKeyDown="{{ ask.key }}" style="flex:1;height:44px;padding:0 16px;border-radius:999px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:inherit;font-size:15px;outline:none;">
+      <button onClick="{{ ask.send }}" aria-label="send" style="width:44px;height:44px;flex:none;border-radius:22px;border:none;background:#F5F5F7;color:#050607;cursor:pointer;font-family:'Material Symbols Rounded';font-size:22px;">arrow_upward</button>
+    </div>
+    <span style="text-align:center;font-family:'Geist Mono',monospace;font-size:10px;color:#6E7279;">looks at your past trades only. no market predictions.</span>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.weekly }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:16px;padding:{{ dim.top }}px 20px 24px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;margin-left:-12px;"><button onClick="{{ go.home }}" style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 4px;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;">chevron_left</span>journal</button></div>
+  <div style="display:flex;flex-direction:column;gap:6px;flex:none;"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#2FD67B;">&gt; sunday review</span><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;">week of [date]</h1><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">[n] trades · [n] reviewed</span></div>
+  <div style="display:flex;flex-direction:column;gap:8px;flex:none;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">TOP LEAK</span><dc-import name="Doji Insight Card" ins="{{ wk.leak.ins }}" state="{{ wk.leak.state }}" watching="{{ wk.leak.watching }}" on-open="{{ wk.leak.open }}" on-see="{{ wk.leak.see }}" on-primary="{{ wk.leak.primary }}" on-watch="{{ wk.leak.watch }}" on-dismiss="{{ wk.leak.dismiss }}" on-undo="{{ wk.leak.dismiss }}" hint-size="100%,220px"></dc-import></div>
+  <div style="display:flex;flex-direction:column;gap:8px;flex:none;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">TOP EDGE</span><dc-import name="Doji Insight Card" ins="{{ wk.edge.ins }}" state="{{ wk.edge.state }}" watching="{{ wk.edge.watching }}" on-open="{{ wk.edge.open }}" on-see="{{ wk.edge.see }}" on-primary="{{ wk.edge.primary }}" on-watch="{{ wk.edge.watch }}" on-dismiss="{{ wk.edge.dismiss }}" on-undo="{{ wk.edge.dismiss }}" hint-size="100%,220px"></dc-import></div>
+  <div style="display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+    <div style="display:flex;align-items:baseline;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">RULE ADHERENCE</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:28px;font-weight:500;">[x]%</span></div>
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;">
+      <sc-for list="{{ wk.days }}" as="d" hint-placeholder-count="7"><div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><span aria-label="{{ d.aria }}" style="width:100%;height:36px;box-sizing:border-box;border-radius:8px;border:1.5px {{ d.bs }} {{ d.c }};background:{{ d.bg }};color:{{ d.gc }};display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:18px;font-weight:600;">{{ d.g }}</span><span style="font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;">{{ d.l }}</span></div></sc-for>
+    </div>
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">[n] of [n] trades kept every rule · [x]% last week</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">PROCESS GRADE · LAST 8 WEEKS</span>
+    <div role="img" aria-label="{{ wk.trendAria }}" style="position:relative;height:120px;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));margin-left:18px;">
+      <div aria-hidden="true" style="position:absolute;left:-18px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:9px;color:#6E7279;"><span>A</span><span>C</span><span>F</span></div>
+      <sc-for list="{{ wk.trend }}" as="g" hint-placeholder-count="8"><div style="position:relative;"><span style="position:absolute;left:50%;top:{{ g.y }};width:26px;height:26px;margin:-13px 0 0 -13px;box-sizing:border-box;border-radius:7px;border:1.5px solid {{ g.c }};background:#0F1113;color:{{ g.c }};display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;">{{ g.g }}</span></div></sc-for>
+    </div>
+    <div aria-hidden="true" style="display:flex;justify-content:space-between;margin-left:18px;font-family:'Geist Mono',monospace;font-size:10px;color:#6E7279;"><span>8 wks ago</span><span>this week</span></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid rgba(47,214,123,0.45);flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">ONE FOCUS FOR NEXT WEEK</span>
+    <p style="margin:0;font-family:'Geist Mono',monospace;font-size:16px;line-height:1.5;"><span style="color:#2FD67B;">&gt;</span> no new entries after 15:00.</p>
+    <button onClick="{{ wk.makeRule }}" disabled="{{ wk.ruleDone }}" style="height:48px;border-radius:999px;border:{{ wk.rbd }};background:{{ wk.rbg }};color:{{ wk.rfg }};font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;">{{ wk.rl }}</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;border:1px solid #26292E;flex:none;">
+    <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;color:#A1A1A6;">picture_as_pdf</span>
+    <span style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;">monthly report<span style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;color:#2FD67B;border:1px solid #2FD67B;border-radius:5px;padding:1px 5px;">elite</span></span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">shareable pdf · in R · money hidden</span></span>
+    <button style="height:36px;padding:0 12px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:13px;cursor:pointer;">preview</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.prop }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:16px;padding:{{ dim.top }}px 20px 24px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;margin-left:-12px;"><button onClick="{{ go.home }}" style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 4px;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;">chevron_left</span>journal</button></div>
+  <div style="display:flex;flex-direction:column;gap:6px;flex:none;"><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;">prop challenge</h1><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">[firm] · phase 1 · $[x] account · day [n] of [n]</span></div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid {{ pr.bd }};flex:none;">
+    <span style="display:flex;align-items:center;gap:8px;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:{{ pr.c }};"><span aria-hidden="true" style="width:18px;height:18px;box-sizing:border-box;border-radius:9px;border:2px solid {{ pr.c }};background:{{ pr.fill }};color:{{ pr.gc }};display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:13px;font-weight:600;line-height:1;">{{ pr.g }}</span>{{ pr.tag }}</span>
+    <p style="margin:0;font-family:'Geist Mono',monospace;font-size:17px;line-height:1.5;"><span style="color:{{ pr.c }};">&gt;</span> {{ pr.pace }}</p>
+    <span style="font-size:13px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">{{ pr.why }}</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:14px;padding:14px 16px 16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">VS THE FIRM'S RULES</span>
+    <sc-for list="{{ pr.meters }}" as="m" hint-placeholder-count="4">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:baseline;gap:8px;font-size:14px;"><span>{{ m.l }}</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:13px;color:{{ m.tc }};">{{ m.v }}</span></div>
+        <div role="meter" aria-label="{{ m.l }}" style="position:relative;height:8px;border-radius:4px;background:#17191C;"><div style="height:100%;width:{{ m.pct }};border-radius:4px;background:{{ m.c }};animation:barFill 900ms ease-out;"></div><span aria-hidden="true" style="position:absolute;right:0;top:-3px;bottom:-3px;border-left:2px solid {{ m.lim }};"></span></div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">BALANCE VS LIMITS</span>
+    <div style="position:relative;height:130px;">
+      <span aria-hidden="true" style="position:absolute;left:0;right:0;top:4%;border-top:1px dashed #2FD67B;"></span><span style="position:absolute;right:0;top:4%;margin-top:3px;font-family:'Geist Mono',monospace;font-size:9px;color:#2FD67B;">target +[8]%</span>
+      <span aria-hidden="true" style="position:absolute;left:0;right:0;top:94%;border-top:1px dashed #FF9F0A;"></span><span style="position:absolute;right:0;top:94%;margin-top:-14px;font-family:'Geist Mono',monospace;font-size:9px;color:#FF9F0A;">max drawdown −[10]%</span>
+      <svg viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;"><polyline points="{{ pr.pts }}" fill="none" stroke="#F5F5F7" stroke-width="1.75" vector-effect="non-scaling-stroke" stroke-linejoin="round"></polyline></svg>
+    </div>
+  </div>
+  <span style="font-family:'Geist Mono',monospace;font-size:11px;line-height:1.5;color:#A1A1A6;">pace uses your last [n] trading days. it describes your own results so far, not the market.</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.connect }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:18px;padding:{{ dim.top }}px 20px {{ dim.bot }}px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;"><button onClick="{{ go.home }}" aria-label="close" style="margin-left:-10px;width:44px;height:44px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">close</button></div>
+  <div style="display:flex;flex-direction:column;gap:8px;flex:none;"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#2FD67B;">&gt; connect · read-only</span><h1 style="margin:0;font-size:30px;font-weight:600;letter-spacing:-0.03em;line-height:1.1;">connect your account</h1><p style="margin:0;font-size:15px;line-height:1.5;color:#A1A1A6;">trades import on their own. doji can read them, nothing else.</p></div>
+  <div role="radiogroup" aria-label="platform" style="display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:11px;background:#0F1113;border:1px solid #26292E;flex:none;"><sc-for list="{{ cn.plats }}" as="p" hint-placeholder-count="2"><button role="radio" aria-checked="{{ p.on }}" onClick="{{ p.pick }}" style="height:38px;border-radius:8px;border:none;background:{{ p.bg }};color:{{ p.fg }};font-family:'Geist Mono',monospace;font-size:14px;cursor:pointer;">{{ p.l }}</button></sc-for></div>
+  <div style="display:flex;flex-direction:column;gap:10px;flex:none;">
+    <sc-for list="{{ cn.fields }}" as="f" hint-placeholder-count="3"><label style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;color:#A1A1A6;">{{ f.l }}</span><input aria-label="{{ f.l }}" placeholder="{{ f.ph }}" type="{{ f.type }}" style="height:48px;padding:0 14px;border-radius:12px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:'Geist Mono',monospace;font-size:15px;outline:none;"></label></sc-for>
+  </div>
+  <div style="display:flex;gap:10px;padding:12px 14px;border-radius:12px;background:#0F1113;border:1px solid #26292E;flex:none;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#2FD67B;">visibility</span><span style="font-size:13px;line-height:1.5;color:#A1A1A6;text-wrap:pretty;">use your investor password, not your trading password. it can see trades but can't place, change or close them.</span></div>
+  <div style="flex:1;"></div>
+  <button onClick="{{ go.doConnect }}" style="height:56px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;flex:none;">connect</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.csv }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+  <div style="flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:44px;margin-top:{{ dim.top }}px;padding:0 12px;">
+    <button onClick="{{ go.home }}" style="justify-self:start;height:44px;border:none;background:transparent;color:#A1A1A6;font-family:inherit;font-size:16px;cursor:pointer;padding:0 8px;">cancel</button>
+    <span style="font-size:16px;font-weight:600;">import csv</span><span></span>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;padding:8px 20px 16px;">
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:none;"><sc-for list="{{ csv.steps }}" as="s" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:6px;"><span style="height:4px;border-radius:2px;background:{{ s.c }};"></span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:{{ s.fc }};">{{ s.l }}</span></div></sc-for></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:#0F1113;border:1px solid #26292E;flex:none;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;color:#A1A1A6;">description</span><span style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;"><span style="font-family:'Geist Mono',monospace;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">ReportHistory-[n].csv</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">MT5 history · [n] rows · [date]–[date]</span></span><button style="height:32px;padding:0 10px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#A1A1A6;font-family:inherit;font-size:12px;cursor:pointer;">change</button></div>
+    <div role="status" style="font-family:'Geist Mono',monospace;font-size:13px;line-height:1.5;flex:none;"><span style="color:{{ csv.sc }};">&gt;</span> {{ csv.summary }}</div>
+    <div style="display:flex;flex-direction:column;border-radius:14px;border:1px solid #26292E;overflow:hidden;flex:none;">
+      <div style="display:grid;grid-template-columns:90px minmax(0,1fr) 22px;gap:10px;align-items:center;height:32px;padding:0 12px;background:#0F1113;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.06em;color:#A1A1A6;"><span>DOJI FIELD</span><span>YOUR COLUMN · SAMPLE</span><span></span></div>
+      <sc-for list="{{ csv.rows }}" as="r" hint-placeholder-count="10">
+        <div style="display:grid;grid-template-columns:90px minmax(0,1fr) 22px;gap:10px;align-items:center;min-height:52px;padding:0 12px;border-top:1px solid #17191C;background:{{ r.bg }};">
+          <span style="font-size:13px;">{{ r.f }}</span>
+          <span style="display:flex;flex-direction:column;gap:2px;min-width:0;"><span style="display:flex;align-items:center;gap:2px;font-family:'Geist Mono',monospace;font-size:12px;color:{{ r.cc }};">{{ r.col }}<span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:14px;color:#6E7279;">expand_more</span></span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#6E7279;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.s }}</span></span>
+          <span aria-label="{{ r.aria }}" style="width:20px;height:20px;box-sizing:border-box;border-radius:10px;border:2px solid {{ r.c }};background:{{ r.fill }};color:{{ r.gc }};display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:13px;font-weight:600;">{{ r.g }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="flex:none;display:flex;flex-direction:column;gap:6px;padding:12px 20px {{ dim.bot }}px;border-top:1px solid #26292E;">
+    <button onClick="{{ csv.go }}" disabled="{{ csv.blocked }}" style="height:56px;border-radius:999px;border:none;background:{{ csv.bbg }};color:{{ csv.bfg }};font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;">{{ csv.bl }}</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.manual }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+  <div style="flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:44px;margin-top:{{ dim.top }}px;padding:0 12px;">
+    <button onClick="{{ go.home }}" style="justify-self:start;height:44px;border:none;background:transparent;color:#A1A1A6;font-family:inherit;font-size:16px;cursor:pointer;padding:0 8px;">cancel</button>
+    <span style="font-size:16px;font-weight:600;">add a trade</span>
+    <button onClick="{{ go.manualSave }}" style="justify-self:end;height:44px;border:none;background:transparent;color:#2FD67B;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;padding:0 8px;">save</button>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;padding:12px 20px {{ dim.bot }}px;">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;flex:none;">
+      <label style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;color:#A1A1A6;">pair</span><span style="height:48px;display:flex;align-items:center;padding:0 10px 0 14px;border-radius:12px;border:1px solid #26292E;background:#0F1113;font-family:'Geist Mono',monospace;font-size:15px;">XAUUSD<span aria-hidden="true" style="margin-left:auto;font-family:'Material Symbols Rounded';font-size:18px;color:#6E7279;">expand_more</span></span></label>
+      <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;color:#A1A1A6;">direction</span><div role="radiogroup" aria-label="direction" style="display:grid;grid-template-columns:1fr 1fr;padding:3px;height:48px;box-sizing:border-box;border-radius:12px;background:#0F1113;border:1px solid #26292E;"><sc-for list="{{ mn.dirs }}" as="d" hint-placeholder-count="2"><button role="radio" aria-checked="{{ d.on }}" onClick="{{ d.pick }}" style="border-radius:9px;border:none;background:{{ d.bg }};color:{{ d.fg }};font-family:inherit;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:16px;">{{ d.g }}</span>{{ d.l }}</button></sc-for></div></div>
+      <sc-for list="{{ mn.fields }}" as="f" hint-placeholder-count="8"><label style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;color:#A1A1A6;">{{ f.l }}</span><input aria-label="{{ f.l }}" placeholder="{{ f.ph }}" inputmode="decimal" style="height:48px;padding:0 14px;border-radius:12px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:'Geist Mono',monospace;font-size:15px;outline:none;min-width:0;"></label></sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;flex:none;"><span style="font-size:13px;color:#A1A1A6;">setup · from [strategy name]</span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ mn.setups }}" as="s" hint-placeholder-count="4"><button onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="height:40px;padding:0 14px;border-radius:999px;border:1px solid {{ s.bd }};background:{{ s.bg }};color:#F5F5F7;font-family:inherit;font-size:14px;cursor:pointer;">{{ s.l }}</button></sc-for></div></div>
+    <button style="display:flex;align-items:center;justify-content:center;gap:8px;height:88px;border-radius:14px;border:1px dashed #3A3D42;background:transparent;color:#A1A1A6;font-family:inherit;font-size:14px;cursor:pointer;flex:none;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;">add_photo_alternate</span>add a screenshot · optional</button>
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;line-height:1.5;">R is worked out from entry and stop. after saving, you get the 20-second review.</span>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ tabs }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:none;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:6px 8px {{ dim.bot }}px;border-top:1px solid #26292E;background:rgba(5,6,7,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-size:10px;color:#A1A1A6;text-align:center;">
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">home</span>home</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">candlestick_chart</span>markets</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;"><span aria-label="coach" style="width:56px;height:56px;margin-top:-22px;border-radius:28px;background:#0F1113;border:1px solid #26292E;display:flex;align-items:center;justify-content:center;"><span style="width:24px;height:24px;border-radius:12px;background:#2FD67B;box-shadow:0 0 18px rgba(47,214,123,0.45);"></span></span>coach</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#F5F5F7;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">menu_book</span>journal</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">person</span>me</span>
+  </div>
+</sc-if>
+
+<sc-if value="{{ toast.on }}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="position:absolute;left:16px;right:16px;bottom:{{ toast.b }}px;z-index:15;display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:14px;background:#17191C;border:1px solid #26292E;box-shadow:0 12px 32px rgba(0,0,0,0.5);animation:rise 320ms ease-out;font-family:'Geist Mono',monospace;font-size:13px;"><span style="color:#2FD67B;">&gt;</span><span style="flex:1;">{{ toast.t }}<span style="animation:dojiBlink 1s steps(1) infinite;">_</span></span></div>
+</sc-if>
+
+<sc-if value="{{ ov.on }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;justify-content:flex-end;">
+  <button aria-label="close sheet" onClick="{{ ov.close }}" style="position:absolute;inset:0;border:none;background:rgba(0,0,0,0.62);cursor:pointer;"></button>
+  <div role="dialog" aria-label="{{ ov.label }}" style="position:relative;max-height:88%;display:flex;flex-direction:column;border-radius:24px 24px 0 0;background:#0F1113;border-top:1px solid #26292E;animation:sheetUp 300ms ease-out;">
+    <span aria-hidden="true" style="align-self:center;width:36px;height:5px;margin-top:8px;border-radius:3px;background:#3A3D42;flex:none;"></span>
+
+    <sc-if value="{{ ov.review }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;display:flex;align-items:flex-start;gap:10px;padding:14px 20px 12px;">
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;"><span style="color:#2FD67B;">&gt;</span> XAUUSD long · <span style="color:#FF9F0A;">{{ rv.res }}</span> · closed [time]</span><span style="font-size:22px;font-weight:600;letter-spacing:-0.02em;">20-second review</span></div>
+        <div aria-label="{{ rv.gAria }}" style="width:48px;height:48px;flex:none;box-sizing:border-box;border-radius:12px;border:2px solid {{ rv.gc }};color:{{ rv.gc }};display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font-family:'Geist Mono',monospace;font-size:22px;font-weight:600;line-height:1;">{{ rv.grade }}</span><span style="font-family:'Geist Mono',monospace;font-size:8px;color:#A1A1A6;">grade</span></div>
+      </div>
+      <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:16px;padding:0 20px 16px;">
+        <div style="display:flex;flex-direction:column;gap:8px;"><span style="font-size:14px;">setup used</span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ rv.setups }}" as="s" hint-placeholder-count="4"><button onClick="{{ s.pick }}" aria-pressed="{{ s.on }}" style="height:40px;padding:0 14px;border-radius:999px;border:1px solid {{ s.bd }};background:{{ s.bg }};color:#F5F5F7;font-family:inherit;font-size:14px;cursor:pointer;">{{ s.l }}</button></sc-for></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px;"><span style="font-size:14px;">followed your plan?</span><div role="radiogroup" aria-label="followed plan" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:3px;border-radius:11px;background:#050607;border:1px solid #26292E;"><sc-for list="{{ rv.plans }}" as="p" hint-placeholder-count="3"><button role="radio" aria-checked="{{ p.on }}" onClick="{{ p.pick }}" style="height:40px;border-radius:8px;border:none;background:{{ p.bg }};color:{{ p.fg }};font-family:inherit;font-size:14px;cursor:pointer;">{{ p.l }}</button></sc-for></div></div>
+        <div style="display:flex;flex-direction:column;gap:8px;"><span style="display:flex;font-size:14px;">mistakes<span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ rv.tagCount }}</span></span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ rv.tags }}" as="t" hint-placeholder-count="10"><button onClick="{{ t.pick }}" aria-pressed="{{ t.on }}" style="height:40px;display:flex;align-items:center;gap:4px;padding:0 12px;border-radius:10px;border:1px solid {{ t.bd }};background:{{ t.bg }};color:#F5F5F7;font-family:inherit;font-size:13px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:15px;color:#FF9F0A;">{{ t.g }}</span>{{ t.l }}</button></sc-for></div></div>
+        <sc-for list="{{ rv.emos }}" as="e" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <span style="display:flex;align-items:baseline;font-size:14px;">{{ e.l }}<span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">{{ e.sum }}</span></span>
+            <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px;"><sc-for list="{{ e.opts }}" as="o" hint-placeholder-count="8"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="flex:none;height:36px;padding:0 12px;border-radius:999px;border:1px solid {{ o.bd }};background:{{ o.bg }};color:#F5F5F7;font-family:inherit;font-size:13px;cursor:pointer;">{{ o.l }}</button></sc-for></div>
+            <div role="radiogroup" aria-label="{{ e.aria }}" style="display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:3px;"><sc-for list="{{ e.ints }}" as="n" hint-placeholder-count="10"><button role="radio" aria-checked="{{ n.on }}" onClick="{{ n.pick }}" style="height:44px;padding:0;border-radius:8px;border:1px solid {{ n.bd }};background:{{ n.bg }};color:{{ n.fg }};font-family:'Geist Mono',monospace;font-size:13px;cursor:pointer;">{{ n.n }}</button></sc-for></div>
+          </div>
+        </sc-for>
+        <input aria-label="one-line note" placeholder="one line: what happened?" value="{{ rv.note }}" onChange="{{ rv.setNote }}" style="height:48px;padding:0 14px;border-radius:12px;border:1px solid #26292E;background:#050607;color:#F5F5F7;font-family:inherit;font-size:15px;outline:none;flex:none;">
+      </div>
+      <div style="flex:none;display:flex;gap:8px;padding:12px 20px {{ dim.bot }}px;border-top:1px solid #26292E;">
+        <button onClick="{{ ov.close }}" style="height:52px;padding:0 18px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#A1A1A6;font-family:inherit;font-size:15px;cursor:pointer;">later</button>
+        <button onClick="{{ rv.save }}" style="flex:1;height:52px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;">save review</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ov.filters }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;display:flex;align-items:center;padding:12px 20px 8px;"><span style="font-size:20px;font-weight:600;">filter trades</span><button onClick="{{ fs.clear }}" style="margin-left:auto;margin-right:-8px;height:44px;padding:0 8px;border:none;background:transparent;color:#A1A1A6;font-family:inherit;font-size:15px;cursor:pointer;">clear</button></div>
+      <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:16px;padding:4px 20px 16px;">
+        <sc-for list="{{ fs.groups }}" as="gp" hint-placeholder-count="7"><div style="display:flex;flex-direction:column;gap:8px;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">{{ gp.l }}</span><div style="display:flex;flex-wrap:wrap;gap:6px;"><sc-for list="{{ gp.opts }}" as="o" hint-placeholder-count="4"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="height:40px;display:flex;align-items:center;gap:4px;padding:0 12px;border-radius:10px;border:1px solid {{ o.bd }};background:{{ o.bg }};color:{{ o.fg }};font-family:{{ o.ff }};font-size:13px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:15px;">{{ o.g }}</span>{{ o.l }}</button></sc-for></div></div></sc-for>
+      </div>
+      <div style="flex:none;padding:12px 20px {{ dim.bot }}px;border-top:1px solid #26292E;"><button onClick="{{ ov.close }}" style="width:100%;height:52px;border-radius:999px;border:none;background:#F5F5F7;color:#050607;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;">show {{ fs.count }} trades</button></div>
+    </sc-if>
+
+    <sc-if value="{{ ov.rule }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:16px;padding:14px 20px {{ dim.bot }}px;">
+        <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;"><span style="color:#FF9F0A;">&gt;</span> from a {{ rs.kind }} · {{ rs.type }}</span><span style="font-size:22px;font-weight:600;letter-spacing:-0.02em;">add to your rules</span></div>
+        <input aria-label="rule" value="{{ rs.text }}" onChange="{{ rs.setText }}" style="height:56px;padding:0 16px;border-radius:14px;border:1px solid #2FD67B;background:#050607;color:#F5F5F7;font-family:'Geist Mono',monospace;font-size:15px;outline:none;">
+        <div style="display:flex;flex-direction:column;border-radius:14px;border:1px solid #26292E;">
+          <div style="display:flex;align-items:center;gap:10px;min-height:52px;padding:0 14px;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#A1A1A6;">rule</span><span style="flex:1;font-size:14px;">adds to [strategy name]</span><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#2FD67B;">check</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-top:1px solid #17191C;"><span style="display:flex;align-items:center;gap:10px;font-size:14px;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#A1A1A6;">shield</span>guard</span><div role="radiogroup" aria-label="guard mode" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:3px;border-radius:11px;background:#050607;border:1px solid #26292E;"><sc-for list="{{ rs.modes }}" as="m" hint-placeholder-count="3"><button role="radio" aria-checked="{{ m.on }}" onClick="{{ m.pick }}" style="height:38px;border-radius:8px;border:none;background:{{ m.bg }};color:{{ m.fg }};font-family:inherit;font-size:13px;cursor:pointer;">{{ m.l }}</button></sc-for></div><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">{{ rs.modeNote }}</span></div>
+        </div>
+        <div style="display:flex;gap:8px;"><button onClick="{{ ov.close }}" style="height:52px;padding:0 18px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#A1A1A6;font-family:inherit;font-size:15px;cursor:pointer;">cancel</button><button onClick="{{ rs.add }}" style="flex:1;height:52px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;">add rule</button></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ov.add }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:10px;padding:14px 20px {{ dim.bot }}px;">
+        <span style="font-size:22px;font-weight:600;letter-spacing:-0.02em;padding-bottom:4px;">add trades</span>
+        <sc-for list="{{ addOpts }}" as="o" hint-placeholder-count="3">
+          <button onClick="{{ o.go }}" style="display:flex;align-items:center;gap:14px;min-height:68px;padding:0 16px;border-radius:16px;background:#050607;border:1px solid #26292E;color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;">
+            <span aria-hidden="true" style="width:36px;height:36px;flex:none;border-radius:10px;background:#17191C;display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:20px;">{{ o.icon }}</span>
+            <span style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="font-size:16px;font-weight:600;">{{ o.t }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ o.s }}</span></span>
+            <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#6E7279;">chevron_right</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<span aria-hidden="true" style="position:absolute;left:50%;bottom:8px;z-index:30;width:{{ dim.hi }}px;height:5px;margin-left:{{ dim.him }}px;border-radius:3px;background:#F5F5F7;opacity:0.85;pointer-events:none;"></span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;imported&quot;,&quot;review&quot;,&quot;reviewed&quot;,&quot;home&quot;,&quot;homeMoney&quot;,&quot;trades&quot;,&quot;tradesFilter&quot;,&quot;tradesInsight&quot;,&quot;ruleSheet&quot;,&quot;ruleAdded&quot;,&quot;trade&quot;,&quot;insights&quot;,&quot;insight&quot;,&quot;ask&quot;,&quot;weekly&quot;,&quot;prop&quot;,&quot;propRisk&quot;,&quot;addSheet&quot;,&quot;connect&quot;,&quot;csv&quot;,&quot;csvError&quot;,&quot;manual&quot;,&quot;empty&quot;,&quot;syncing&quot;,&quot;syncError&quot;,&quot;tooFew&quot;],&quot;default&quot;:&quot;imported&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;platform&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ios&quot;,&quot;android&quot;],&quot;default&quot;:&quot;ios&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;textScale&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[1,1.3],&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;}}">
+const G_C={A:'#2FD67B',B:'#2FD67B',C:'#A1A1A6',D:'#FF9F0A',F:'#FF9F0A','—':'#6E7279'};
+const TR=[
+ ['t1','XAUUSD','long','-','london breakout','C',['moved stop','early exit'],'[date] · 15:40','new york','fri',['anxious',7],['angry',8],"moved it because i didn't want another loss."],
+ ['t2','EURUSD','short','+','trend pullback','A',[],'[date] · 09:12','london','thu',['calm',4],['calm',3],'waited for the retest. textbook.'],
+ ['t3','GBPJPY','long','-','range fade','D',['revenge','oversized'],'[date] · 16:05','new york','thu',['angry',7],['frustrated',8],'wanted the morning loss back.'],
+ ['t4','XAUUSD','long','+','no setup','F',['no setup','FOMO'],'[date] · 15:22','new york','wed',['anxious',6],['confident',7],'chased the spike. it worked, this time.'],
+ ['t5','EURUSD','long','+','london breakout','B',['early exit'],'[date] · 08:30','london','wed',['focused',5],['calm',4],'took profit at [x]R, target was higher.'],
+ ['t6','GBPJPY','short','-','trend pullback','B',[],'[date] · 10:48','london','tue',['calm',4],['calm',5],'good trade. stop did its job.'],
+ ['t7','XAUUSD','short','-','london breakout','D',['late entry','news spike'],'[date] · 15:58','new york','mon',['anxious',6],['frustrated',6],'entered after the candle, into the news.'],
+ ['t8','USDJPY','long','+','london breakout','A',[],'[date] · 08:05','london','mon',['focused',4],['calm',3],'plan in, plan out.']
+].map(([id,pair,dir,s,setup,grade,tags,date,session,day,eb,ea,note])=>({id,pair,dir,s,setup,grade,tags,date,session,day,eb,ea,note}));
+const INS=[
+ {id:'time',k:'leak',type:'time',h:'your trades after 3pm cost you [x]R this month',n:'[n]',total:'−[x]R',note:'',seed:3,rule:'no new entries after 15:00',trades:['t1','t3','t4','t7'],filt:'entered after 15:00'},
+ {id:'setup',k:'edge',type:'setup',h:'london breakout: +[x]R over [n] trades — your best setup',n:'[n]',total:'+[x]R',note:'',seed:5,rule:'london breakout is my a-setup: full size only there',trades:['t5','t7','t8'],filt:'setup: london breakout'},
+ {id:'seq',k:'leak',type:'sequence',h:'after 2 losses in a row, your next trade loses [x]% of the time',n:'[n]',total:'−[x]R',note:'',seed:7,rule:'stop for the day after 2 losses in a row',trades:['t3','t7'],filt:'after 2 losses in a row'},
+ {id:'exits',k:'leak',type:'exits',h:'you close winners at +[0.8]R on average, but your plan targets 2R',n:'[n]',total:'−[x]R missed',note:'',seed:2,rule:'no manual close before 1R',trades:['t1','t5'],filt:'tag: early exit'},
+ {id:'rule',k:'edge',type:'rule',h:'rule-following trades: +[x]R/trade. rule-breaking: −[y]R/trade',n:'[n]',total:'+[x]R',note:'',seed:4,rule:'if a rule breaks, the trade closes',trades:['t2','t8','t6'],filt:'grade A–B'},
+ {id:'pair',k:'leak',type:'pair',h:'you lose on [GBPJPY] in [n] of [n] trades — consider dropping it',n:'[9]',total:'−[x]R',note:'only [9] trades — early signal',seed:11,rule:'no trades on GBPJPY',trades:['t3','t6'],filt:'pair: GBPJPY'},
+ {id:'stops',k:'leak',type:'stops',h:'you moved your stop on [n] trades; they cost [x]R',n:'[n]',total:'−[x]R',note:'',seed:9,rule:'the stop only moves toward profit',trades:['t1'],filt:'tag: moved stop'},
+ {id:'size',k:'leak',type:'size',h:'oversized trades are [x]% of trades but [y]% of losses',n:'[n]',total:'−[x]R',note:'',seed:6,rule:'max risk [1]% per trade',trades:['t3'],filt:'tag: oversized'},
+ {id:'emo',k:'leak',type:'emotion',h:"trades entered 'anxious 7+' average −[x]R",n:'[n]',total:'−[x]R',note:'only [n] trades — early signal',seed:13,rule:'no entries when anxious 7 or higher',trades:['t1','t3'],filt:'before: anxious 7+'},
+ {id:'lucky',k:'leak',type:'lucky wins',h:'[n] winning trades had no setup — the market paid you for a mistake',n:'[n]',total:'+[x]R unearned',note:'',seed:8,rule:'only trade setups from my strategy',trades:['t4'],filt:'wins with no setup'}
+];
+const TAGS=['moved stop','early exit','late entry','oversized','revenge','FOMO','no setup','against plan','news spike','overtrading'];
+const EMOS=['calm','focused','confident','anxious','angry','frustrated','bored','tired'];
+const SETUPS=['london breakout','trend pullback','range fade','no setup'];
+const TAGP={'moved stop':['stop moved after entry','once the stop is set, it only moves toward profit.'],'early exit':['closed before target','let the plan decide the exit.'],'late entry':['entered after the trigger candle','if the trigger is gone, so is the trade.'],oversized:['size above your [1]% risk','size comes from the stop, not the feeling.'],revenge:['entered right after a loss','after a loss, wait [15] min before the next entry.'],FOMO:['chased a move already running','no setup, no trade, even when it wins.'],'no setup':['no setup from your strategy','no setup, no trade, even when it wins.'],'news spike':['entered inside the news window','the news rule covers 15 min each side.']};
+const HEAT=(()=>{const out=[];for(let c=0;c<35;c++){const d=c-1;if(d<1||d>30){out.push(null);continue;}const wd=c%7;const v=wd>=5?'none':(['w','l','w','f','w','l','w','n','l','w'][(d*3)%10]);out.push({d,v:d>26?'future':v});}return out;})();
+const EQ=(()=>{let a=0,g=0;const A=[0],Gh=[0];for(let i=1;i<30;i++){const s=((i*37)%11-4)/3.2;const broke=(s<0&&i%3!==0)||i===13;a+=s;g+=broke?0:s;A.push(a);Gh.push(g);}return {A,G:Gh};})();
+const CD=(()=>{let p=50;const o=[];for(let i=0;i<40;i++){const d=Math.sin(i*1.3)*1.4+Math.cos(i*0.7)*1.0+(i<12?0.35:0);const op=p,c=p+d;o.push({o:op,c,h:Math.max(op,c)+0.5+Math.abs(Math.sin(i*2.1))*0.8,l:Math.min(op,c)-0.5-Math.abs(Math.cos(i*1.9))*0.8});p=c;}
+  const entry=o[12].c;const diff=o[24].c-(entry-1.5);for(let i=13;i<40;i++){const f=Math.min(1,(i-12)/12)*diff;o[i].o-=f;o[i].c-=f;o[i].h-=f;o[i].l-=f;}
+  return {o,entry,stop:entry-3.6,moved:entry-1.9,target:entry+7.2,exit:o[24].c};})();
+const ANS=[
+ {q:'why do i lose on fridays?',lines:['[n] of your [n] friday trades were entered after 14:00.','[x]% of friday losses are tagged overtrading or revenge.','friday trades average −[x]R. mon–thu average +[x]R.'],cites:['t1','t3','t7'],basis:'based on [n] friday trades · [date]–[date]'},
+ {q:"what's my best session?",lines:['london: +[x]R per trade over [n] trades.','new york: −[x]R per trade over [n] trades.','most london wins are london breakout setups.'],cites:['t2','t5','t8'],basis:'based on [142] trades · all time'},
+ {q:'which mistake costs me most?',lines:['moved stop: −[x]R over [n] trades.','early exit: [x]R left on the table over [n] trades.','revenge: −[x]R over [n] trades.'],cites:['t1','t5','t3'],basis:'based on [n] tagged trades · this month'},
+ {q:'how do i trade after a loss?',lines:['after one loss, your next trade averages −[x]R.','after two, it averages −[x]R and [x]% are tagged revenge.'],cites:['t3','t7'],basis:'based on [n] trades that followed a loss'}
+];
+const MAP={review:['imported','review'],tradesFilter:['trades','filters'],ruleSheet:['tradesInsight','rule'],addSheet:['home','add'],ruleAdded:['tradesInsight',null],reviewed:['home',null],homeMoney:['home',null]};
+const HOMES=['home','imported','empty','syncing','syncError','tooFew'];
+const gradeOf=(plan,tags,setup)=>{if(setup==='no setup')return 'F';if(plan==='yes')return tags.length?'B':'A';if(plan==='partly')return tags.length>2?'D':'C';return tags.length>1?'F':'D';};
+const kc=k=>k==='edge'?{kc:'#2FD67B',kfill:'#2FD67B',kgc:'#050607',kg:'add',kl:'EDGE'}:{kc:'#FF9F0A',kfill:'transparent',kgc:'#FF9F0A',kg:'remove',kl:'LEAK'};
+class Component extends DCLogic {
+  state={screen:null,ov:undefined,unit:null,period:'month',acct:0,reviewed:false,insId:'time',tid:'t1',from:'home',watch:{},hidden:{},rules:{},ifilt:'all',day:-1,f:{},rp:null,msgs:null,q:'',toast:'',
+    rv:{setup:'london breakout',plan:'partly',tags:['moved stop','early exit'],eb:'anxious',ib:7,ea:'angry',ia:8,note:"moved it because i didn't want another loss."},ruleText:null,mode:1,plat:'MT5',mdir:'long',msetup:'london breakout',focusRule:false};
+  componentDidUpdate(pp){if(pp.screen!==this.props.screen)this.setState({screen:null,ov:undefined,reviewed:false,rules:{},toast:''});}
+  componentWillUnmount(){clearInterval(this.iv);clearTimeout(this.tt);clearTimeout(this.st);}
+  flash(t){clearTimeout(this.tt);this.setState({toast:t});this.tt=setTimeout(()=>this.setState({toast:''}),2800);}
+  nav(screen,extra){this.setState({screen,ov:null,rp:null,...(extra||{})});}
+  tog(key,id){this.setState(s=>({[key]:{...s[key],[id]:!s[key][id]}}));}
+  play(){clearInterval(this.iv);this.setState({rp:12});this.iv=setInterval(()=>{this.setState(s=>{const n=(s.rp??12)+1;if(n>=40){clearInterval(this.iv);return {rp:null};}return {rp:n};});},110);}
+  renderVals(){
+    const P=this.props,S=this.state;
+    const android=(P.platform??'ios')==='android';
+    const ps=P.screen??'imported';
+    const base=MAP[ps]?MAP[ps][0]:ps;
+    const screen=S.screen??base;
+    const ov=S.ov!==undefined?S.ov:(MAP[ps]?MAP[ps][1]:null);
+    const unit=S.unit??(ps==='homeMoney'&&S.screen==null?'$':'R');
+    const rules={...S.rules};if(ps==='ruleAdded'&&S.screen==null)rules.time=true;
+    const reviewed=S.reviewed||!(screen==='imported');
+    const set=o=>()=>this.setState(o);
+    const go=s=>()=>this.nav(s);
+    const dim=android?{w:412,h:915,r:36,sb:40,sbp:24,top:52,bot:24,hi:108,him:-54}:{w:390,h:844,r:48,sb:54,sbp:34,top:62,bot:34,hi:134,him:-67};
+    const R=s=>unit==='R'?`${s==='+'?'+':'−'}[x]R`:`${s==='+'?'+':'−'}$[x]`;
+    const rv=S.rv;const rvGrade=gradeOf(rv.plan,rv.tags,rv.setup);
+    const trades=TR.map(t=>t.id==='t1'?{...t,grade:reviewed?rvGrade:'—',tags:reviewed?rv.tags:[],setup:reviewed?rv.setup:'london breakout',eb:[rv.eb,rv.ib],ea:[rv.ea,rv.ia],note:rv.note||t.note,unrev:!reviewed}:t);
+    const byId=Object.fromEntries(trades.map(t=>[t.id,t]));
+    const row=(t,i,hl)=>{
+      const tags=[];
+      if(t.unrev)tags.push({l:'unreviewed',bs:'dashed',bd:'#6E7279',c:'#A1A1A6'});
+      if(t.s==='+'&&(t.grade==='F'||t.grade==='D'))tags.push({l:'! lucky win · no setup',bs:'solid',bd:'#FF9F0A',c:'#FF9F0A'});
+      if(t.s==='-'&&(t.grade==='A'||t.grade==='B'))tags.push({l:'✓ plan kept',bs:'solid',bd:'#2FD67B',c:'#2FD67B'});
+      t.tags.forEach(l=>tags.push({l,bs:'solid',bd:'rgba(255,159,10,0.45)',c:'#F5F5F7'}));
+      const gc=G_C[t.grade];
+      return {pair:t.pair,dir:t.dir,dirG:t.dir==='long'?'north_east':'south_east',res:R(t.s),rc:t.s==='+'?'#2FD67B':'#FF9F0A',grade:t.grade,gc,gs:t.unrev?'dashed':'solid',gAria:t.unrev?'not graded yet':`process grade ${t.grade}`,
+        setup:t.setup,session:t.session,date:t.date,tags,hasTags:tags.length>0,hl:hl?'rgba(47,214,123,0.06)':'transparent',an:hl?'rise 420ms ease-out':'none',
+        open:()=>this.nav('trade',{tid:t.id,from:screen})};
+    };
+    const ins=INS.find(x=>x.id===S.insId)||INS[0];
+    const card=x=>({ins:x,state:S.hidden[x.id]?'hidden':rules[x.id]?'rule':'',watching:!!S.watch[x.id],
+      open:()=>this.nav('insight',{insId:x.id}),see:()=>this.nav('tradesInsight',{insId:x.id}),primary:()=>{if(!rules[x.id])this.setState({ov:'rule',insId:x.id,ruleText:null});},
+      watch:()=>this.tog('watch',x.id),dismiss:()=>this.tog('hidden',x.id)});
+    const isHome=HOMES.includes(screen);
+    const st=screen;
+    const tooFew=st==='tooFew',empty=st==='empty',syncing=st==='syncing',syncErr=st==='syncError';
+    let bn={};
+    if(st==='imported'&&!S.reviewed)bn={t:'new trade imported · XAUUSD long · '+R('-'),c:'#2FD67B',bd:'#2FD67B',cursor:true,btns:true,actions:[{l:'review · 20 sec',go:set({ov:'review'}),bd:'none',bg:'#2FD67B',fg:'#050607'},{l:'later',go:()=>this.setState({screen:'home',ov:null}),bd:'1px solid #26292E',bg:'transparent',fg:'#F5F5F7'}]};
+    if(syncing)bn={t:'syncing · [n] of [142] trades',c:'#2FD67B',bd:'#26292E',cursor:true,bar:true,pct:'42%',barAria:'sync progress'};
+    if(syncErr)bn={t:'sync failed · the investor password was rejected.',c:'#FF9F0A',bd:'#FF9F0A',sub:true,subT:'showing trades up to your last sync at [time]. nothing new was imported.',btns:true,actions:[{l:'retry',go:()=>this.nav('syncing'),bd:'none',bg:'#F5F5F7',fg:'#050607'},{l:'update login',go:go('connect'),bd:'1px solid #26292E',bg:'transparent',fg:'#F5F5F7'}]};
+    if(tooFew)bn={t:'[n]/20 trades. insights unlock at 20.',c:'#2FD67B',bd:'#26292E',cursor:true,bar:true,pct:'60%',barAria:'[n] of 20 trades',sub:true,subT:'patterns need data. until then you get grades, stats and the calendar.'};
+    const sync=syncing?{t:'syncing…',c:'#2FD67B'}:syncErr?{t:'last synced [time] · [142] trades',c:'#FF9F0A'}:tooFew?{t:'synced 2 min ago · [n] trades',c:'#2FD67B'}:{t:'synced 2 min ago · [142] trades',c:'#2FD67B'};
+    const nLabel=tooFew?'[n] trades':'[42] trades';
+    const stats=[['net result',R('+'),'#2FD67B'],['win rate','[x]%','#F5F5F7'],['expectancy',unit==='R'?'+[x]R / trade':'+$[x] / trade','#2FD67B'],['profit factor','[x]','#F5F5F7'],['avg win / loss','+[x] / −[y]'+(unit==='R'?'R':''),'#F5F5F7'],['max drawdown',R('-'),'#FF9F0A'],['rule adherence','[x]%','#F5F5F7']].map(([l,v,c])=>({l,v,c,n:nLabel}));
+    const yv=(v,min,max)=>(112-(v-min)/(max-min)*104);
+    const all=[...EQ.A,...EQ.G],mn=Math.min(...all),mx=Math.max(...all);
+    const pts=arr=>arr.map((v,i)=>`${(i/29*298).toFixed(1)},${yv(v,mn,mx).toFixed(1)}`).join(' ');
+    const eq={actual:pts(EQ.A),ghost:pts(EQ.G),ay:yv(EQ.A[29],mn,mx).toFixed(1),gy:yv(EQ.G[29],mn,mx).toFixed(1),zero:(yv(0,mn,mx)/120*100).toFixed(1)+'%',cost:R('-'),aria:'equity curve. the dashed line, if you had followed your rules, ends above your actual curve.'};
+    const heat=HEAT.map((h,i)=>{if(!h)return {n:'',g:'',bd:'none',bg:'transparent',fg:'#6E7279',off:true,aria:'',ol:'none',pick:()=>{}};
+      const sel=S.day===i;const m={w:['1.5px solid #2FD67B','rgba(47,214,123,0.22)','#2FD67B','+','up day'],l:['1.5px solid #FF9F0A','transparent','#FF9F0A','−','down day'],f:['1.5px solid #3A3D42','transparent','#A1A1A6','0','flat day'],n:['1px solid #17191C','#0B0C0E','#6E7279','','no trades'],none:['1px solid #17191C','#0B0C0E','#6E7279','','no trades'],future:['1px dashed #26292E','transparent','#6E7279','','upcoming']}[h.v];
+      return {n:h.d,g:m[3],bd:m[0],bg:m[1],fg:m[2],off:h.v==='future',ol:sel?'2px solid #F5F5F7':'none',aria:`day ${h.d}: ${m[4]}`,pick:set({day:i}),_v:h.v,_d:h.d};});
+    const hs=S.day>=0?heat[S.day]:null;
+    const heatSel=hs?(hs._v==='w'?`[date] ${hs._d} · ${R('+')} · [n] trades`:hs._v==='l'?`[date] ${hs._d} · ${R('-')} · [n] trades`:hs._v==='f'?`[date] ${hs._d} · 0${unit==='R'?'R':''} · [n] trades`:`[date] ${hs._d} · no trades`):'tap a day to see its result';
+    const homeRows=trades.slice(0,4).map((t,i)=>row(t,i,t.id==='t1'&&S.reviewed));
+    const addOpts=[
+      {icon:'link',t:'connect an account',s:'MT4 / MT5 · read-only · auto-import',go:go('connect'),bd:'#2FD67B'},
+      {icon:'upload_file',t:'import a csv or statement',s:'MT5 history export or broker statement',go:go('csv'),bd:'#26292E'},
+      {icon:'edit_note',t:'add a trade manually',s:'one trade · about a minute',go:go('manual'),bd:'#26292E'}];
+    const fromInsight=st==='tradesInsight';
+    const F=S.f;const fk=Object.keys(F).filter(k=>F[k]&&F[k].length);
+    const match=t=>(!F.pair?.length||F.pair.includes(t.pair))&&(!F.setup?.length||F.setup.includes(t.setup))&&(!F.session?.length||F.session.includes(t.session))&&(!F.weekday?.length||F.weekday.includes(t.day))&&(!F.tag?.length||F.tag.some(x=>t.tags.includes(x)))&&(!F.grade?.length||F.grade.includes(t.grade))&&(!F.result?.length||F.result.includes(t.s==='+'?'win':'loss'));
+    const listT=fromInsight?ins.trades.map(id=>byId[id]):trades.filter(match);
+    const K=kc(ins.k);const ruleDone=!!rules[ins.id];
+    const FG=[['PAIR','pair',['XAUUSD','EURUSD','GBPJPY','USDJPY'],1],['SETUP','setup',SETUPS],['SESSION','session',['asia','london','new york']],['WEEKDAY','weekday',['mon','tue','wed','thu','fri']],['MISTAKE TAG','tag',TAGS],['PROCESS GRADE','grade',['A','B','C','D','F'],1],['RESULT','result',['win','loss']]];
+    const fgroups=FG.map(([l,key,opts,mono])=>({l,opts:opts.map(o=>{const on=(F[key]||[]).includes(o);return {l:o,on:String(on),bd:on?'#F5F5F7':'#26292E',bg:on?'#F5F5F7':'transparent',fg:on?'#050607':'#F5F5F7',ff:mono?"'Geist Mono',monospace":'inherit',g:on?'check':'',pick:()=>this.setState(s=>{const cur=s.f[key]||[];return {f:{...s.f,[key]:cur.includes(o)?cur.filter(x=>x!==o):[...cur,o]}};})};})}));
+    const fchips=FG.map(([l,key])=>{const a=F[key]||[];return {l:a.length?`${l.toLowerCase()}: ${a.length===1?a[0]:a.length}`:l.toLowerCase(),bd:a.length?'#F5F5F7':'#26292E',fg:a.length?'#F5F5F7':'#A1A1A6'};});
+    // trade detail
+    const t=byId[S.tid]||byId.t1;
+    const rng=[...CD.o.map(c=>c.h),...CD.o.map(c=>c.l),CD.stop,CD.target];const cmin=Math.min(...rng)-0.5,cmax=Math.max(...rng)+0.5;
+    const py=v=>((cmax-v)/(cmax-cmin)*100).toFixed(2)+'%';
+    const rp=S.rp;
+    const candles=CD.o.map((c,i)=>{const up=c.c>=c.o;return {x:((i+0.5)/40*100).toFixed(2)+'%',wt:py(c.h),wh:((c.h-c.l)/(cmax-cmin)*100).toFixed(2)+'%',bt:py(Math.max(c.o,c.c)),bh:Math.max(0.6,Math.abs(c.c-c.o)/(cmax-cmin)*100).toFixed(2)+'%',bd:up?'#F5F5F7':'#A1A1A6',bg:up?'#F5F5F7':'#0F1113',op:rp!=null&&i>rp?0.12:1};});
+    const moved=t.tags.includes('moved stop');
+    const lines=[{y:py(CD.target),l:'target',c:'#2FD67B',st:'dashed'},{y:py(CD.entry),l:'entry',c:'#F5F5F7',st:'solid'},{y:py(CD.stop),l:moved?'stop · plan':'stop',c:'#FF9F0A',st:'dashed'}];
+    if(moved)lines.push({y:py(CD.moved),l:'stop · moved',c:'#FF9F0A',st:'solid'});
+    const reasons=[[t.setup!=='no setup',t.setup!=='no setup'?`setup matched: ${t.setup}`:'no setup from your strategy'],[!t.tags.includes('oversized'),'size within [1]% risk'],[!t.tags.includes('late entry')&&!t.tags.includes('FOMO'),'entry on the trigger'],[!moved,moved?'stop moved after entry':'stop left where planned'],[!t.tags.includes('early exit'),t.tags.includes('early exit')?'closed before target':'exit followed the plan']].map(([ok,tx])=>({t:tx,g:ok?'check':'close',c:ok?'#2FD67B':'#FF9F0A',bg:ok?'#2FD67B':'transparent',gc:ok?'#050607':'#FF9F0A',w:ok?'kept':'broken'}));
+    const firstTag=t.tags.find(x=>TAGP[x]);
+    const review=[{k:'right',c:'#2FD67B',t:t.setup!=='no setup'?`the setup matched your ${t.setup} rules and size was within plan.`:'the result was a win, but no setup from your strategy was present.'},{k:'broke plan',c:'#FF9F0A',t:firstTag?`${TAGP[firstTag][0]}${t.tags.length>1?`, then ${(TAGP[t.tags[1]]||[t.tags[1]])[0]}`:''}.`:'nothing. this one went by the plan.'},{k:'lesson',c:'#F5F5F7',t:firstTag?TAGP[firstTag][1]:(t.s==='-'?'a planned loss is a good trade. keep taking these.':'repeat exactly this.')}];
+    const pva=[['entry','[x]','[x]',!t.tags.includes('late entry')],['stop','[x]',moved?'moved to [x]':'[x]',!moved],['target','[x]',t.tags.includes('early exit')?'closed at [x]':'[x]',!t.tags.includes('early exit')],['result','+[x]R',t.s==='+'?'+[x]R':'−[x]R',t.s==='+'],['time in trade','[n] min','[n] min',true]].map(([l,p,a,ok])=>({l,p,a,g:ok?'check':'close',c:ok?'#2FD67B':'#FF9F0A',aria:ok?'as planned':'differs from plan'}));
+    // insight detail
+    const HR=[0.6,0.9,-0.3,1.1,0.8,0.4,-0.2,0.5,-0.9,-1.2,-0.6,-1.1,-0.8,-0.5];
+    const ibars=ins.id==='time'?HR:Array.from({length:14},(_,i)=>{let v=Math.sin((ins.seed)*(i+1)*1.7)*0.75+(ins.k==='edge'?0.5:-0.5);return Math.max(-1,Math.min(1,v));});
+    const idtBars=ibars.map(v=>{const h=Math.max(6,Math.abs(v)/1.2*50);return v>0?{t:(50-h)+'%',h:h+'%',bg:'#2FD67B',bd:'#2FD67B'}:{t:'50%',h:h+'%',bg:'transparent',bd:'#FF9F0A'};});
+    const small=!!ins.note;
+    const idt={...K,type:ins.type,h:ins.h,n:ins.n,isTime:ins.id==='time',cut:(8/14*100).toFixed(2)+'%',
+      ev:[{v:ins.n,l:'trades',c:'#F5F5F7'},{v:ins.total.split(' ')[0],l:'total',c:K.kc},{v:(ins.k==='edge'?'+':'−')+'[x]R',l:'per trade',c:K.kc}],
+      chartT:ins.id==='time'?'RESULT BY ENTRY HOUR':'EACH TRADE IN THIS PATTERN',chartAria:ins.id==='time'?'bars by hour from 07:00 to 20:00. hours from 15:00 are below the line.':'one bar per trade. filled bars above the line won, hollow bars below lost.',
+      bars:idtBars,x0:ins.id==='time'?'07:00':'oldest',x1:ins.id==='time'?'20:00':'latest',
+      how:ins.id==='time'?['compared [n] trades before 15:00 with [n] after.','same setups and pairs in both groups.','[n] of [n] trades after 15:00 broke at least one rule.']:[`found in ${ins.n} of your trades (${ins.filt}).`,'compared against your other trades in the same period.','checked it holds across more than one week.'],
+      conf:[0,1,2,3,4].map(i=>i<(small?2:4)?'#F5F5F7':'#26292E'),confW:small?'early signal':'solid signal',confBd:small?'#A1A1A6':'#26292E',hasNote:small,note:ins.note,
+      watch:()=>this.tog('watch',ins.id),watchS:String(!!S.watch[ins.id]),watchL:S.watch[ins.id]?'watching':'watch this',watchFill:S.watch[ins.id]?"'FILL' 1":"'FILL' 0",
+      dismiss:()=>{this.tog('hidden',ins.id);this.nav('insights');},
+      see:()=>this.nav('tradesInsight'),rule:set({ov:'rule',ruleText:null}),ruleDone,rl:ruleDone?'rule added ✓':'add as rule',rbd:ruleDone?'1px solid #2FD67B':'none',rbg:ruleDone?'transparent':'#2FD67B',rfg:ruleDone?'#2FD67B':'#050607'};
+    // feed
+    const f=S.ifilt;
+    const feedList=INS.filter(x=>f==='all'||(f==='leaks'&&x.k==='leak')||(f==='edges'&&x.k==='edge')||(f==='watching'&&S.watch[x.id]));
+    // ask
+    const msgs=S.msgs??(screen==='ask'?[0]:[]);
+    const askSend=q=>{const qi=ANS.findIndex(a=>a.q===q);const m=qi>=0?qi:{q,lines:[`i found [n] trades that match "${q}".`,'the biggest difference between them and the rest: entry time and rule breaks.'],cites:['t1','t7'],basis:'based on [n] matching trades'};this.setState(s=>({msgs:[...(s.msgs??[0]),m],q:''}));};
+    const askM=msgs.map(m=>{const a=typeof m==='number'?ANS[m]:m;return {q:a.q,lines:a.lines,basis:a.basis,cites:a.cites.map((id,i)=>{const x=byId[id];return {i:i+1,pair:x.pair,day:x.day,res:R(x.s),rc:x.s==='+'?'#2FD67B':'#FF9F0A',grade:x.grade,gc:G_C[x.grade],open:()=>this.nav('trade',{tid:id,from:'ask'})};})};});
+    const asked=msgs.map(m=>typeof m==='number'?ANS[m].q:m.q);
+    // weekly
+    const W=[['m','k'],['t','k'],['w','b'],['t','k'],['f','b'],['s','-'],['s','-']];
+    const GR=['C','C','D','C','B','C','B','B'];const gy={A:8,B:29,C:50,D:71,F:92};
+    const wkRule=S.focusRule||!!rules.time;
+    // prop
+    const risk=screen==='propRisk';
+    const ppts=EQ.A.map((v,i)=>`${(i/29*298).toFixed(1)},${(risk?60+((i*13)%9)-i*1.2:yv(v,mn,mx)*0.8+10).toFixed(1)}`).join(' ');
+    // csv
+    const csvErr=screen==='csvError';
+    const CR=[['pair','Symbol','XAUUSD · EURUSD',1],['direction','Type','buy · sell',1],['open time','Time','[date] [time]',1],['close time','Time.1','[date] [time]',1],['entry','Price','[x]',1],['exit','Price.1','[x]',1],['stop','S / L','[x]',!csvErr],['target','T / P','[x]',1],['size','Volume','[x]',!csvErr],['result','Profit','[x]',1]];
+    const tabsOn=['home','imported','empty','syncing','syncError','tooFew','trades','tradesInsight','insights','insight','weekly','prop','propRisk'].includes(screen)&&!(screen==='insight')&&!fromInsight;
+    const hasData=!empty;
+    const toastT=S.toast||(ps==='ruleAdded'&&S.screen==null?'rule added · guard is watching from 15:00':ps==='reviewed'&&S.screen==null?`reviewed · grade ${rvGrade} · ${rv.tags.length} tags saved`:'');
+    const lbl={home:'journal home',imported:'trade imported',empty:'empty',syncing:'syncing',syncError:'sync error',tooFew:'too few trades'};
+    const emoRow=(which)=>{const eK=which==='b'?'eb':'ea',iK=which==='b'?'ib':'ia';return {l:which==='b'?'before the trade':'after the trade',aria:(which==='b'?'before':'after')+' intensity 1 to 10',sum:`${rv[eK]} ${rv[iK]}`,
+      opts:EMOS.map(o=>({l:o,on:String(rv[eK]===o),bd:rv[eK]===o?'#2FD67B':'#26292E',bg:rv[eK]===o?'rgba(47,214,123,0.10)':'transparent',pick:()=>this.setState(s=>({rv:{...s.rv,[eK]:o}}))})),
+      ints:[1,2,3,4,5,6,7,8,9,10].map(n=>{const on=rv[iK]===n;return {n,on:String(on),bd:on?'#F5F5F7':'#26292E',bg:on?'#F5F5F7':(n<=rv[iK]?'#17191C':'transparent'),fg:on?'#050607':'#F5F5F7',pick:()=>this.setState(s=>({rv:{...s.rv,[iK]:n}}))};})};};
+    const modes=['off','warn me','block entries'];
+    return {
+      ios:!android,label:`trade journal · ${android?'android':'ios'} · ${lbl[screen]||screen}${ov?' · '+ov+' sheet':''}`,dim,zoom:P.textScale??1,
+      is:{home:isHome,trades:st==='trades'||fromInsight,trade:st==='trade',insights:st==='insights',insight:st==='insight',ask:st==='ask',weekly:st==='weekly',prop:st==='prop'||risk,connect:st==='connect',csv:st==='csv'||csvErr,manual:st==='manual'},
+      tabs:tabsOn,
+      go:{home:go('home'),ask:()=>this.nav('ask',{msgs:S.msgs}),addSheet:set({ov:'add'}),insights:go('insights'),insight:go('insight'),trades:go('trades'),tradesPlain:()=>this.nav('trades'),filters:set({ov:'filters'}),
+        back:()=>this.nav(S.from&&S.from!=='trade'?S.from:'trades'),reviewAgain:set({ov:'review'}),
+        doConnect:()=>{this.nav('syncing');clearTimeout(this.st);this.st=setTimeout(()=>{this.nav('home');this.flash('synced · [142] trades imported');},1800);},
+        manualSave:()=>{this.setState({screen:'imported',ov:'review',reviewed:false});}},
+      h:{hasData,addMl:hasData?'0':'auto',banner:!!bn.t,empty,skeleton:syncing,content:!empty&&!syncing,locked:tooFew,unlocked:!tooFew,insightsCta:tooFew?'how it works':'all insights'},
+      bn:{cursor:false,sub:false,bar:false,btns:false,actions:[],...bn},sync,
+      acct:['live · [account]','demo · [account]','prop · [firm]'][S.acct],cycleAcct:()=>this.setState(s=>({acct:(s.acct+1)%3})),
+      periods:['week','month','3M','all'].map(l=>({l,on:String(S.period===l),bg:S.period===l?'#26292E':'transparent',fg:S.period===l?'#F5F5F7':'#A1A1A6',pick:set({period:l})})),
+      units:[['R','show in R'],['$','show in money']].map(([l,aria])=>({l,aria,on:String(unit===l),bg:unit===l?'#26292E':'transparent',fg:unit===l?'#F5F5F7':'#A1A1A6',pick:set({unit:l})})),
+      unitL:unit==='R'?'R':'MONEY',unitS:unit==='R'?'R':'',
+      stats,eq,heat,heatSel,homeRows,addOpts,
+      homeIns:[INS[0],INS[1]].map(card),
+      reportRows:[{icon:'event_note',t:'sunday review',s:'week of [date] · ready',go:go('weekly'),bt:'none'},{icon:'flag',t:'prop challenge',s:'[firm] · day [n] of [n]',go:go('prop'),bt:'1px solid #17191C'}],
+      tl:{fromInsight,plain:!fromInsight,count:`[${listT.length}]`,none:listT.length===0,h:ins.h,filt:ins.filt,total:ins.total,kc:K.kc,kfill:K.kfill,kgc:K.kgc,kg:K.kg,
+        fBg:fk.length?'#F5F5F7':'transparent',fFg:fk.length?'#050607':'#F5F5F7',fLabel:fk.length?`filters · ${fk.length}`:'filters',
+        rule:ruleDone?S.ruleText||ins.rule:S.ruleText||ins.rule,ruleGo:set({ov:'rule',ruleText:null}),ruleDone,rl:ruleDone?'rule added':'add as rule',rg:ruleDone?'check':'add',rbd:ruleDone?'1px solid #2FD67B':'none',rbg:ruleDone?'transparent':'#2FD67B',rfg:ruleDone?'#2FD67B':'#050607'},
+      rows:listT.map((x,i)=>row(x,i,false)),fchips,
+      fs:{groups:fgroups,count:`[${trades.filter(match).length}]`,clear:set({f:{}})},
+      td:{pair:t.pair,dir:t.dir,res:R(t.s),rc:t.s==='+'?'#2FD67B':'#FF9F0A',grade:t.grade,gc:G_C[t.grade],gAria:`process grade ${t.grade}`,date:t.date,session:t.session,setup:t.setup,backL:S.from==='ask'?'ask':S.from==='home'||HOMES.includes(S.from)?'journal':'trades',
+        candles,lines,ex:((12.5)/40*100).toFixed(2)+'%',ey:py(CD.entry),xx:((24.5)/40*100).toFixed(2)+'%',xy:py(CD.exit),showExit:rp==null||rp>=24,
+        chartAria:`${t.pair} ${t.dir}. entry, then ${moved?'the stop was moved up, ':''}exit below entry before target.`,
+        play:()=>{if(S.rp!=null){clearInterval(this.iv);this.setState({rp:null});}else this.play();},playG:rp!=null?'pause':'play_arrow',playAria:rp!=null?'pause replay':'replay trade',rpPct:rp!=null?((rp+1)/40*100).toFixed(0)+'%':'100%',rpT:rp!=null?`${rp+1}/40`:'40/40',
+        pva,reasons,tags:t.tags,hasTags:t.tags.length>0,eb:`${t.eb[0]} ${t.eb[1]}`,ea:`${t.ea[0]} ${t.ea[1]}`,note:t.note,review},
+      ifs:['all','leaks','edges','watching'].map(l=>({l,on:String(f===l),bg:f===l?'#26292E':'transparent',fg:f===l?'#F5F5F7':'#A1A1A6',pick:set({ifilt:l})})),
+      feed:feedList.map(card),feedEmpty:feedList.length===0,
+      idt,
+      ask:{msgs:askM,q:S.q,setQ:e=>this.setState({q:e.target.value}),send:()=>{if(S.q.trim())askSend(S.q.trim());},key:e=>{if(e.key==='Enter'&&S.q.trim())askSend(S.q.trim());},
+        sugL:askM.length?'ask next':'try asking',sug:ANS.filter(a=>!asked.includes(a.q)).map(a=>({t:a.q,go:()=>askSend(a.q)}))},
+      wk:{leak:card(INS[0]),edge:card(INS[1]),
+        days:W.map(([l,v])=>({l,g:v==='k'?'check':v==='b'?'close':'remove',c:v==='k'?'#2FD67B':v==='b'?'#FF9F0A':'#3A3D42',bs:v==='-'?'dashed':'solid',bg:v==='k'?'#2FD67B':'transparent',gc:v==='k'?'#050607':v==='b'?'#FF9F0A':'#6E7279',aria:`${l}: ${v==='k'?'rules kept':v==='b'?'rule broken':'no trades'}`})),
+        trend:GR.map(g=>({g,y:gy[g]+'%',c:G_C[g]})),trendAria:'process grade by week: '+GR.join(', '),
+        makeRule:()=>this.setState({focusRule:true,rules:{...S.rules,time:true}},()=>this.flash('rule added · no new entries after 15:00')),ruleDone:wkRule,rl:wkRule?'rule added ✓':'make it a rule',rbd:wkRule?'1px solid #2FD67B':'none',rbg:wkRule?'transparent':'#2FD67B',rfg:wkRule?'#2FD67B':'#050607'},
+      pr:risk?{bd:'#FF9F0A',c:'#FF9F0A',fill:'transparent',gc:'#FF9F0A',g:'remove',tag:'AT RISK',pace:'at your current pace, you breach in [n] days.',why:'daily loss is at [x]% of the [5]% limit. [n] of your last [n] trades broke a rule; those account for [x]% of the drawdown.',
+          pts:ppts,meters:[{l:'profit target',v:'+[x]% of [8]%',pct:'18%',c:'#2FD67B',tc:'#F5F5F7',lim:'#2FD67B'},{l:'daily loss today',v:'[x]% of [5]%',pct:'82%',c:'#FF9F0A',tc:'#FF9F0A',lim:'#FF9F0A'},{l:'max drawdown',v:'[x]% of [10]%',pct:'64%',c:'#FF9F0A',tc:'#FF9F0A',lim:'#FF9F0A'},{l:'trading days',v:'[n] of [n] minimum',pct:'50%',c:'#A1A1A6',tc:'#F5F5F7',lim:'#A1A1A6'}]}
+        :{bd:'#26292E',c:'#2FD67B',fill:'#2FD67B',gc:'#050607',g:'add',tag:'ON PACE',pace:'at your current pace, you pass in [n] days.',why:'rule-following trades carry this pace. rule-breaking trades have cost [x]R of it so far.',
+          pts:ppts,meters:[{l:'profit target',v:'+[x]% of [8]%',pct:'58%',c:'#2FD67B',tc:'#F5F5F7',lim:'#2FD67B'},{l:'daily loss today',v:'[x]% of [5]%',pct:'12%',c:'#A1A1A6',tc:'#F5F5F7',lim:'#FF9F0A'},{l:'max drawdown',v:'[x]% of [10]%',pct:'22%',c:'#A1A1A6',tc:'#F5F5F7',lim:'#FF9F0A'},{l:'trading days',v:'[n] of [n] minimum',pct:'70%',c:'#A1A1A6',tc:'#F5F5F7',lim:'#A1A1A6'}]},
+      cn:{plats:['MT4','MT5'].map(l=>({l,on:String(S.plat===l),bg:S.plat===l?'#26292E':'transparent',fg:S.plat===l?'#F5F5F7':'#A1A1A6',pick:set({plat:l})})),fields:[{l:'server',ph:'[broker]-server',type:'text'},{l:'login',ph:'[account number]',type:'text'},{l:'investor password',ph:'read-only password',type:'password'}]},
+      csv:{steps:[['1 · upload',1,1],['2 · map columns',1,1],['3 · review',0,0]].map(([l,a,b])=>({l,c:a?'#2FD67B':'#26292E',fc:b?'#F5F5F7':'#6E7279'})),
+        summary:csvErr?'2 fields need a column. stop and size are needed to work out R.':'matched 10 of 10 fields. check the samples, then import.',sc:csvErr?'#FF9F0A':'#2FD67B',
+        rows:CR.map(([f,col,s,ok])=>({f,col:ok?col:'choose a column',s:ok?s:'not found in this file',cc:ok?'#F5F5F7':'#FF9F0A',bg:ok?'transparent':'rgba(255,159,10,0.06)',g:ok?'check':'priority_high',c:ok?'#2FD67B':'#FF9F0A',fill:ok?'#2FD67B':'transparent',gc:ok?'#050607':'#FF9F0A',aria:ok?'matched':'needs a column'})),
+        blocked:csvErr,bl:csvErr?'map 2 fields to continue':'import [n] trades',bbg:csvErr?'#17191C':'#2FD67B',bfg:csvErr?'#6E7279':'#050607',
+        go:()=>{if(csvErr)return;this.nav('syncing');clearTimeout(this.st);this.st=setTimeout(()=>{this.nav('home');this.flash('imported [n] trades · [n] need a review');},1800);}},
+      mn:{dirs:[['long','north_east'],['short','south_east']].map(([l,g])=>({l,g,on:String(S.mdir===l),bg:S.mdir===l?'#26292E':'transparent',fg:S.mdir===l?'#F5F5F7':'#A1A1A6',pick:set({mdir:l})})),
+        fields:[['entry','[x]'],['exit','[x]'],['stop','[x]'],['target','[x]'],['size · lots','[x]'],['risk','auto · [x]R'],['opened','[date] [time]'],['closed','[date] [time]']].map(([l,ph])=>({l,ph})),
+        setups:SETUPS.map(l=>({l,on:String(S.msetup===l),bd:S.msetup===l?'#2FD67B':'#26292E',bg:S.msetup===l?'rgba(47,214,123,0.10)':'transparent',pick:set({msetup:l})}))},
+      toast:{on:!!toastT,t:toastT,b:tabsOn||fromInsight?(fromInsight?110:96):dim.bot+80},
+      ov:{on:!!ov,review:ov==='review',filters:ov==='filters',rule:ov==='rule',add:ov==='add',label:ov==='review'?'trade review':ov==='filters'?'filter trades':ov==='rule'?'add as rule':'add trades',close:set({ov:null})},
+      rv:{res:R('-'),grade:rvGrade,gc:G_C[rvGrade],gAria:`process grade so far: ${rvGrade}`,tagCount:rv.tags.length?`${rv.tags.length} selected`:'none',note:rv.note,setNote:e=>{const v=e.target.value;this.setState(s=>({rv:{...s.rv,note:v}}));},
+        setups:SETUPS.map(l=>({l,on:String(rv.setup===l),bd:rv.setup===l?'#2FD67B':'#26292E',bg:rv.setup===l?'rgba(47,214,123,0.10)':'transparent',pick:()=>this.setState(s=>({rv:{...s.rv,setup:l}}))})),
+        plans:['yes','partly','no'].map(l=>({l,on:String(rv.plan===l),bg:rv.plan===l?'#26292E':'transparent',fg:rv.plan===l?'#F5F5F7':'#A1A1A6',pick:()=>this.setState(s=>({rv:{...s.rv,plan:l}}))})),
+        tags:TAGS.map(l=>{const on=rv.tags.includes(l);return {l,on:String(on),bd:on?'#FF9F0A':'#26292E',bg:on?'rgba(255,159,10,0.10)':'transparent',g:on?'remove':'',pick:()=>this.setState(s=>({rv:{...s.rv,tags:on?s.rv.tags.filter(x=>x!==l):[...s.rv.tags,l]}}))};}),
+        emos:[emoRow('b'),emoRow('a')],
+        save:()=>{this.setState({screen:'home',ov:null,reviewed:true});this.flash(`reviewed · grade ${rvGrade} · ${rv.tags.length} tags saved`);}},
+      rs:{kind:K.kl.toLowerCase(),type:ins.type,text:S.ruleText??ins.rule,setText:e=>this.setState({ruleText:e.target.value}),
+        modes:modes.map((l,i)=>({l,on:String(S.mode===i),bg:S.mode===i?'#26292E':'transparent',fg:S.mode===i?'#F5F5F7':'#A1A1A6',pick:set({mode:i})})),
+        modeNote:['guard ignores this rule. it still counts in your process grade.','guard warns you before an entry that breaks it.','guard holds new entries that break it. you can override with a reason.'][S.mode],
+        add:()=>{this.setState(s=>({ov:null,rules:{...s.rules,[ins.id]:true}}));this.flash('rule added · guard is watching');}}
+    };
+  }
+}
+</script>
+</body>
+</html>

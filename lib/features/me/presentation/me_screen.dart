@@ -163,6 +163,19 @@ class MeScreen extends ConsumerWidget {
                 onTap: () => context.go(Routes.meBadges),
               ),
               _MenuRow(
+                icon: Icons.psychology_outlined,
+                label: 'mind toolkit',
+                onTap: () => context.go(Routes.mind),
+                divider: true,
+              ),
+              _MenuRow(
+                icon: Icons.forum_outlined,
+                label: 'coach history',
+                value: 'saved sessions',
+                onTap: () => context.go(Routes.coachHistory),
+                divider: true,
+              ),
+              _MenuRow(
                 icon: Icons.fitness_center_outlined,
                 label: 'practice',
                 value: 'backtest, replay, gym',

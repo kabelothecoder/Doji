@@ -1,5 +1,6 @@
 // Home, the open, close your day, the rail and the tab shell.
 import 'package:clock/clock.dart';
+import 'package:doji_app/features/mood/data/mood_repository.dart';
 import 'package:doji_app/app/routes.dart';
 import 'package:doji_app/app/shell/doji_bottom_bar.dart';
 import 'package:doji_app/app/shell/doji_nav_rail.dart';
@@ -231,8 +232,10 @@ void main() {
 
         await h.tapText('log emotion');
         expect(find.text('how did that trade feel?'), findsOneWidget);
+        await h.tapText('anxious');
         await h.tapText('save');
-        expect(find.textContaining('logged: after the trade · 6/10'), findsOneWidget);
+        expect(find.textContaining('logged: anxious after the trade · 6/10'), findsOneWidget);
+        expect(h.container.read(moodControllerProvider).single.feeling, 'anxious');
       });
     },
     variant: TargetPlatformVariant.only(TargetPlatform.windows),

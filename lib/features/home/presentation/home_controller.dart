@@ -84,8 +84,9 @@ class HomeController extends Notifier<HomeState> {
 
   /// TODO(next-slice): save against the latest trade in the journal (the review
   /// sheet already stores the emotion before and after for a reviewed trade).
-  void logEmotion(EmotionWhen when, int intensity) =>
-      state = state.copyWith(lastEmotion: '${when.name} the trade · $intensity/10');
+  void logEmotion(EmotionWhen when, int intensity, {String? feeling}) => state = state.copyWith(
+    lastEmotion: '${feeling == null ? '' : '$feeling '}${when.name} the trade · $intensity/10',
+  );
 }
 
 final homeControllerProvider = NotifierProvider<HomeController, HomeState>(HomeController.new);
