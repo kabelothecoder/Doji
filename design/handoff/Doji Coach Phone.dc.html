@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0..1,0&display=block">
+<style>
+@keyframes dojiBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes orbBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes coreBreathe{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.12);opacity:1}}
+@keyframes coreListen{0%,100%{transform:scale(1.1)}50%{transform:scale(1.25)}}
+@keyframes coreThink{0%,100%{opacity:.35}50%{opacity:.6}}
+@keyframes ripple{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.7);opacity:0}}
+@keyframes wave{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+@keyframes sheetUp{from{transform:translateY(48px);opacity:0}to{transform:none;opacity:1}}
+@keyframes rise{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+a{color:#2FD67B;}a:hover{color:#F5F5F7;}
+input::placeholder{color:#6E7279;}
+</style>
+</helmet>
+<div data-screen-label="{{ label }}" style="position:relative;width:{{ dim.w }}px;height:{{ dim.h }}px;border-radius:{{ dim.r }}px;overflow:hidden;background:#050607;border:1px solid #26292E;box-shadow:0 40px 80px rgba(0,0,0,0.5);font-family:'Geist',system-ui,sans-serif;color:#F5F5F7;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;flex:none;">
+
+<div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;z-index:8;height:{{ dim.sb }}px;display:flex;align-items:center;justify-content:space-between;padding:0 {{ dim.sbp }}px;font-size:15px;font-weight:600;pointer-events:none;">
+  <span>9:41</span>
+  <sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:50%;top:11px;width:124px;height:36px;margin-left:-62px;border-radius:18px;background:#000;"></span></sc-if>
+  <span style="display:flex;gap:4px;align-items:center;font-family:'Material Symbols Rounded';font-size:17px;line-height:1;"><span>signal_cellular_alt</span><span>wifi</span><span>battery_full</span></span>
+</div>
+
+<sc-if value="{{ is.orb }}" hint-placeholder-val="{{ true }}">
+<div style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column;padding:{{ dim.top }}px 20px 12px;gap:14px;">
+  <div style="display:flex;align-items:center;gap:6px;height:44px;flex:none;">
+    <sc-if value="{{ inSession }}" hint-placeholder-val="{{ false }}"><button onClick="{{ go.summary }}" style="margin-left:-8px;height:44px;padding:0 12px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:15px;white-space:nowrap;cursor:pointer;">end session</button></sc-if>
+    <sc-if value="{{ notSession }}" hint-placeholder-val="{{ true }}"><h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;">coach</h1></sc-if>
+    <button onClick="{{ go.voices }}" aria-label="coach voice: {{ voiceName }}" style="margin-left:auto;height:36px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:inherit;font-size:13px;cursor:pointer;white-space:nowrap;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;color:#A1A1A6;">record_voice_over</span>{{ voiceName }}</button>
+    <button onClick="{{ go.text }}" aria-label="switch to text mode" aria-pressed="false" style="margin-right:-10px;width:44px;height:44px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:22px;line-height:1;">keyboard</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#2FD67B;">&gt; today</span>
+    <sc-for list="{{ ctx }}" as="c" hint-placeholder-count="2"><span style="height:30px;display:flex;align-items:center;padding:0 10px;border-radius:999px;background:rgba(23,25,28,0.8);border:1px solid #26292E;font-size:13px;">{{ c }}</span></sc-for>
+    <span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:{{ minC }};">{{ minutes }}</span>
+  </div>
+
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;">
+    <div role="img" aria-label="{{ orbAria }}" style="position:relative;flex:none;width:220px;height:220px;display:flex;align-items:center;justify-content:center;opacity:{{ orbOp }};">
+      <sc-if value="{{ o.speaking }}" hint-placeholder-val="{{ false }}"><sc-for list="{{ ripples }}" as="r" hint-placeholder-count="3"><span aria-hidden="true" style="position:absolute;width:172px;height:172px;border-radius:50%;border:1px solid rgba(47,214,123,0.6);animation:{{ r }};"></span></sc-for></sc-if>
+      <sc-if value="{{ o.listening }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position:absolute;width:204px;height:204px;border-radius:50%;border:2px solid rgba(47,214,123,0.5);"></span></sc-if>
+      <div style="position:relative;width:172px;height:172px;border-radius:50%;background:rgba(47,214,123,0.08);border:1px solid rgba(47,214,123,0.3);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;animation:{{ an.orb }};">
+        <span style="width:76px;height:76px;border-radius:50%;background:#2FD67B;box-shadow:0 0 40px rgba(47,214,123,0.3);animation:{{ an.core }};"></span>
+      </div>
+    </div>
+    <div aria-live="polite" style="min-height:64px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:10px;">
+      <sc-if value="{{ o.idle }}" hint-placeholder-val="{{ true }}"><span style="font-size:17px;color:#A1A1A6;">{{ idleLine }}</span></sc-if>
+      <sc-if value="{{ o.listening }}" hint-placeholder-val="{{ false }}">
+        <div aria-hidden="true" style="display:flex;align-items:center;gap:3px;height:36px;">
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="28"><span style="width:3px;height:36px;border-radius:2px;background:#2FD67B;transform-origin:center;transform:scaleY({{ b.s }});animation:{{ b.a }};"></span></sc-for>
+        </div>
+        <span style="font-size:15px;color:#A1A1A6;">listening. let go to send.</span>
+      </sc-if>
+      <sc-if value="{{ o.thinking }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',monospace;font-size:20px;color:#2FD67B;">&gt; <span style="animation:dojiBlink 1s steps(1) infinite;">_</span></span></sc-if>
+      <sc-if value="{{ o.speaking }}" hint-placeholder-val="{{ false }}"><p style="margin:0;max-width:320px;text-align:center;font-family:'Geist Mono',monospace;font-size:15px;line-height:1.55;text-wrap:pretty;animation:rise 320ms ease-out;"><span style="color:#2FD67B;">&gt; </span>{{ caption }}</p></sc-if>
+      <sc-if value="{{ o.distress }}" hint-placeholder-val="{{ false }}"><p style="margin:0;max-width:320px;text-align:center;font-family:'Geist Mono',monospace;font-size:15px;line-height:1.55;"><span style="color:#2FD67B;">&gt; </span>that sounds really heavy. i'm glad you said it out loud.</p></sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{ o.starters }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:8px;flex:none;">
+      <sc-for list="{{ starters }}" as="s" hint-placeholder-count="3"><button onClick="{{ s.go }}" style="display:flex;align-items:center;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid #26292E;background:rgba(15,17,19,0.7);color:#F5F5F7;font-family:inherit;font-size:15px;text-align:left;cursor:pointer;"><span style="flex:1;">{{ s.t }}</span><span aria-hidden="true" style="margin-left:auto;font-family:'Material Symbols Rounded';font-size:18px;color:#6E7279;">north_east</span></button></sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ o.noMin }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+      <span style="font-family:'Geist Mono',monospace;font-size:14px;"><span style="color:#2FD67B;">&gt;</span> this month's voice minutes are used.</span>
+      <p style="margin:0;font-size:15px;line-height:1.45;color:#A1A1A6;">text mode stays unlimited. voice resets on [date].</p>
+      <div style="display:flex;gap:8px;"><button onClick="{{ go.text }}" style="flex:1;height:44px;border-radius:999px;border:none;background:#F5F5F7;color:#050607;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;">switch to text</button><button style="flex:1;height:44px;border-radius:999px;border:1px solid #2FD67B;background:transparent;color:#F5F5F7;font-family:inherit;font-size:15px;cursor:pointer;">add minutes</button></div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ o.distress }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;animation:rise 400ms ease-out;">
+      <span style="font-size:17px;font-weight:600;">want to slow down together first?</span>
+      <a href="Doji Panic Phone.dc.html" style="height:48px;border-radius:999px;background:#2FD67B;color:#050607;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;text-decoration:none;">take a minute with me</a>
+      <a href="tel:0800567567" style="min-height:48px;border-radius:12px;border:1px solid #26292E;color:#F5F5F7;font-size:15px;display:flex;align-items:center;gap:10px;padding:0 14px;text-decoration:none;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#A1A1A6;">call</span><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;padding:8px 0;"><span>talk to someone now · SADAG</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;white-space:nowrap;">0800 567 567 · free, 24/7</span></span></a>
+      <button onClick="{{ go.speaking }}" style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:inherit;font-size:15px;cursor:pointer;">keep talking</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ o.hold }}" hint-placeholder-val="{{ true }}">
+    <button onPointerDown="{{ holdStart }}" onPointerUp="{{ holdEnd }}" onPointerLeave="{{ holdCancel }}" onKeyDown="{{ keyStart }}" onKeyUp="{{ holdEnd }}" aria-label="hold to talk" style="flex:none;height:64px;border-radius:999px;border:1px solid {{ holdBd }};background:{{ holdBg }};color:{{ holdFg }};font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;display:flex;align-items:center;justify-content:center;gap:8px;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;">mic</span>{{ holdLabel }}</button>
+  </sc-if>
+  <div style="display:flex;align-items:center;flex:none;margin-top:-4px;">
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">coaching, not therapy</span>
+    <button onClick="{{ go.transcript }}" style="margin-left:auto;margin-right:-8px;height:44px;display:flex;align-items:center;gap:4px;padding:0 8px;border:none;background:transparent;color:#A1A1A6;font-family:inherit;font-size:13px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;">subject</span>transcript</button>
+  </div>
+
+  <sc-if value="{{ o.drawer }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;top:0;right:0;bottom:0;z-index:6;background:rgba(0,0,0,0.5);display:flex;flex-direction:column;">
+      <button aria-label="close transcript" onClick="{{ go.speaking }}" style="flex:1;min-height:180px;border:none;background:transparent;cursor:default;"></button>
+      <div role="dialog" aria-label="live transcript" style="border-radius:24px 24px 0 0;background:rgba(23,25,28,0.86);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,0.08);padding:8px 20px 20px;display:flex;flex-direction:column;gap:12px;animation:sheetUp 320ms cubic-bezier(.2,.8,.2,1);">
+        <span aria-hidden="true" style="align-self:center;width:36px;height:5px;border-radius:3px;background:#3A3D42;"></span>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:17px;font-weight:600;">transcript</span><span style="display:flex;align-items:center;gap:5px;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;"><span aria-hidden="true" style="width:6px;height:6px;border-radius:3px;background:#2FD67B;"></span>live</span></div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <sc-for list="{{ lines }}" as="l" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:4px;"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:{{ l.c }};">{{ l.who }} · {{ l.t }}</span><span style="font-size:15px;line-height:1.45;">{{ l.x }}</span></div>
+          </sc-for>
+        </div>
+        <span style="padding-top:10px;border-top:1px solid #26292E;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">coaching, not therapy · measured against your strategy. not financial advice.</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ o.voices }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:0;top:0;right:0;bottom:0;z-index:6;background:rgba(0,0,0,0.55);display:flex;flex-direction:column;">
+      <button aria-label="close" onClick="{{ go.idle }}" style="flex:1;border:none;background:transparent;cursor:default;"></button>
+      <div role="dialog" aria-label="coach voice" style="border-radius:24px 24px 0 0;background:rgba(23,25,28,0.86);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,0.08);padding:8px 20px 20px;display:flex;flex-direction:column;gap:8px;animation:sheetUp 320ms cubic-bezier(.2,.8,.2,1);">
+        <span aria-hidden="true" style="align-self:center;width:36px;height:5px;border-radius:3px;background:#3A3D42;"></span>
+        <span style="font-size:22px;font-weight:600;letter-spacing:-0.02em;padding:6px 0;">coach voice</span>
+        <div role="radiogroup" aria-label="voice" style="display:flex;flex-direction:column;">
+          <sc-for list="{{ voices }}" as="v" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;min-height:64px;border-top:1px solid #26292E;">
+              <button role="radio" aria-checked="{{ v.on }}" onClick="{{ v.pick }}" style="flex:1;display:flex;align-items:center;gap:12px;min-height:56px;padding:0;border:none;background:transparent;color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;">
+                <span aria-hidden="true" style="width:22px;height:22px;flex:none;box-sizing:border-box;border-radius:11px;border:2px solid {{ v.bd }};display:flex;align-items:center;justify-content:center;"><span style="width:10px;height:10px;border-radius:5px;background:{{ v.dot }};"></span></span>
+                <span style="display:flex;flex-direction:column;gap:3px;"><span style="font-size:16px;">{{ v.n }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">{{ v.d }}</span></span>
+              </button>
+              <button onClick="{{ v.preview }}" aria-label="{{ v.pa }}" style="width:44px;height:44px;flex:none;border-radius:22px;border:1px solid #26292E;background:transparent;color:#F5F5F7;cursor:pointer;font-family:'Material Symbols Rounded';font-size:22px;line-height:1;">{{ v.pg }}</button>
+            </div>
+          </sc-for>
+        </div>
+        <button onClick="{{ go.idle }}" style="margin-top:8px;height:52px;border-radius:999px;border:none;background:#F5F5F7;color:#050607;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;">done</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.text }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+  <div style="flex:none;display:flex;align-items:center;gap:10px;height:44px;margin-top:{{ dim.top }}px;padding:0 10px 0 20px;">
+    <span aria-hidden="true" style="width:28px;height:28px;border-radius:50%;background:rgba(47,214,123,0.12);border:1px solid rgba(47,214,123,0.35);display:flex;align-items:center;justify-content:center;"><span style="width:12px;height:12px;border-radius:6px;background:#2FD67B;"></span></span>
+    <span style="display:flex;flex-direction:column;"><span style="font-size:16px;font-weight:600;">coach</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">text mode · for public places</span></span>
+    <button onClick="{{ go.idle }}" aria-label="switch to voice" style="margin-left:auto;width:44px;height:44px;border:none;background:transparent;color:#2FD67B;cursor:pointer;font-family:'Material Symbols Rounded';font-size:22px;line-height:1;">graphic_eq</button>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;padding:12px 20px 16px;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"><sc-for list="{{ ctx }}" as="c" hint-placeholder-count="2"><span style="height:30px;display:flex;align-items:center;padding:0 10px;border-radius:999px;border:1px solid #26292E;font-size:13px;color:#A1A1A6;">{{ c }}</span></sc-for></div>
+    <sc-for list="{{ lines }}" as="l" hint-placeholder-count="4">
+      <sc-if value="{{ l.me }}" hint-placeholder-val="{{ true }}"><div style="align-self:flex-end;max-width:80%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:#17191C;font-size:15px;line-height:1.4;">{{ l.x }}</div></sc-if>
+      <sc-if value="{{ l.bot }}" hint-placeholder-val="{{ false }}"><p style="margin:0;max-width:92%;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.6;"><span style="color:#2FD67B;">&gt; </span>{{ l.x }}</p></sc-if>
+    </sc-for>
+    <span style="padding-top:10px;border-top:1px solid #26292E;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">coaching, not therapy · measured against your strategy. not financial advice.</span>
+  </div>
+  <div style="flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px {{ dim.bot }}px;border-top:1px solid #26292E;">
+    <input aria-label="message the coach" placeholder="message the coach" style="flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 16px;border-radius:22px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:inherit;font-size:15px;outline-color:#2FD67B;">
+    <button aria-label="send" style="width:44px;height:44px;flex:none;border-radius:22px;border:none;background:#2FD67B;color:#050607;cursor:pointer;font-family:'Material Symbols Rounded';font-size:22px;line-height:1;">arrow_upward</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.summary }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:18px;padding:{{ dim.top }}px 20px {{ dim.bot }}px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;"><button onClick="{{ go.idle }}" aria-label="close" style="margin-left:-10px;width:44px;height:44px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">close</button></div>
+  <div style="display:flex;flex-direction:column;gap:10px;flex:none;"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#2FD67B;">&gt; session ended · [n] min</span><h1 style="margin:0;font-size:32px;font-weight:600;letter-spacing:-0.03em;line-height:1.1;">what we talked about</h1></div>
+  <div style="display:flex;flex-direction:column;padding:4px 16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+    <sc-for list="{{ topics }}" as="t" hint-placeholder-count="3"><div style="display:flex;gap:12px;padding:14px 0;border-top:1px solid #17191C;font-size:15px;line-height:1.4;"><span aria-hidden="true" style="font-family:'Geist Mono',monospace;color:#A1A1A6;">&gt;</span><span>{{ t }}</span></div></sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:24px;background:rgba(15,17,19,0.6);border:1px solid rgba(47,214,123,0.45);flex:none;">
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">ONE FOCUS</span>
+    <p style="margin:0;font-size:19px;line-height:1.4;text-wrap:pretty;">before your next entry, read your four rules out loud.</p>
+  </div>
+  <span style="font-family:'Geist Mono',monospace;font-size:11px;line-height:1.5;color:#A1A1A6;">coaching, not therapy · measured against your strategy. not financial advice.</span>
+  <div style="flex:1;"></div>
+  <sc-if value="{{ unsaved }}" hint-placeholder-val="{{ true }}">
+    <button onClick="{{ go.saved }}" style="height:56px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;flex:none;">save to history</button>
+    <button onClick="{{ go.idle }}" style="height:44px;border:none;background:transparent;color:#A1A1A6;font-family:inherit;font-size:15px;cursor:pointer;flex:none;">not now</button>
+  </sc-if>
+  <sc-if value="{{ saved }}" hint-placeholder-val="{{ false }}">
+    <p role="status" style="margin:0;text-align:center;font-family:'Geist Mono',monospace;font-size:17px;animation:rise 320ms ease-out;"><span style="color:#2FD67B;">&gt;</span> saved to coach → history.<span style="animation:dojiBlink 1s steps(1) infinite;">_</span></p>
+    <button onClick="{{ go.idle }}" style="height:56px;border-radius:999px;border:none;background:#F5F5F7;color:#050607;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;flex:none;">done</button>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ tabs }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:none;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:6px 8px {{ dim.bot }}px;border-top:1px solid #26292E;background:rgba(5,6,7,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-size:10px;color:#A1A1A6;text-align:center;">
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">home</span>home</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">candlestick_chart</span>markets</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#F5F5F7;"><span aria-label="coach" style="width:56px;height:56px;margin-top:-22px;border-radius:28px;background:#0F1113;border:1px solid #2FD67B;display:flex;align-items:center;justify-content:center;"><span style="width:24px;height:24px;border-radius:12px;background:#2FD67B;box-shadow:0 0 18px rgba(47,214,123,0.45);"></span></span>coach</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">menu_book</span>journal</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">person</span>me</span>
+  </div>
+</sc-if>
+<span aria-hidden="true" style="position:absolute;left:50%;bottom:8px;z-index:9;width:{{ dim.hi }}px;height:5px;margin-left:{{ dim.him }}px;border-radius:3px;background:#F5F5F7;opacity:0.85;pointer-events:none;"></span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;idle&quot;,&quot;listening&quot;,&quot;thinking&quot;,&quot;speaking&quot;,&quot;transcript&quot;,&quot;voices&quot;,&quot;textMode&quot;,&quot;summary&quot;,&quot;saved&quot;,&quot;noMinutes&quot;,&quot;distress&quot;],&quot;default&quot;:&quot;idle&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;platform&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ios&quot;,&quot;android&quot;],&quot;default&quot;:&quot;ios&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;motion&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;full&quot;,&quot;reduced&quot;],&quot;default&quot;:&quot;full&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const STARTERS=['why do I hesitate to enter?','why am I overtrading?','I just broke my rule'];
+const LINES=[['you','00:02','why do I hesitate to enter?'],['doji','00:06','it sounds like it shows up after a loss. what do you tell yourself right before an entry?'],['you','00:21','that this one will fail too.'],['doji','00:27',"that's a prediction, not a rule. your rules already decide if a setup is valid. want to read them out loud before the next one?"]];
+const DLINES=[['you','00:03',"i can't do this anymore. i've lost everything."],['doji','00:09',"that sounds really heavy. i'm glad you said it out loud. want to slow down together first?"]];
+const VOICES=[['calm male','low, slow, steady'],['calm female','warm, unhurried'],['coach tone','direct, still kind']];
+class Component extends DCLogic {
+  state={screen:null,voice:1,preview:-1};
+  componentDidUpdate(pp){if(pp.screen!==this.props.screen)this.setState({screen:null});}
+  componentWillUnmount(){clearTimeout(this.t);}
+  toThinking=()=>{clearTimeout(this.t);this.setState({screen:'thinking'});this.t=setTimeout(()=>this.setState({screen:'speaking'}),1300);};
+  holdStart=e=>{if(this.cur()==='noMinutes')return;e&&e.preventDefault&&e.preventDefault();this.setState({screen:'listening'});};
+  keyStart=e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();this.holdStart();}};
+  holdEnd=()=>{if(this.cur()==='listening')this.toThinking();};
+  holdCancel=()=>{if(this.cur()==='listening')this.toThinking();};
+  cur(){return this.state.screen??this.props.screen??'idle';}
+  renderVals(){
+    const P=this.props,S=this.state;
+    const android=(P.platform??'ios')==='android';
+    const reduced=(P.motion??'full')==='reduced';
+    const screen=this.cur();
+    const set=o=>()=>this.setState(o);
+    const orbScreens=['idle','listening','thinking','speaking','transcript','voices','noMinutes','distress'];
+    const o={idle:screen==='idle'||screen==='voices'||screen==='noMinutes',listening:screen==='listening',thinking:screen==='thinking',speaking:screen==='speaking'||screen==='transcript',distress:screen==='distress'};
+    const A=(s)=>reduced?'none':s;
+    const an={orb:A(o.distress?'orbBreathe 9s ease-in-out infinite':o.idle?'orbBreathe 5s ease-in-out infinite':'none'),
+      core:A(o.listening?'coreListen 700ms ease-in-out infinite':o.thinking?'coreThink 1.4s ease-in-out infinite':o.speaking?'coreBreathe 1.2s ease-in-out infinite':o.distress?'coreBreathe 9s ease-in-out infinite':'coreBreathe 5s ease-in-out infinite')};
+    const noMin=screen==='noMinutes';
+    const listen=screen==='listening';
+    const lines=(screen==='distress'?DLINES:LINES).map(([who,t,x])=>({who,t,x,c:who==='doji'?'#2FD67B':'#A1A1A6',me:who==='you',bot:who==='doji'}));
+    return {
+      ios:!android,label:`coach · ${android?'android':'ios'} · ${screen}${reduced?' · reduced motion':''}`,
+      dim:android?{w:412,h:915,r:36,sb:40,sbp:24,top:52,bot:24,hi:108,him:-54}:{w:390,h:844,r:48,sb:54,sbp:34,top:62,bot:34,hi:134,him:-67},
+      is:{orb:orbScreens.includes(screen),text:screen==='textMode',summary:screen==='summary'||screen==='saved'},
+      tabs:o.idle,
+      inSession:!o.idle,notSession:o.idle,
+      voiceName:VOICES[S.voice][0],
+      ctx:['3 losses today','felt anxious this morning'],
+      minutes:noMin?'pro · 0 min left':'pro · [n] min left',minC:noMin?'#FF9F0A':'#A1A1A6',
+      orbOp:noMin?0.35:1,orbAria:`coach orb, ${listen?'listening':o.thinking?'thinking':o.speaking?'speaking':'idle'}`,an,
+      ripples:[0,0.8,1.6].map(d=>reduced?'none':`ripple 2.4s ease-out ${d}s infinite`),
+      bars:Array.from({length:28},(_,i)=>{const s=[0.35,0.6,0.9,0.5,0.75,0.4,1,0.55][i%8];return {s:reduced?s:1,a:reduced?'none':`wave ${(0.6+(i%5)*0.12).toFixed(2)}s ease-in-out ${((i*0.07)%0.6).toFixed(2)}s infinite`};}),
+      o:{...o,starters:screen==='idle'||screen==='voices',noMin,hold:!o.distress&&!noMin,drawer:screen==='transcript',voices:screen==='voices'},
+      idleLine:'hold to talk, or pick a starter',
+      caption:LINES[3][2],
+      starters:STARTERS.map(t=>({t,go:this.toThinking})),
+      holdStart:this.holdStart,holdEnd:this.holdEnd,holdCancel:this.holdCancel,keyStart:this.keyStart,
+      holdBd:listen?'#2FD67B':'#26292E',holdBg:listen?'#2FD67B':'#0F1113',holdFg:listen?'#050607':'#F5F5F7',holdLabel:listen?'let go to send':'hold to talk',
+      lines,
+      voices:VOICES.map(([n,d],i)=>{const on=S.voice===i,pl=S.preview===i;return {n,d,on:String(on),bd:on?'#2FD67B':'#4A4E55',dot:on?'#2FD67B':'transparent',pick:set({voice:i}),pg:pl?'stop':'play_arrow',pa:pl?`stop ${n} preview`:`preview ${n}`,preview:()=>this.setState(s=>({preview:s.preview===i?-1:i}))};}),
+      topics:['hesitation shows up after a loss, not before a bad setup.','"this one will fail too" is a prediction, not one of your rules.','3 losses today; you stopped before a fourth.'],
+      unsaved:screen==='summary',saved:screen==='saved',
+      go:{idle:set({screen:'idle'}),voices:set({screen:'voices'}),text:set({screen:'textMode'}),transcript:set({screen:'transcript'}),speaking:set({screen:'speaking'}),summary:set({screen:'summary'}),saved:set({screen:'saved'})}
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,7 +10,11 @@ import '../../../core/theme/motion.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../journal/presentation/journal_controller.dart';
 import '../../markets/domain/instrument_catalog.dart';
+import '../../mood/data/mood_repository.dart';
+import '../../mood/domain/mood.dart';
+import '../../mood/presentation/mood_screen.dart' show FeelingChips;
 import 'home_controller.dart';
 
 /// Post-trade emotion check (Doji Home Phone: postTrade): "how did that
@@ -42,10 +48,25 @@ class PostTradeSheet extends ConsumerStatefulWidget {
 class _PostTradeSheetState extends ConsumerState<PostTradeSheet> {
   EmotionWhen _when = EmotionWhen.after;
   double _intensity = 6;
+  String? _feeling;
 
   void _save() {
+    final feeling = _feeling;
+    if (feeling == null) return;
     unawaited(ref.read(hapticsProvider).light());
-    ref.read(homeControllerProvider.notifier).logEmotion(_when, _intensity.round());
+    final after = _when == EmotionWhen.after;
+    unawaited(
+      ref
+          .read(moodControllerProvider.notifier)
+          .log(
+            feeling: feeling,
+            moment: after ? MoodMoment.afterTrade : MoodMoment.beforeTrade,
+            intensity: _intensity.round(),
+            // After: the trade just logged. Before: there is no trade yet.
+            tradeId: after ? latestTradeToday(ref.read(activeAccountTradesProvider), clock.now()) : null,
+          ),
+    );
+    ref.read(homeControllerProvider.notifier).logEmotion(_when, _intensity.round(), feeling: feeling);
     Navigator.of(context).pop();
   }
 
@@ -123,6 +144,8 @@ class _PostTradeSheetState extends ConsumerState<PostTradeSheet> {
                     ],
                   ),
                   const SizedBox(height: 14),
+                  FeelingChips(selected: _feeling, onPick: (f) => setState(() => _feeling = f)),
+                  const SizedBox(height: 14),
                   DojiSlider(
                     label: 'intensity',
                     value: _intensity,
@@ -142,7 +165,7 @@ class _PostTradeSheetState extends ConsumerState<PostTradeSheet> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  DojiButton(label: 'save', onPressed: _save),
+                  DojiButton(label: 'save', onPressed: _feeling == null ? null : _save),
                   DojiButton(
                     label: 'skip',
                     variant: DojiButtonVariant.text,

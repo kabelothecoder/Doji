@@ -9,6 +9,7 @@ import '../../analyst/presentation/analyst_controller.dart';
 import '../../backtest/data/backtest_repository.dart';
 import '../../gym/data/gym_repository.dart';
 import '../../me/data/badge_repository.dart';
+import '../../mind/data/mind_repository.dart';
 import '../../history/history.dart';
 import '../../../app/routes.dart';
 import '../../accounts/data/broker_link_repository.dart';
@@ -17,6 +18,8 @@ import '../../../core/widgets/auth_method_button.dart' show AuthMethod;
 import '../../app_lock/presentation/app_lock_controller.dart';
 import '../../chart/data/chart_note_repository.dart';
 import '../../coach/data/coach_session_repository.dart';
+import '../../coach/data/voice_minutes_repository.dart';
+import '../../mood/data/mood_repository.dart';
 import '../../journal/data/journal_repository.dart';
 import '../../journal/presentation/journal_controller.dart';
 import '../../markets/data/brief_allowance_repository.dart';
@@ -463,6 +466,9 @@ class AccountActions {
     _ref.invalidate(journalControllerProvider);
     // Saved coach sessions ("coaching history" on the delete screen) too.
     await _ref.read(coachSessionRepositoryProvider).clear();
+    await _ref.read(voiceMinutesRepositoryProvider).clear();
+    await _ref.read(moodRepositoryProvider).clear();
+    _ref.invalidate(moodControllerProvider);
     await _ref.read(chartNoteRepositoryProvider).clear();
     // Weekly reviews and the trader's sources.
     await _ref.read(analystRepositoryProvider).clear();
@@ -477,6 +483,9 @@ class AccountActions {
     _ref.invalidate(gymProvider);
     await _ref.read(badgeRepositoryProvider).clear();
     _ref.invalidate(earnedBadgesProvider);
+    // Mind toolkit: favourites, own affirmations, read state, prompt answers.
+    await _ref.read(mindRepositoryProvider).clear();
+    _ref.invalidate(mindControllerProvider);
     await _ref.read(historyRepositoryProvider).clear();
     await _ref.read(brokerLinkRepositoryProvider).clear();
     await _ref.read(consentRepositoryProvider).clear();

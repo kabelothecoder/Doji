@@ -8,6 +8,7 @@ import 'package:doji_app/app/routes.dart';
 import 'package:doji_app/core/widgets/widgets.dart';
 import 'package:doji_app/features/auth/presentation/auth_controller.dart';
 import 'package:doji_app/features/coach/data/coach_session_repository.dart';
+import 'package:doji_app/features/coach/data/voice_minutes_repository.dart';
 import 'package:doji_app/features/coach/presentation/widgets/push_to_talk_button.dart';
 import 'package:doji_app/features/home/domain/home_models.dart';
 import 'package:doji_app/features/home/presentation/home_controller.dart';
@@ -115,12 +116,17 @@ void main() {
     expect(_saved(h), isEmpty);
   }, variant: ios);
 
-  testWidgets('unsaved words: end asks; save keeps the session', (tester) async {
+  testWidgets('end shows the summary; save to history keeps the session', (tester) async {
     final h = await AppHarness.pump(tester, at: Routes.coach, seed: _seed());
     await _type(h, 'just one more trade');
     expect(find.textContaining('that would be trade 1 of 3 today.'), findsOneWidget);
     await h.tap(find.bySemanticsLabel('end session'));
-    await h.tap(find.widgetWithText(DojiButton, 'save'));
+    expect(find.text('what we talked about'), findsOneWidget);
+    expect(find.text('just one more trade'), findsOneWidget);
+    expect(find.text('count your trades against your max before the next one.'), findsOneWidget);
+    await h.tapText('save to history');
+    expect(find.textContaining('saved to coach history.'), findsOneWidget);
+    await h.tapText('done');
     expect(h.location, Routes.home);
     expect(_saved(h), hasLength(1));
   }, variant: ios);
@@ -315,4 +321,101 @@ void main() {
     await out;
     expect(h.prefs.getString(PrefsCoachSessionRepository.key), isNull);
   }, variant: ios);
+
+  group('coach states (Doji Coach Phone)', () {
+    testWidgets('distress: SADAG first, a calm card in place of the input, a way to the panic flow', (
+      tester,
+    ) async {
+      final h = await AppHarness.pump(tester, at: Routes.coach, seed: _seed());
+      await _type(h, "i can't do this anymore. i've lost everything.");
+      expect(find.text('want to slow down together first?'), findsOneWidget);
+      final sadag = tester.getTopLeft(find.text('talk to someone now · SADAG')).dy;
+      final panic = tester.getTopLeft(find.text('take a minute with me')).dy;
+      expect(sadag, lessThan(panic), reason: 'the helpline comes first');
+      expect(find.byType(TextField), findsNothing);
+      await h.tapText('take a minute with me');
+      expect(h.location, Routes.panic);
+    }, variant: ios);
+
+    testWidgets('distress: keep talking brings the input back', (tester) async {
+      final h = await AppHarness.pump(tester, at: Routes.coach, seed: _seed());
+      await _type(h, 'I blew my account');
+      await h.tapText('keep talking');
+      expect(find.text('want to slow down together first?'), findsNothing);
+      expect(find.byType(TextField), findsOneWidget);
+    }, variant: ios);
+
+    testWidgets('pro: minutes left show; text mode is one tap away and back', (tester) async {
+      final h = await AppHarness.pump(
+        tester,
+        at: Routes.coach,
+        seed: _seed(plan: 'pro'),
+        voice: FakeVoiceInput(),
+      );
+      expect(find.text('pro · 60 min left this month'), findsOneWidget);
+      await h.tap(find.bySemanticsLabel('switch to text mode'));
+      expect(find.byType(TextField), findsOneWidget);
+      await h.tap(find.bySemanticsLabel('switch to voice'));
+      expect(_ptt, findsOneWidget);
+    }, variant: ios);
+
+    testWidgets('pro at 0 minutes: text, the reason, and add minutes opens the upsell', (tester) async {
+      final now = DateTime.now();
+      final h = await AppHarness.pump(
+        tester,
+        at: Routes.coach,
+        voice: FakeVoiceInput(),
+        seed: {
+          ..._seed(plan: 'pro'),
+          VoiceMinutesRepository.key: jsonEncode({
+            'month': '${now.year}-${now.month.toString().padLeft(2, '0')}',
+            'seconds': 3600,
+          }),
+        },
+      );
+      expect(find.text('pro · 0 min left this month'), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.textContaining("this month's voice minutes are used."), findsOneWidget);
+      await h.tapText('add minutes');
+      expect(find.text('voice minutes used.'), findsOneWidget);
+    }, variant: ios);
+
+    testWidgets('voice: the mic time is counted on the device', (tester) async {
+      final voice = FakeVoiceInput();
+      final h = await AppHarness.pump(
+        tester,
+        at: Routes.coach,
+        seed: _seed(plan: 'pro'),
+        voice: voice,
+      );
+      final gesture = await tester.startGesture(tester.getCenter(_ptt));
+      await h.wait(100);
+      voice.say('what a morning');
+      await h.wait(2000);
+      await gesture.up();
+      await h.wait(300);
+      expect(h.container.read(voiceMinutesRepositoryProvider).usedSeconds(DateTime.now()), greaterThan(0));
+    }, variant: ios);
+
+    testWidgets('saved sessions: me › coach history › transcript', (tester) async {
+      final h = await AppHarness.pump(tester, at: Routes.coach, seed: _seed());
+      await _type(h, 'just one more trade');
+      await h.tap(find.bySemanticsLabel('end session'));
+      await h.tapText('save to history');
+      await h.tapText('done');
+      h.router.go(Routes.me);
+      await h.wait();
+      await tester.scrollUntilVisible(
+        find.text('coach history'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await h.tapText('coach history');
+      expect(h.location, Routes.coachHistory);
+      await h.tap(find.textContaining('just one more trade').last);
+      expect(find.text('transcript'), findsOneWidget);
+      expect(find.textContaining('that would be trade 1 of 3 today.'), findsOneWidget);
+      expect(find.textContaining('you · 00:'), findsOneWidget);
+    }, variant: ios);
+  });
 }

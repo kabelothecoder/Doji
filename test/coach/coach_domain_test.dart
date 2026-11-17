@@ -2,11 +2,15 @@
 // trader's own plan and day, the crisis line first, the copy rules over every
 // line it can say, and where saved sessions live.
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:doji_app/features/coach/data/coach_session_repository.dart';
 import 'package:doji_app/features/coach/data/fake_coach.dart';
 import 'package:doji_app/features/coach/domain/coach.dart';
 import 'package:doji_app/features/coach/domain/coach_session.dart';
+import 'package:doji_app/features/coach/data/voice_minutes_repository.dart';
+import 'package:doji_app/features/coach/domain/session_summary.dart';
+import 'package:doji_app/features/plans/domain/plans.dart';
 import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
 import 'package:doji_app/features/onboarding/domain/prop_rules.dart';
 import 'package:doji_app/core/copy_rules.dart';
@@ -246,5 +250,105 @@ void main() {
       await prefs.setString(PrefsCoachSessionRepository.key, '{not json');
       expect(repo.load(), isEmpty);
     });
+  });
+
+  group('session summary', () {
+    final t0 = DateTime.utc(2026, 7, 15, 9);
+    CoachTurn you(String x, int s) => CoachTurn(
+      speaker: CoachSpeaker.you,
+      text: x,
+      at: t0.add(Duration(seconds: s)),
+    );
+    CoachTurn coach(String x, int s) => CoachTurn(
+      speaker: CoachSpeaker.coach,
+      text: x,
+      at: t0.add(Duration(seconds: s)),
+    );
+
+    test('topics are the lines the trader said (three at most); minutes round up', () {
+      final s = SessionSummary.of(
+        [coach('hi', 0), you('why do I hesitate to enter?', 5), you('a', 9), you('b', 20), you('c', 30)],
+        startedAt: t0,
+        endedAt: t0.add(const Duration(seconds: 61)),
+      );
+      expect(s.topics, ['why do I hesitate to enter?', 'a', 'b']);
+      expect(s.minutes, 2);
+      expect(s.focus, SessionSummary.focusFor[CoachIntent.hesitation]);
+    });
+
+    test('the focus follows the first concern in intent order; nothing named = read your rules', () {
+      SessionSummary of(List<String> lines) =>
+          SessionSummary.of([for (final l in lines) you(l, 1)], startedAt: t0, endedAt: t0);
+      expect(
+        of(['I want to double my lot', 'I want to win it back']).focus,
+        SessionSummary.focusFor[CoachIntent.revenge],
+      );
+      expect(of(['hello']).focus, SessionSummary.focusFor[CoachIntent.other]);
+      expect(of(['hello']).minutes, 1);
+    });
+  });
+
+  test('distress: crisis words and lost-everything lines; ordinary tilt is not distress', () {
+    expect(isDistress("i can't do this anymore. i've lost everything."), isTrue);
+    expect(isDistress('I blew my account'), isTrue);
+    expect(isDistress("honestly I don't want to be here anymore"), isTrue);
+    expect(isDistress('I am frustrated, 3 losses'), isFalse);
+    expect(isDistress('just one more trade'), isFalse);
+  });
+
+  group('voice minutes', () {
+    test('pro gets 60 a month; elite (fair use) and free are not counted', () {
+      expect(voiceMinutesLeft(PlanId.pro, 0), 60);
+      expect(voiceMinutesLeft(PlanId.pro, 90), 58);
+      expect(voiceMinutesLeft(PlanId.pro, 3600), 0);
+      expect(voiceMinutesLeft(PlanId.pro, 9999), 0);
+      expect(voiceMinutesLeft(PlanId.elite, 9999), isNull);
+      expect(voiceMinutesLeft(PlanId.free, 0), isNull);
+      expect(voiceMinutesResetOn(DateTime(2026, 11, 17)), '1 dec');
+      expect(voiceMinutesResetOn(DateTime(2026, 12, 3)), '1 jan');
+    });
+
+    test('repository: counts per month, a new month starts at 0, clear empties', () async {
+      SharedPreferences.setMockInitialValues({});
+      final repo = VoiceMinutesRepository(await SharedPreferences.getInstance());
+      final nov = DateTime(2026, 11, 17);
+      expect(await repo.add(const Duration(seconds: 45), nov), 45);
+      expect(await repo.add(const Duration(seconds: 30), nov), 75);
+      expect(repo.usedSeconds(DateTime(2026, 12, 1)), 0);
+      await repo.clear();
+      expect(repo.usedSeconds(nov), 0);
+    });
+  });
+
+  test('copy rules: every string in lib/features/mood and the new coach files', () {
+    final single = RegExp(r"'((?:[^'\\\n]|\\.)*)'");
+    final dbl = RegExp(r'"((?:[^"\\\n]|\\.)*)"');
+    final files = [
+      ...Directory('lib/features/mood').listSync(recursive: true).whereType<File>(),
+      for (final f in [
+        'domain/session_summary.dart',
+        'data/voice_minutes_repository.dart',
+        'presentation/session_summary_view.dart',
+        'presentation/coach_history_screen.dart',
+        'presentation/widgets/distress_card.dart',
+        'presentation/coach_screen.dart',
+      ])
+        File('lib/features/coach/$f'),
+    ].where((f) => f.path.endsWith('.dart'));
+    var n = 0;
+    for (final f in files) {
+      for (final line in f.readAsLinesSync()) {
+        final t = line.trimLeft();
+        if (t.startsWith('import ') || t.startsWith('//')) continue;
+        for (final m in [...single.allMatches(line), ...dbl.allMatches(line)]) {
+          n++;
+          expect(breaksCopyRules(m.group(1)!), isFalse, reason: '${f.path}: ${m.group(1)}');
+        }
+      }
+    }
+    expect(n, greaterThan(60));
+    for (final line in SessionSummary.focusFor.values) {
+      expect(breaksCopyRules(line), isFalse, reason: line);
+    }
   });
 }

@@ -13,7 +13,7 @@ All designed UI is built before any more backend work. While this phase lasts:
   `// TODO(backend):`.
 - Order: auth A5–A7 (done) → panic flow (done) → Me (profile, grid, badges, share card done) → coach
   states (summary, saved, distress, transcript, voice minutes) + mood (check-in, emotion tracker,
-  trends) → mind toolkit (scorecard, prompts, affirmations, reading) → journal (insights feed,
+  trends) (done) → mind toolkit (scorecard, prompts, affirmations, reading) (done) → journal (insights feed,
   imported trade).
 - Sync each slice's design file into `design/handoff/` when the slice starts (see
   `design/SOURCE.md` › Not synced yet), read-only.
@@ -84,7 +84,13 @@ lib/
                   presentation/ gym_screen · drills_screen
     coach/        domain/ coach.dart (Coach interface, CoachContext, CoachVoice) · coach_session.dart
                   data/ fake_coach.dart (FAKE coach) · coach_session_repository.dart (shared_preferences)
-                  presentation/ coach_screen (1c) · coach_controller · save_session_sheet · widgets/
+                  voice_minutes_repository.dart (doji.voice_minutes.v1) · domain/session_summary.dart (summary, isDistress)
+                  presentation/ coach_screen (1c) · coach_controller · save_session_sheet · session_summary_view ·
+                  coach_history_screen (+ transcript) · widgets/ (distress_card)
+    mind/         domain/ mind_catalog (prompts, affirmations, reading) · scorecard · data/mind_repository (doji.mind.v1) ·
+                  presentation/mind_screens (hub, scorecard, prompts, affirmations, reading, article)
+    mood/         domain/mood.dart (MoodEntry, MoodTrends) · data/mood_repository.dart (doji.mood.v1) ·
+                  presentation/mood_screen.dart (check-in, trends, tracker)
     analyst/      domain/ aggregates (AnalystFacts) · analyst (Analyst, WeeklyReview, AccountSource, focusRuleFor)
                   data/ fake_analyst (FAKE) · analyst_repository (doji.review.v1, doji.sources.v1)
                   presentation/ analyst_controller · weekly_review_card (+ ask sheet, FocusRuleLine) · sources_section
@@ -557,9 +563,54 @@ coach" pushes it too.
 - **Saving**: `CoachSessionRepository` (`doji.coach.v1`, shared_preferences); "save" keeps the
   transcript, saving again replaces it. Close, end, back and (iOS) pull-down ask before dropping
   unsaved words. Sign out and delete clear saved sessions.
+- **States** (`Doji Coach Phone`, synced 2026-11-17; 1c's layout kept, see SOURCE.md): thinking
+  ("THINKING…"), the inline transcript, voices (1c picker), text mode (keyboard / voice toggle in the top
+  bar, only when voice is possible: `toggleMode`, `canSwitchToVoice`).
+- **End → summary** (`SessionSummaryView`, `SessionSummary.of`): "end" with words said shows "what we
+  talked about" (the trader's own lines, 3 at most), ONE FOCUS (`SessionSummary.focusFor`, by the first
+  `CoachIntent` raised), "save to history" → "saved to coach history." + done, or "not now". Close / back
+  still ask with the save sheet. Nothing said = straight out.
+- **Distress** (`isDistress`, `domain/session_summary.dart`): crisis words plus "lost everything",
+  "can't do this anymore", "blew my account", "hopeless"… set `CoachState.distress`: the orb goes still
+  and smaller, `DistressCard` replaces the input row: SADAG first (tel:, else the number), "take a minute
+  with me" (`/panic`), "keep talking" (`keepTalking`).
+- **Voice minutes** (`data/voice_minutes_repository.dart`, `doji.voice_minutes.v1`): pro = 60 a month
+  (`kProVoiceMinutes`), counted on the device as mic-open time (`_countVoice` on release / end); elite is
+  fair use and free / basic have no voice, so `voiceMinutesLeft` is null for them. "pro · n min left this
+  month" under the top bar. At 0: text mode (`TextReason.minutes`), the reason with the reset date
+  (`voiceMinutesResetOn`, the 1st) and "add minutes"; `showUpsellSheet(voice)` opens when it runs out
+  and from that button. TODO(backend): server metering in `ai-coach`.
+- **Coach history** (me › coach history): `/me/coach-history` (`CoachHistoryScreen`, newest first) and
+  `/me/coach-history/:id` (`CoachTranscriptScreen`), both from `savedCoachSessionsProvider`
+  (`doji.coach.v1`; `save` invalidates it). Sign out / delete clear sessions and the minutes.
+- Tests: `test/coach/` (domain + summary, distress, minutes, copy scan of `lib/features/mood` and the
+  new coach files; screen flows for every state), `test/mood/mood_a11y_test.dart` (history 1x/2x),
+  `test/goldens/mood_golden_test.dart` (history, transcript).
 - Not built: streaming the coach (the guard needs the whole reply first), text-to-speech in the
-  chosen voice, voice-minute metering, a place to read saved sessions, Windows dictation, and a
-  tappable / region-specific helpline (SADAG is South African).
+  chosen voice (only mic time is metered), the design's starters / context row / voices sheet /
+  transcript drawer, Windows dictation, and a tappable / region-specific helpline (SADAG is South African).
+
+## Mood (on this device)
+
+No drawn screens (`Doji Trade Journal Phone`, synced 2026-11-17, has none; SOURCE.md › Missing). `MoodScreen`
+at `/journal/mood` (journal tab, bar stays; "mood · check in and trends" on the journal): check-in (feeling
+chips, intensity 1–10, note, "log it"), trends, and the logged list (an entry on a trade opens it).
+
+- **Model** (`features/mood/domain/mood.dart`): `MoodEntry` (id, feeling, intensity (null when nothing asked),
+  note, time, accountId, optional tradeId, `MoodMoment` checkIn | open | beforeTrade | afterTrade).
+  `kMoodFeelings` = The Open's moods + the journal's emotions. `MoodRepository` (`doji.mood.v1`, newest
+  first, a broken record is skipped), `moodControllerProvider.log` stamps the active account.
+  `activeMoodProvider` = the active account's entries (+ ones without an account). TODO(backend) for sync.
+- **Logged from**: the check-in; The Open's mood step on continue (moment open, no intensity); the
+  post-trade sheet / the rail's "log emotion" (a feeling is now required; after = against
+  `latestTradeToday`, the active account's newest trade opened today (shortcut), before = no trade).
+- **Trends** (`MoodTrends.of`): counts per feeling over 7 and 28 days, and in the 28 days: before a loss
+  (logged in the hour before a losing trade opened) vs after (the hour after one closed). Under
+  `kMoodSmallSample` (5) entries a list says "small sample". Bars are neutral grey with the count as a
+  number; no green / orange, no price colours.
+- Sign out / delete clear it. Tests: `test/mood/` (model, repository, trends on fixtures, flows: check-in,
+  the open, post-trade against a trade, sign out; a11y 1x/2x), `test/goldens/mood_golden_test.dart`.
+- Not built: mood on Home or the rail, the coach reading mood, editing / deleting an entry.
 
 ## Panic flow (on this device)
 
@@ -579,8 +630,8 @@ Source: `design/handoff/Doji Me Phone.dc.html` (synced 2026-11-17, **abridged**:
 fetch the original with DesignSync for pixel work). `MeScreen` at `/me`: name + `RankPill`, doji score
 (812, "sample data") + streak, the year grid (two halves of 27 weeks from 1 jan; cells from `dayCell`, the same
 `keptDaysProvider` + `practiceDaysProvider` as Home's MiniGrid: kept L4, broken L1, no reviewed trades L0, drill day = dot),
-rank ladder (`kRanks`, current = `ProfileDoji.rank`), what moves the score, menu (badges, practice,
-settings) and "i blew my account" → `/panic`. `BadgesScreen` at `/me/badges`.
+rank ladder (`kRanks`, current = `ProfileDoji.rank`), what moves the score, menu (badges, mind toolkit, coach history,
+practice, settings) and "i blew my account" → `/panic`. `BadgesScreen` at `/me/badges`.
 
 - **Kept days** (`features/me/domain/me.dart`): a local date with reviewed trades, all graded A or B.
   Unreviewed trades don't count; days without trades never break a streak. Streak = kept days in a row from
@@ -596,8 +647,30 @@ settings) and "i blew my account" → `/panic`. `BadgesScreen` at `/me/badges`.
   name (no handle yet), grid, rank, streak; never money. `RepaintBoundary.toImage` → PNG → `ImageOut`
   (`imageOutProvider`: `FilePicker.saveFile` for "save image", share_plus for "share"; tests override it via
   `AppHarness.pump(overrides:)`).
-- Not built: handle and founding number, mind toolkit, mood,
+- Not built: handle and founding number, mood,
   the design's in-tab settings (the existing `/settings` is used), a real score.
+
+## Mind toolkit (on this device)
+
+Source: `Doji Me Phone` › toolkit, scorecard, prompts, affirmations, reading (full file read with DesignSync
+2026-11-17; the handoff copy stays abridged). `features/mind/`. Routes keep the tab bar: `/me/mind` (hub, from
+the me menu), `/me/mind/scorecard | prompts | affirmations | reading`, `/me/mind/reading/:id` (one short read).
+
+- **Scorecard** (`domain/scorecard.dart`, `Scorecard.of`): this week (Monday local → now) on the active account.
+  Lines, each "kept of sample + what it counts": plan kept (`PlanKept.byVersion`), process grade A or B,
+  no guardrail flags (`guardrailFlags` without news: shortcut, news shows on trade detail), walked away when a
+  walk-away rule was reached (`walkAwayDays`: per day, the first close that reaches a rule, kept when nothing
+  opened after it; no rule set says so), kept days (`keptDays`), mood check-in days (`MoodMoment.checkIn`).
+  Never money, never a rate. The design's mindset slider, hand-counted rule breaks, AI recap and "next
+  week's focus" are not built (measured lines replace them; the focus rule lives in the weekly review).
+- **Catalogue** (`domain/mind_catalog.dart`, like the onboarding catalogue): `kMindPrompts`, `kAffirmations`,
+  `kReading` (short reads with paragraphs + books, no store links). Design copy is marked. Affirmation of the
+  day and the first prompt card are seeded by the local date. `// TODO(backend): content feed`.
+- **Store** (`data/mind_repository.dart`, `doji.mind.v1`): favourite ids, own affirmations (add / delete),
+  read reading ids (opening a short read marks it), prompt answers. Bad records are skipped.
+  `mindControllerProvider`. Sign out / delete clear it. TODO(backend) for sync.
+- Tests: `test/mind/` (scorecard on fixtures, seeding, store, flow + sign out, a11y 1x/2x, copy scan of every
+  string and catalogue entry), `test/goldens/mind_golden_test.dart`.
 
 ## Journal (on this device)
 

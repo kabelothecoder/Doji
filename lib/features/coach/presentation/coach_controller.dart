@@ -12,9 +12,11 @@ import '../../onboarding/domain/profile_doji.dart';
 import '../../plans/domain/plans.dart';
 import '../../plans/presentation/plans_controller.dart';
 import '../data/coach_session_repository.dart';
+import '../data/voice_minutes_repository.dart';
 import '../data/fake_coach.dart';
 import '../domain/coach.dart';
 import '../domain/coach_session.dart';
+import '../domain/session_summary.dart';
 
 /// How the trader talks to the coach in this session.
 enum CoachInputMode { voice, text }
@@ -32,6 +34,9 @@ enum TextReason {
 
   /// The microphone or speech permission was refused.
   microphone,
+
+  /// This month's voice minutes are used (pro trader).
+  minutes,
 }
 
 /// One coach session, from opening the screen to closing it.
@@ -49,6 +54,8 @@ class CoachState {
     this.thinking = false,
     this.savedTurns = 0,
     this.missedWords = false,
+    this.minutesLeft,
+    this.distress = false,
   });
 
   final String id;
@@ -76,6 +83,15 @@ class CoachState {
   /// The mic closed without catching any words.
   final bool missedWords;
 
+  /// Voice minutes left this month; null when the plan does not count them.
+  final int? minutesLeft;
+
+  /// The trader said something heavy: SADAG first, a calm layout, the panic flow.
+  final bool distress;
+
+  /// Voice is possible here and text was the trader's choice.
+  bool get canSwitchToVoice => mode == CoachInputMode.text && textReason == TextReason.none;
+
   bool get hasYou => turns.any((t) => t.speaker == CoachSpeaker.you);
   bool get saved => savedTurns > 0 && savedTurns == turns.length;
 
@@ -96,6 +112,8 @@ class CoachState {
     bool? thinking,
     int? savedTurns,
     bool? missedWords,
+    int? minutesLeft,
+    bool? distress,
   }) => CoachState(
     id: id,
     startedAt: startedAt,
@@ -109,6 +127,8 @@ class CoachState {
     thinking: thinking ?? this.thinking,
     savedTurns: savedTurns ?? this.savedTurns,
     missedWords: missedWords ?? this.missedWords,
+    minutesLeft: minutesLeft ?? this.minutesLeft,
+    distress: distress ?? this.distress,
   );
 }
 
@@ -129,6 +149,9 @@ class CoachController extends Notifier<CoachState> {
   /// never acts on a newer press.
   int _listen = 0;
   bool _prepared = false;
+
+  /// When the mic opened, for the voice minutes.
+  DateTime? _listenFrom;
   late CoachContext _context;
 
   @override
@@ -137,17 +160,22 @@ class CoachController extends Notifier<CoachState> {
     ref.onDispose(voiceIn.stop);
     final profile = ref.read(onboardingRepositoryProvider).loadProfile() ?? const ProfileDoji();
     _context = CoachContext.from(profile, trades: ref.read(activeAccountTradesProvider), now: clock.now());
+    final plan = ref.read(entitlementProvider).plan;
+    final left = voiceMinutesLeft(plan, ref.read(voiceMinutesRepositoryProvider).usedSeconds(clock.now()));
     final reason = !voiceIn.mightBeAvailable
         ? TextReason.device
-        : includesVoiceCoach(ref.read(entitlementProvider).plan)
-        ? TextReason.none
-        : TextReason.plan;
+        : !includesVoiceCoach(plan)
+        ? TextReason.plan
+        : left == 0
+        ? TextReason.minutes
+        : TextReason.none;
     return CoachState(
       id: const Uuid().v4(),
       startedAt: clock.now(),
       voice: CoachVoice.of(profile.coach?.voice),
       mode: reason == TextReason.none ? CoachInputMode.voice : CoachInputMode.text,
       textReason: reason,
+      minutesLeft: left,
     );
   }
 
@@ -191,6 +219,7 @@ class CoachController extends Notifier<CoachState> {
     }
     // Released (or closed) while the permission prompt was up.
     if (gen != _listen || state.orb != VoiceOrbState.listening) return;
+    _listenFrom = clock.now();
     await voice.start(
       onResult: (words, _) {
         if (ref.mounted && gen == _listen) state = state.copyWith(heard: words);
@@ -214,6 +243,7 @@ class CoachController extends Notifier<CoachState> {
     final words = state.heard.trim();
     state = state.copyWith(orb: VoiceOrbState.idle, tapToSend: false, heard: '');
     await ref.read(voiceInputProvider).stop();
+    await _countVoice();
     if (!ref.mounted) return;
     if (words.isEmpty) {
       state = state.copyWith(missedWords: true);
@@ -235,6 +265,7 @@ class CoachController extends Notifier<CoachState> {
       orb: VoiceOrbState.idle,
       thinking: true,
       missedWords: false,
+      distress: state.distress || isDistress(words),
     );
     final reply = await ref.read(coachProvider).reply(_context, history, words);
     if (!ref.mounted) return;
@@ -251,6 +282,33 @@ class CoachController extends Notifier<CoachState> {
     thinking: false,
     orb: VoiceOrbState.speaking,
   );
+
+  /// Counts the time the mic was open against this month's voice minutes;
+  /// at 0 the session moves to text.
+  Future<void> _countVoice() async {
+    final from = _listenFrom;
+    _listenFrom = null;
+    if (from == null || state.minutesLeft == null) return;
+    final now = clock.now();
+    final used = await ref.read(voiceMinutesRepositoryProvider).add(now.difference(from), now);
+    if (!ref.mounted) return;
+    final left = voiceMinutesLeft(ref.read(entitlementProvider).plan, used);
+    if (left == null) return;
+    state = left == 0
+        ? state.copyWith(minutesLeft: 0, mode: CoachInputMode.text, textReason: TextReason.minutes)
+        : state.copyWith(minutesLeft: left);
+  }
+
+  /// Voice or text, when voice is possible (text mode is for public places).
+  void toggleMode() {
+    if (state.textReason != TextReason.none || state.orb == VoiceOrbState.listening) return;
+    state = state.copyWith(
+      mode: state.mode == CoachInputMode.voice ? CoachInputMode.text : CoachInputMode.voice,
+    );
+  }
+
+  /// "keep talking" on the distress card.
+  void keepTalking() => state = state.copyWith(distress: false);
 
   /// The coach finished its line (typing done; later, the audio).
   void doneSpeaking() {
@@ -286,6 +344,7 @@ class CoachController extends Notifier<CoachState> {
           ),
         );
     if (!ref.mounted) return;
+    ref.invalidate(savedCoachSessionsProvider);
     state = state.copyWith(savedTurns: turns.length);
   }
 
@@ -296,6 +355,7 @@ class CoachController extends Notifier<CoachState> {
       state = state.copyWith(orb: VoiceOrbState.idle, tapToSend: false, heard: '');
     }
     await ref.read(voiceInputProvider).stop();
+    await _countVoice();
   }
 }
 

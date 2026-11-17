@@ -20,6 +20,9 @@ abstract final class Routes {
   // Journal (design: Doji Trade Journal Phone.dc.html). The trades list lives in
   // the journal tab (bar stays); adding and reading one trade are full screen.
   static const trades = '/journal/trades';
+
+  /// Mood: check-in, tracker, trends (journal tab, bar stays).
+  static const mood = '/journal/mood';
   static const addTrade = '/journal/add';
   static const tradeDetailPattern = '/journal/trade/:id';
 
@@ -43,6 +46,18 @@ abstract final class Routes {
   // lists keep the tab bar; a replay and the drills are full screen.
   static const mePractice = '/me/practice';
   static const meBadges = '/me/badges';
+
+  /// Mind toolkit (design: Doji Me Phone › toolkit): hub and its four tools, bar stays.
+  static const mind = '/me/mind';
+  static const mindScorecard = '/me/mind/scorecard';
+  static const mindPrompts = '/me/mind/prompts';
+  static const mindAffirmations = '/me/mind/affirmations';
+  static const mindReading = '/me/mind/reading';
+  static String mindArticle(String id) => '$mindReading/${Uri.encodeComponent(id)}';
+
+  /// Saved coach sessions and one transcript (me tab, bar stays).
+  static const coachHistory = '/me/coach-history';
+  static String coachTranscript(String id) => '$coachHistory/$id';
 
   /// Share your grid (design: Doji Me Phone › share + Doji Share Card): full screen.
   static const shareCard = '/share';

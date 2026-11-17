@@ -64,3 +64,8 @@ class PrefsCoachSessionRepository implements CoachSessionRepository {
 final coachSessionRepositoryProvider = Provider<CoachSessionRepository>(
   (ref) => PrefsCoachSessionRepository(ref.watch(sharedPreferencesProvider)),
 );
+
+/// Saved sessions, newest first (coach history in the me tab).
+final savedCoachSessionsProvider = Provider.autoDispose<List<CoachSession>>(
+  (ref) => ref.watch(coachSessionRepositoryProvider).load(),
+);
