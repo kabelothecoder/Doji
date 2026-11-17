@@ -1,4 +1,3 @@
-import '../../../core/widgets/grid_cell.dart';
 import '../../accounts/domain/walk_away.dart';
 import '../../accounts/domain/payout_readiness.dart';
 import '../../journal/domain/journal_stats.dart';
@@ -202,28 +201,4 @@ String _n(num v) => v == v.roundToDouble() ? v.toInt().toString() : v.toString()
 String tomorrowOpenTime(ProfileDoji p) {
   if (p.theOpenTime != null) return p.theOpenTime!;
   return hhmm(openReferenceMinutes(p.sessions, userZoneFromProfile(p)));
-}
-
-/// 12 weeks × 7 days, column-major (Mon first), today in the last column.
-/// Levels are a SAMPLE pattern like the design's; TODO(next-slice): real
-/// days from the closed-day log.
-List<GridCellState> sampleGrid({required DateTime today, required bool zero, required bool closed}) {
-  const weeks = 12;
-  final todayIndex = (weeks - 1) * 7 + (today.weekday - 1);
-  return List.generate(weeks * 7, (i) {
-    if (i > todayIndex) return GridCellState.future;
-    if (i == todayIndex) return zero || closed ? GridCellState.l4 : GridCellState.today;
-    if (zero) return GridCellState.l0;
-    final v = (i * 7 + (i % 5) * 3 + (i >> 3)) % 9;
-    final level = v < 1
-        ? 0
-        : v < 3
-        ? 1
-        : v < 5
-        ? 2
-        : v < 7
-        ? 3
-        : 4;
-    return GridCellState.values[level];
-  });
 }

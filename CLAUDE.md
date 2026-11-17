@@ -220,7 +220,7 @@ today (checklist), evening = `eveningFromHour` (17:00) via `clock`, tilt = 2 los
 today, day closed. Today's trades, loss, loss streak and the prop drawdown come from the journal
 (`HomeSnapshot.fromJournal`). The AI brief card and the rail's strategy line read the same brief
 as Markets 1b (`pairBriefProvider`); "open the brief" goes to 1b. The doji score (labelled
-"sample data"), the grid and the rail's next news are still SAMPLE; TODOs mark each feed hookup.
+"sample data") and the rail's next news are still SAMPLE (the grid reads the journal and gym, see Me tab); TODOs mark each feed hookup.
 
 - **Wide rule** (`core/platform/layout.dart › isWideLayout`): always wide on Windows, else from
   900px. Plans and the shell both use it. Wide = `DojiNavRail` + the docked `DojiRailPanel`
@@ -577,7 +577,8 @@ coach), support (SADAG, `tel:` via url_launcher; a device that can't call shows 
 
 Source: `design/handoff/Doji Me Phone.dc.html` (synced 2026-11-17, **abridged**: a summary of every screen;
 fetch the original with DesignSync for pixel work). `MeScreen` at `/me`: name + `RankPill`, doji score
-(812, "sample data") + streak, the year grid (two halves of 27 weeks, "sample pattern", same SAMPLE as Home),
+(812, "sample data") + streak, the year grid (two halves of 27 weeks from 1 jan; cells from `dayCell`, the same
+`keptDaysProvider` + `practiceDaysProvider` as Home's MiniGrid: kept L4, broken L1, no reviewed trades L0, drill day = dot),
 rank ladder (`kRanks`, current = `ProfileDoji.rank`), what moves the score, menu (badges, practice,
 settings) and "i blew my account" → `/panic`. `BadgesScreen` at `/me/badges`.
 
@@ -585,13 +586,18 @@ settings) and "i blew my account" → `/panic`. `BadgesScreen` at `/me/badges`.
   Unreviewed trades don't count; days without trades never break a streak. Streak = kept days in a row from
   the newest; the 7 / 30-day badges use the best run ever; first clean week = a Monday-start week with
   reviewed trades and no break. Founding is locked until accounts sync (TODO(backend)).
+- **Badges** (`earnedBadgeIds` → `badgesFor`): 7 / 30-day streak, first clean week (journal), first practice day,
+  10 practice days (gym drill sets). Earned ids are stored with the date in `doji.badges.v1`
+  (`BadgeRepository`, `earnedBadgesProvider`), so a badge stays earned if trades are later deleted. Sign out / delete
+  clear it. TODO(backend): for sync. Tests: `test/me/` (rules on fixtures, flow, a11y 1x/2x, copy scan of
+  `lib/features/me`), `test/goldens/me_golden_test.dart`.
 - **Share card** (`/share`, `ShareCardScreen`; design `Doji Share Card`, synced 2026-11-17 byte-for-byte): story
   1080×1920 or post 1080×1080 (`ShareCard`, laid out at full size, `FittedBox` preview, text never scaled), logo,
   name (no handle yet), grid, rank, streak; never money. `RepaintBoundary.toImage` → PNG → `ImageOut`
   (`imageOutProvider`: `FilePicker.saveFile` for "save image", share_plus for "share"; tests override it via
   `AppHarness.pump(overrides:)`).
 - Not built: handle and founding number, mind toolkit, mood,
-  the design's in-tab settings (the existing `/settings` is used), a real score and grid.
+  the design's in-tab settings (the existing `/settings` is used), a real score.
 
 ## Journal (on this device)
 

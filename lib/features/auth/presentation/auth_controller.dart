@@ -8,6 +8,7 @@ import '../../analyst/data/analyst_repository.dart';
 import '../../analyst/presentation/analyst_controller.dart';
 import '../../backtest/data/backtest_repository.dart';
 import '../../gym/data/gym_repository.dart';
+import '../../me/data/badge_repository.dart';
 import '../../history/history.dart';
 import '../../../app/routes.dart';
 import '../../accounts/data/broker_link_repository.dart';
@@ -474,6 +475,8 @@ class AccountActions {
     _ref.invalidate(backtestSessionsProvider);
     await _ref.read(gymRepositoryProvider).clear();
     _ref.invalidate(gymProvider);
+    await _ref.read(badgeRepositoryProvider).clear();
+    _ref.invalidate(earnedBadgesProvider);
     await _ref.read(historyRepositoryProvider).clear();
     await _ref.read(brokerLinkRepositoryProvider).clear();
     await _ref.read(consentRepositoryProvider).clear();

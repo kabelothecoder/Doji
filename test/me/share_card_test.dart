@@ -42,7 +42,7 @@ void main() {
       );
       await h.tap(find.text('share').first);
       expect(h.location, Routes.shareCard);
-      expect(find.text('never shown: profit, balance, lot sizes'), findsOneWidget);
+      expect(find.text('never shown: money, balance, lot sizes'), findsOneWidget);
       expect(find.text('every square is a day i kept my word.'), findsOneWidget);
 
       await tester.runAsync(() async {

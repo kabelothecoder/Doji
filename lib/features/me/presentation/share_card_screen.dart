@@ -14,7 +14,8 @@ import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../home/presentation/home_controller.dart';
-import '../../journal/presentation/journal_controller.dart';
+import '../../gym/data/gym_repository.dart';
+import '../data/badge_repository.dart';
 import '../domain/me.dart';
 import 'me_screen.dart';
 
@@ -101,9 +102,17 @@ class _ShareCardScreenState extends ConsumerState<ShareCardScreen> {
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(homeProfileProvider);
-    final streak = keptStreak(keptDays(ref.watch(journalControllerProvider)));
+    final kept = ref.watch(keptDaysProvider);
+    final streak = keptStreak(kept);
     final rank = kRanks.firstWhere((r) => r.$1 == profile.rank, orElse: () => kRanks.first);
-    final card = ShareCard(format: _format, name: profile.name ?? 'trader', rank: rank, streak: streak);
+    final card = ShareCard(
+      format: _format,
+      name: profile.name ?? 'trader',
+      rank: rank,
+      streak: streak,
+      kept: kept,
+      practice: ref.watch(practiceDaysProvider),
+    );
 
     return Scaffold(
       backgroundColor: DojiColors.bg,
@@ -182,7 +191,7 @@ class _ShareCardScreenState extends ConsumerState<ShareCardScreen> {
               const _Line(
                 icon: Icons.lock_outline,
                 color: DojiColors.textSecondary,
-                text: 'never shown: profit, balance, lot sizes',
+                text: 'never shown: money, balance, lot sizes',
               ),
               if (_status case final s?) ...[const SizedBox(height: 10), TerminalLine(s)],
               const SizedBox(height: 14),
@@ -240,12 +249,16 @@ class ShareCard extends StatelessWidget {
     required this.name,
     required this.rank,
     required this.streak,
+    this.kept = const {},
+    this.practice = const {},
   });
 
   final ShareFormat format;
   final String name;
   final (String, String) rank;
   final int streak;
+  final Map<DateTime, bool> kept;
+  final Set<DateTime> practice;
 
   @override
   Widget build(BuildContext context) {
@@ -276,6 +289,8 @@ class ShareCard extends StatelessWidget {
             YearHalf(
               label: 'jan – jun',
               first: true,
+              kept: kept,
+              practice: practice,
               gap: story ? 7 : 6,
               labelGap: 14,
               labelStyle: mono.copyWith(fontSize: 26),
@@ -284,6 +299,8 @@ class ShareCard extends StatelessWidget {
             YearHalf(
               label: 'jul – dec',
               first: false,
+              kept: kept,
+              practice: practice,
               gap: story ? 7 : 6,
               labelGap: 14,
               labelStyle: mono.copyWith(fontSize: 26),

@@ -7,8 +7,9 @@ import '../../../app/routes.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../gym/data/gym_repository.dart';
 import '../../home/presentation/home_controller.dart';
-import '../../journal/presentation/journal_controller.dart';
+import '../data/badge_repository.dart';
 import '../domain/me.dart';
 
 /// The me tab (design: Doji Me Phone › profile): who you are, the year's grid,
@@ -19,9 +20,10 @@ class MeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(homeProfileProvider);
-    final trades = ref.watch(journalControllerProvider);
-    final streak = keptStreak(keptDays(trades));
-    final badges = badgesFor(trades);
+    final kept = ref.watch(keptDaysProvider);
+    final practice = ref.watch(practiceDaysProvider);
+    final streak = keptStreak(kept);
+    final badges = ref.watch(badgesProvider);
     final name = profile.name ?? 'trader';
     final cur = kRanks.indexWhere((r) => r.$1 == profile.rank).clamp(0, kRanks.length - 1);
 
@@ -113,15 +115,18 @@ class MeScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              const YearHalf(label: 'jan – jun', first: true),
+              YearHalf(label: 'jan – jun', first: true, kept: kept, practice: practice),
               const SizedBox(height: 12),
-              const YearHalf(label: 'jul – dec', first: false),
+              YearHalf(label: 'jul – dec', first: false, kept: kept, practice: practice),
               const SizedBox(height: 12),
               const Wrap(
                 alignment: WrapAlignment.spaceBetween,
                 spacing: 12,
                 runSpacing: 8,
-                children: [_SampleTag('sample pattern'), GridLegendScale()],
+                children: [
+                  _Eyebrow('kept day = reviewed trades all A or B · dot = practice'),
+                  GridLegendScale(),
+                ],
               ),
             ],
           ),
@@ -218,7 +223,7 @@ class BadgesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final badges = badgesFor(ref.watch(journalControllerProvider));
+    final badges = ref.watch(badgesProvider);
     return MeScaffold(
       title: 'badges',
       onBack: () => context.canPop() ? context.pop() : context.go(Routes.me),
@@ -326,13 +331,16 @@ class _SampleTag extends StatelessWidget {
   );
 }
 
-/// Half a year: 27 weeks × 7 days, a SAMPLE pattern like Home's grid.
-/// Half a year (27 weeks × 7), shared by the me tab and the share card.
+/// Half a year (27 weeks × 7 days from 1 jan or 2 jul), shared by the me tab
+/// and the share card. Cells come from [dayCell] (journal kept days); drill
+/// days carry a dot, like Home's MiniGrid.
 class YearHalf extends StatelessWidget {
   const YearHalf({
     super.key,
     required this.label,
     required this.first,
+    required this.kept,
+    required this.practice,
     this.gap = 2,
     this.labelStyle,
     this.labelGap = 6,
@@ -340,6 +348,8 @@ class YearHalf extends StatelessWidget {
 
   final String label;
   final bool first;
+  final Map<DateTime, bool> kept;
+  final Set<DateTime> practice;
   final double gap;
   final TextStyle? labelStyle;
   final double labelGap;
@@ -349,7 +359,6 @@ class YearHalf extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = clock.now();
-    final dayOfYear = now.difference(DateTime(now.year)).inDays;
     final offset = first ? 0 : _weeks * 7;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,7 +369,7 @@ class YearHalf extends StatelessWidget {
         ),
         SizedBox(height: labelGap),
         Semantics(
-          label: 'doji grid $label, sample pattern',
+          label: 'doji grid $label',
           child: ExcludeSemantics(
             child: LayoutBuilder(
               builder: (context, box) {
@@ -373,7 +382,7 @@ class YearHalf extends StatelessWidget {
                         children: [
                           for (var d = 0; d < 7; d++) ...[
                             if (d > 0) SizedBox(height: gap),
-                            GridCell(size: cell, state: _sample(offset + w * 7 + d, dayOfYear)),
+                            _cell(DateTime(now.year, 1, 1 + offset + w * 7 + d), cell, now),
                           ],
                         ],
                       ),
@@ -387,19 +396,21 @@ class YearHalf extends StatelessWidget {
     );
   }
 
-  // TODO(next-slice): real days from the closed-day log (same as Home's sampleGrid).
-  static GridCellState _sample(int i, int today) {
-    if (i > today) return GridCellState.future;
-    final v = (i * 7 + (i % 5) * 3 + (i >> 3)) % 9;
-    return GridCellState.values[v < 1
-        ? 0
-        : v < 3
-        ? 1
-        : v < 5
-        ? 2
-        : v < 7
-        ? 3
-        : 4];
+  Widget _cell(DateTime day, double size, DateTime now) {
+    final c = GridCell(size: size, state: dayCell(day, kept, now));
+    if (!practice.contains(day)) return c;
+    final dot = (size / 3).clamp(2, 6).toDouble();
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        c,
+        Container(
+          width: dot,
+          height: dot,
+          decoration: const BoxDecoration(color: DojiColors.textPrimary, shape: BoxShape.circle),
+        ),
+      ],
+    );
   }
 }
 

@@ -24,6 +24,8 @@ import '../../markets/domain/instrument_catalog.dart';
 import '../../markets/domain/market_format.dart';
 import '../../markets/presentation/pair_detail_controller.dart';
 import '../../onboarding/domain/user_zone.dart';
+import '../../me/data/badge_repository.dart';
+import '../../me/domain/me.dart';
 import '../domain/home_models.dart';
 import 'home_controller.dart';
 import 'post_trade_sheet.dart';
@@ -96,11 +98,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final evening = isEvening();
     final zero = isDayZero(profile);
-    final days = sampleGrid(today: clock.now(), zero: zero, closed: state.dayClosed);
-    final todayIndex = 11 * 7 + (clock.now().weekday - 1);
-    // Drill days, as grid indexes: shown as practice, never as trading days.
     final now = clock.now();
     final today = DateTime(now.year, now.month, now.day);
+    final todayIndex = 11 * 7 + (now.weekday - 1);
+    // The same days as the me tab's year grid (journal kept days); day zero lights today.
+    final kept = ref.watch(keptDaysProvider);
+    final days = [
+      for (var i = 0; i < 12 * 7; i++)
+        i == todayIndex && (zero || state.dayClosed) && kept[today] == null
+            ? GridCellState.l4
+            : dayCell(today.subtract(Duration(days: todayIndex - i)), kept, now),
+    ];
+    // Drill days, as grid indexes: shown as practice, never as trading days.
     final practice = {
       for (final d in ref.watch(practiceDaysProvider))
         if (todayIndex - today.difference(d).inDays case final i when i >= 0 && i <= todayIndex) i,
