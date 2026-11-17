@@ -114,6 +114,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           losses: snap.losses,
           lossesToCooldown: snap.lossesToCooldown,
           onCoach: () => context.push(Routes.coach),
+          onPanic: () => context.push(Routes.panic),
         ),
       if (snap.walkAway case final line?) WalkAwayCard(line: line),
       if (focus != null) const FocusRuleLine(),
@@ -222,6 +223,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     for (final u in snap.usage)
                                       (label: u.label, used: u.used, limit: u.limit, unit: u.unit),
                                   ],
+                                  walkAway: snap.walkAway,
                                   tiltLevel: snap.tiltLevel,
                                   tiltWord: snap.tiltWord,
                                   // TODO(next-slice): next high-impact event from the calendar feed.

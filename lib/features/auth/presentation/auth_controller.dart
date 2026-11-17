@@ -27,6 +27,7 @@ import '../../plans/presentation/plans_controller.dart';
 import '../data/consent_repository.dart';
 import '../data/fake_auth_repository.dart';
 import '../domain/auth_repository.dart';
+import '../../panic/data/market_pause.dart';
 
 /// Where the flow started: A1 "welcome back" or A2 "save your setup".
 enum AuthIntent { signIn, save }
@@ -478,6 +479,7 @@ class AccountActions {
     await _ref.read(consentRepositoryProvider).clear();
     await _ref.read(appLockControllerProvider.notifier).reset();
     await _ref.read(billingRepositoryProvider).clear();
+    await _ref.read(marketPauseProvider.notifier).stop();
     _ref.invalidate(entitlementProvider);
     _ref.read(authSessionProvider.notifier).set(null);
     _ref.invalidate(onboardingControllerProvider);

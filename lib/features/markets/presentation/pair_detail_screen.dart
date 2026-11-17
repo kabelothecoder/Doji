@@ -16,6 +16,7 @@ import '../../../core/widgets/widgets.dart';
 import '../../home/domain/home_models.dart';
 import '../../home/presentation/home_controller.dart';
 import '../../onboarding/domain/availability.dart';
+import '../../panic/data/market_pause.dart';
 import '../../onboarding/domain/user_zone.dart';
 import '../../plans/presentation/upsell_sheet.dart';
 import '../domain/candle.dart';
@@ -252,6 +253,11 @@ class _PairDetailScreenState extends ConsumerState<PairDetailScreen> {
         height: 1.4,
       ),
     );
+    // The panic flow's 24-hour pause: no written views until it ends.
+    if (ref.watch(marketPauseProvider) case final until?) {
+      final ends = TimeOfDay.fromDateTime(until.toLocal()).format(context);
+      return [TerminalLine('market views paused until $ends. your rules still stand.'), disclaimer];
+    }
     // No strategy yet: the rules are still measured; nothing is written.
     if (StrategyReading.of(ref.read(marketsProfileProvider).strategy?.parsed).kind == StrategyKind.none) {
       return [const _NoStrategyCard(), conditions, checkCard, ?reminderNote, disclaimer];

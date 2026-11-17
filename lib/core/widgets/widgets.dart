@@ -3,6 +3,7 @@
 library;
 
 export 'auth_method_button.dart';
+export 'breathing_orb.dart';
 export 'coach_orb_tab.dart';
 export 'config_panel.dart';
 export 'doji_alert.dart';

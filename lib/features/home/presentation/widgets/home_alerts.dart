@@ -9,11 +9,18 @@ import 'home_card.dart';
 /// Design spec `TiltBanner`: shown after 2 losses in a row. Orange shape +
 /// copy + "talk to coach". Dismissing keeps the state in the rules card.
 class TiltBanner extends StatelessWidget {
-  const TiltBanner({super.key, required this.losses, required this.lossesToCooldown, required this.onCoach});
+  const TiltBanner({
+    super.key,
+    required this.losses,
+    required this.lossesToCooldown,
+    required this.onCoach,
+    required this.onPanic,
+  });
 
   final int losses;
   final int lossesToCooldown;
   final VoidCallback onCoach;
+  final VoidCallback onPanic;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +60,12 @@ class TiltBanner extends StatelessWidget {
               variant: DojiButtonVariant.caution,
               size: DojiButtonSize.small,
               onPressed: onCoach,
+            ),
+            DojiButton(
+              label: 'i need a minute',
+              variant: DojiButtonVariant.text,
+              size: DojiButtonSize.small,
+              onPressed: onPanic,
             ),
           ],
         ),
