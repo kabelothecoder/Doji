@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0..1,0&display=block">
+<style>a{color:#2FD67B;}a:hover{color:#F5F5F7;}</style>
+</helmet>
+<sc-if value="{{ v.full }}" hint-placeholder-val="{{ true }}">
+<div data-kind="{{ k.id }}" style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;box-sizing:border-box;width:100%;font-family:'Geist',system-ui,sans-serif;color:#F5F5F7;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span aria-hidden="true" style="width:22px;height:22px;flex:none;box-sizing:border-box;border-radius:11px;border:2px solid {{ k.c }};background:{{ k.fill }};color:{{ k.gc }};display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:16px;font-weight:600;line-height:1;">{{ k.glyph }}</span>
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.08em;color:{{ k.c }};">{{ k.label }}</span>
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">· {{ ins.type }}</span>
+    <sc-if value="{{ watching }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;display:flex;align-items:center;gap:4px;font-family:'Geist Mono',monospace;font-size:11px;color:#F5F5F7;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:14px;font-variation-settings:'FILL' 1;">push_pin</span>watching</span></sc-if>
+  </div>
+  <button onClick="{{ onOpen }}" style="padding:0;border:none;background:transparent;color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;font-size:16px;font-weight:500;line-height:1.35;letter-spacing:-0.01em;text-wrap:pretty;">{{ ins.h }}</button>
+  <div style="display:flex;align-items:flex-end;gap:14px;">
+    <div role="img" aria-label="{{ chartAria }}" style="flex:1;height:40px;display:flex;gap:3px;position:relative;">
+      <span aria-hidden="true" style="position:absolute;left:0;right:0;top:50%;border-top:1px solid #26292E;"></span>
+      <sc-for list="{{ bars }}" as="b" hint-placeholder-count="14"><span style="flex:1;position:relative;"><span style="position:absolute;left:0;right:0;top:{{ b.t }};height:{{ b.h }};box-sizing:border-box;border-radius:2px;background:{{ b.bg }};border:1.5px solid {{ b.bd }};"></span></span></sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none;">
+      <span style="font-family:'Geist Mono',monospace;font-size:18px;font-weight:500;color:{{ k.c }};">{{ ins.total }}</span>
+      <span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">{{ ins.n }} trades</span>
+    </div>
+  </div>
+  <sc-if value="{{ hasNote }}" hint-placeholder-val="{{ false }}"><span style="padding:6px 10px;border-radius:8px;border:1px dashed #3A3D42;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">&gt; {{ ins.note }}</span></sc-if>
+  <div style="display:flex;align-items:center;gap:4px;padding-top:4px;border-top:1px solid #17191C;margin-bottom:-6px;">
+    <button onClick="{{ onSee }}" style="height:44px;padding:0 8px 0 0;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;">see the trades<span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;color:#A1A1A6;">chevron_right</span></button>
+    <button onClick="{{ onPrimary }}" aria-pressed="{{ ruleS }}" style="margin-left:auto;height:34px;padding:0 12px;border-radius:999px;border:1px solid {{ pr.bd }};background:{{ pr.bg }};color:{{ pr.fg }};font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:16px;">{{ pr.glyph }}</span>{{ pr.l }}</button>
+    <button onClick="{{ onWatch }}" aria-label="{{ watchAria }}" aria-pressed="{{ watchS }}" style="width:36px;height:44px;border:none;background:transparent;color:{{ watchC }};cursor:pointer;font-family:'Material Symbols Rounded';font-size:20px;font-variation-settings:{{ watchFill }};">push_pin</button>
+    <button onClick="{{ onDismiss }}" aria-label="not useful" style="width:36px;height:44px;margin-right:-8px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:20px;">thumb_down</button>
+  </div>
+</div>
+</sc-if>
+<sc-if value="{{ v.hidden }}" hint-placeholder-val="{{ false }}">
+<div role="status" style="display:flex;align-items:center;gap:8px;min-height:52px;padding:0 6px 0 16px;border-radius:16px;border:1px dashed #26292E;box-sizing:border-box;width:100%;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">
+  <span style="flex:1;">&gt; hidden. fewer {{ ins.type }} insights from now on.</span>
+  <button onClick="{{ onUndo }}" style="height:44px;padding:0 10px;border:none;background:transparent;color:#F5F5F7;font-family:'Geist',sans-serif;font-size:14px;cursor:pointer;">undo</button>
+</div>
+</sc-if>
+<sc-if value="{{ v.compact }}" hint-placeholder-val="{{ false }}">
+<a href="{{ href }}" onClick="{{ onOpen }}" style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;box-sizing:border-box;width:100%;font-family:'Geist',system-ui,sans-serif;color:#F5F5F7;text-decoration:none;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">{{ eyebrowT }}</span>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.08em;color:{{ k.c }};"><span aria-hidden="true" style="width:18px;height:18px;box-sizing:border-box;border-radius:9px;border:2px solid {{ k.c }};background:{{ k.fill }};color:{{ k.gc }};display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:13px;font-weight:600;line-height:1;">{{ k.glyph }}</span>{{ k.label }}</span>
+  </div>
+  <span style="font-size:16px;font-weight:500;line-height:1.35;letter-spacing:-0.01em;text-wrap:pretty;">{{ ins.h }}</span>
+  <div style="display:flex;align-items:center;gap:8px;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;"><span>{{ ins.n }} trades ·</span><span style="color:{{ k.c }};">{{ ins.total }}</span><span style="margin-left:auto;display:flex;align-items:center;color:#2FD67B;font-family:'Geist',sans-serif;font-size:14px;">open in journal<span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:18px;">chevron_right</span></span></div>
+</a>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:358,&quot;height&quot;:260},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;full&quot;,&quot;compact&quot;],&quot;default&quot;:&quot;full&quot;,&quot;tsType&quot;:&quot;'full'|'compact'&quot;},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;rule&quot;,&quot;hidden&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;watching&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;eyebrow&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;LATEST INSIGHT&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;ins&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Insight&quot;},&quot;href&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;onOpen&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onSee&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onPrimary&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onWatch&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onDismiss&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onUndo&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+const DEF={id:'time',k:'leak',type:'time',h:'your trades after 3pm cost you [x]R this month',n:'[n]',total:'−[x]R',note:'',seed:3};
+class Component extends DCLogic {
+  renderVals(){
+    const P=this.props;const ins=P.ins||DEF;const leak=ins.k!=='edge';
+    const st=P.state||'';const variant=P.variant||'full';
+    const bias=leak?-0.5:0.5;
+    const bars=Array.from({length:14},(_,i)=>{let v=Math.sin((ins.seed||3)*(i+1)*1.7)*0.75+bias;v=Math.max(-1,Math.min(1,v));if(Math.abs(v)<0.12)v=v<0?-0.12:0.12;const h=Math.abs(v)*50;return v>0?{t:(50-h)+'%',h:h+'%',bg:'#2FD67B',bd:'#2FD67B'}:{t:'50%',h:h+'%',bg:'transparent',bd:'#FF9F0A'};});
+    const rule=st==='rule',watching=!!P.watching;
+    return {
+      ins,v:{full:variant==='full'&&st!=='hidden',hidden:st==='hidden',compact:variant==='compact'},
+      k:leak?{id:'leak',label:'LEAK',c:'#FF9F0A',fill:'transparent',gc:'#FF9F0A',glyph:'remove'}:{id:'edge',label:'EDGE',c:'#2FD67B',fill:'#2FD67B',gc:'#050607',glyph:'add'},
+      bars,chartAria:`${ins.n} trades. filled bars above the line won, hollow bars below lost.`,
+      hasNote:!!ins.note,
+      pr:rule?{l:'rule added',glyph:'check',bd:'#2FD67B',bg:'transparent',fg:'#2FD67B'}:{l:'add as rule',glyph:'add',bd:'#F5F5F7',bg:'#F5F5F7',fg:'#050607'},ruleS:String(rule),
+      watching,watchS:String(watching),watchC:watching?'#F5F5F7':'#A1A1A6',watchFill:watching?"'FILL' 1":"'FILL' 0",watchAria:watching?'stop watching':'watch this',
+      eyebrowT:P.eyebrow||'LATEST INSIGHT',href:P.href,
+      onOpen:P.onOpen,onSee:P.onSee,onPrimary:P.onPrimary,onWatch:P.onWatch,onDismiss:P.onDismiss,onUndo:P.onUndo
+    };
+  }
+}
+</script>
+</body>
+</html>

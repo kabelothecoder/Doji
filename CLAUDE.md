@@ -14,7 +14,7 @@ All designed UI is built before any more backend work. While this phase lasts:
 - Order: auth A5–A7 (done) → panic flow (done) → Me (profile, grid, badges, share card done) → coach
   states (summary, saved, distress, transcript, voice minutes) + mood (check-in, emotion tracker,
   trends) (done) → mind toolkit (scorecard, prompts, affirmations, reading) (done) → journal (insights feed,
-  imported trade).
+  imported trade) (done).
 - Sync each slice's design file into `design/handoff/` when the slice starts (see
   `design/SOURCE.md` › Not synced yet), read-only.
 - Backend work (sync, deploys, real billing, real sign-in, `delete-account`) starts after this list.
@@ -689,8 +689,24 @@ to parse is skipped, not fatal. Home (and the rail docked in it) reads the same
 - Stats and the equity curve in R or money (`ResultUnit`) per calendar period; insights stay
   locked under `kInsightsFromTrades` (20). The view (period, unit, filters) is in memory.
 - Sign out and delete clear the journal along with the profile (`auth_controller.dart`).
-- Not built: Supabase sync (the plan is in the TODO in `journal_repository.dart`), broker / CSV
-  import, insights beyond the analyst, the Windows workspace, the replay chart (a placeholder on
+- **Insights** (`domain/insights.dart`, `findInsights`; design: Doji Trade Journal Phone › insights, insight + `Doji
+  Insight Card`, synced 2026-11-18): patterns in the active account's trades with an R, from
+  `kInsightsFromTrades` (20) trades, each needing `kInsightMinTrades` (3): entries from 15:00, the best setup
+  (edge), after 2 losses in a row the same day, graded A–B vs D–F (edge), the worst instrument, each mistake tag,
+  an emotion at 7+ before entry, wins with no setup. R only: never money or a rate (the design's "loses x% of the
+  time" and "you lose in n of n" became R totals; "early signal" became "small sample", `signal` is a banned word).
+  Under 10 trades = small sample. Leaks first. Feed `/journal/insights` (all · leaks · edges · watching, "ask your
+  journal" = the analyst sheet), detail `/journal/insights/:id` (`?trades=1` scrolls to THE TRADES; "see the trades"
+  lists them there, not a filtered trades list). Journal home shows the top two (`InsightsPreview`) above the
+  weekly review. Watch / not useful (+ undo) / "add as rule" (appends `Insight.rule` to the active strategy's
+  `stayOutWhen`) are stored in `doji.insights.v1` (`insightPrefsProvider`).
+- **Imported trade**: `TradeImport` (`data/trade_import.dart`) is the broker boundary; `NoTradeImport` returns nothing
+  (TODO(backend): mt5 deals). `journalImportProvider` runs on each journal visit and saves new ids. The newest
+  unreviewed trade with `source` ≠ manual shows `ImportedTradeBanner` ("new trade imported · EURUSD long · −1R",
+  review · 20 sec = the review sheet, later = stored in `doji.insights.v1`). Sign out / delete clear it.
+- Tests: `test/journal/insights_*` (rules on fixtures, flow, a11y 1x/2x, copy scan), `test/goldens/insights_golden_test.dart`.
+- Not built: Supabase sync (the plan is in the TODO in `journal_repository.dart`), CSV import, the connect / syncing
+  / sync-error screens, the rule sheet (add as rule saves straight away), the insight's hour chart, the Windows workspace, the replay chart (a placeholder on
   trade detail), and saving the rail's emotion log or the post-trade sheet against a trade.
 
 ## Payout readiness and the analyst (on this device, fake analyst)

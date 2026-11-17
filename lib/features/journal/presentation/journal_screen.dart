@@ -12,7 +12,10 @@ import '../../../core/widgets/widgets.dart';
 import '../../home/presentation/widgets/home_card.dart';
 import '../domain/journal_stats.dart';
 import '../../analyst/presentation/weekly_review_card.dart';
+import '../data/trade_import.dart';
+import 'insights_screen.dart';
 import 'journal_controller.dart';
+import 'widgets/imported_trade_banner.dart';
 import 'widgets/dashed_border.dart';
 import 'widgets/equity_curve.dart';
 import 'widgets/journal_page.dart';
@@ -51,6 +54,8 @@ class JournalScreen extends ConsumerWidget {
     final notifier = ref.read(journalViewProvider.notifier);
     final now = clock.now();
     final accountTrades = ref.watch(activeAccountTradesProvider).length;
+    // Pulls new closed trades from the broker once per visit (none until the backend reads deals).
+    ref.watch(journalImportProvider);
 
     final header = Row(
       children: [
@@ -128,6 +133,7 @@ class JournalScreen extends ConsumerWidget {
             ),
           ],
         ),
+        const ImportedTradeBanner(),
         const _MoodButton(),
         if (all.length < kInsightsFromTrades) _TooFewBanner(count: all.length),
         JournalStatRow(stats: JournalStatRow.from(stats, currency.symbol)),
@@ -135,6 +141,7 @@ class JournalScreen extends ConsumerWidget {
         if (accountTrades < kInsightsFromTrades)
           _InsightsLocked(count: accountTrades)
         else ...[
+          const InsightsPreview(),
           const WeeklyReviewCard(),
           DojiButton(
             label: 'ask the analyst',

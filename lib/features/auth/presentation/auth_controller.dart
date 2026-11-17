@@ -9,6 +9,7 @@ import '../../analyst/presentation/analyst_controller.dart';
 import '../../backtest/data/backtest_repository.dart';
 import '../../gym/data/gym_repository.dart';
 import '../../me/data/badge_repository.dart';
+import '../../journal/data/insights_repository.dart';
 import '../../mind/data/mind_repository.dart';
 import '../../history/history.dart';
 import '../../../app/routes.dart';
@@ -486,6 +487,9 @@ class AccountActions {
     // Mind toolkit: favourites, own affirmations, read state, prompt answers.
     await _ref.read(mindRepositoryProvider).clear();
     _ref.invalidate(mindControllerProvider);
+    // Insight watch / hide / rules and imported trades put off with "later".
+    await _ref.read(insightsRepositoryProvider).clear();
+    _ref.invalidate(insightPrefsProvider);
     await _ref.read(historyRepositoryProvider).clear();
     await _ref.read(brokerLinkRepositoryProvider).clear();
     await _ref.read(consentRepositoryProvider).clear();
