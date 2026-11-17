@@ -35,7 +35,7 @@ class BacktestScreen extends ConsumerWidget {
     final account = profile.activeAccount;
     final view = ref.watch(backtestProvider);
     final c = ref.read(backtestProvider.notifier);
-    void back() => context.canPop() ? context.pop() : context.go(Routes.me);
+    void back() => context.canPop() ? context.pop() : context.go(Routes.mePractice);
     if (account == null) {
       return PracticeScaffold(title: 'backtest', onBack: back, children: const [Text('no account yet.')]);
     }

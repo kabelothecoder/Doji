@@ -103,9 +103,9 @@ Sync each one into `design/handoff/` when its slice starts (CLAUDE.md › Phase:
 
 | File | Slice | Status in the app |
 |---|---|---|
-| `Doji Panic Phone` | panic flow (breathe, ground, pause, talk, support, later) | not built |
-| `Doji Me Phone` | Me: profile + full grid, badges, share; mind toolkit; settings | not built (me tab = practice) |
-| `Doji Share Card` | share card, story 1080×1920 and post 1080×1080 | not built |
+| `Doji Panic Phone` | panic flow (breathe, ground, pause, talk, support, later) | synced 2026-11-17 into `handoff/`, built (`features/panic`) |
+| `Doji Me Phone` | Me: profile + full grid, badges, share; mind toolkit; settings | synced 2026-11-17 (abridged); profile, badges, share built; toolkit / in-tab settings not |
+| `Doji Share Card` | share card, story 1080×1920 and post 1080×1080 | synced 2026-11-17, built (`/share`) |
 | `Doji Coach Phone` | coach states: thinking, transcript, voices, text mode, summary, saved, voice minutes used, distress | partly built (1c) |
 | `Doji Trade Journal Phone` | journal states + mood (check-in, emotion tracker, trends) | journal built; mood not built |
 | `Doji Journal Phone`, `Doji Journal Engine`, `Doji Insight Card`, `Doji Engine`, `Doji Engine Window` | insights / analyst | not built |

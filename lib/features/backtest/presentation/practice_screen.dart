@@ -21,6 +21,7 @@ class PracticeScreen extends ConsumerWidget {
     final streak = ref.watch(drillStreakProvider);
     return PracticeScaffold(
       title: 'practice',
+      onBack: () => context.canPop() ? context.pop() : context.go(Routes.me),
       children: [
         Text(
           account == null

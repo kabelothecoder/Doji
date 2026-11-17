@@ -291,7 +291,7 @@ void main() {
       await tester.scrollUntilVisible(find.text('RULES TODAY'), 300);
       expect(find.bySemanticsLabel(RegExp(r'daily loss, .*/ 2%')), findsOneWidget);
       await h.tapText('me');
-      await h.tapText('account and settings');
+      await h.tap(find.bySemanticsLabel('settings').first);
       await h.tapText('accounts and strategies');
       return h;
     }

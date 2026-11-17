@@ -14,6 +14,9 @@ abstract final class Routes {
   static const coach = '/coach';
   static const coachListening = '/coach?listen=1';
 
+  // Panic flow (design: Doji Panic Phone): a full-screen cover.
+  static const panic = '/panic';
+
   // Journal (design: Doji Trade Journal Phone.dc.html). The trades list lives in
   // the journal tab (bar stays); adding and reading one trade are full screen.
   static const trades = '/journal/trades';
@@ -38,6 +41,11 @@ abstract final class Routes {
 
   // Practice (me tab, no design file): backtest, refine, replay, gym. The
   // lists keep the tab bar; a replay and the drills are full screen.
+  static const mePractice = '/me/practice';
+  static const meBadges = '/me/badges';
+
+  /// Share your grid (design: Doji Me Phone › share + Doji Share Card): full screen.
+  static const shareCard = '/share';
   static const meBacktest = '/me/backtest';
   static const meCompare = '/me/backtest/compare';
   static const meReplays = '/me/replays';

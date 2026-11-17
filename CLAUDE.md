@@ -11,7 +11,7 @@ All designed UI is built before any more backend work. While this phase lasts:
 - Data stays on the device or in fakes behind the existing interfaces (shared_preferences, `Fake*`).
   No new Supabase tables, migrations or functions. Mark each spot the backend will plug in with
   `// TODO(backend):`.
-- Order: auth A5–A7 (done) → panic flow → Me (profile + full grid, badges, share card) → coach
+- Order: auth A5–A7 (done) → panic flow (done) → Me (profile, grid, badges, share card done) → coach
   states (summary, saved, distress, transcript, voice minutes) + mood (check-in, emotion tracker,
   trends) → mind toolkit (scorecard, prompts, affirmations, reading) → journal (insights feed,
   imported trade).
@@ -90,7 +90,7 @@ lib/
                   presentation/ analyst_controller · weekly_review_card (+ ask sheet, FocusRuleLine) · sources_section
 app/shell/        AppShell (StatefulShellRoute): DojiBottomBar on phones, DojiNavRail when wide. main_tab.dart = the 5 items,
                   MainTab.branches = the 4 shell branches (the coach is a cover, not a branch);
-                  me = PracticeScreen (backtest, replay, gym; account and settings)
+                  me = MeScreen (profile; practice at /me/practice)
 test/  (unit, widget, a11y, goldens; helpers/app_harness.dart pumps the real app)   integration_test/   tool/ (asset export)
 design/  handoff/ · system/ · brand/ · SOURCE.md       supabase/ migrations/ · functions/mt5 (+ _shared/mrpc.ts)
 ```
@@ -230,8 +230,7 @@ as Markets 1b (`pairBriefProvider`); "open the brief" goes to 1b. The doji score
   real always-on-top window needs `window_manager`. The nav rail has no artwork; it reuses the
   bottom bar's items. The branch area is wrapped in `Semantics(container: true)` so the rail stays
   visible to screen readers (see Gotchas).
-- Not built: notification centre (bell is hidden), persistence of the open / reflection,
-  and the me tab.
+- Not built: notification centre (bell is hidden), persistence of the open / reflection.
 
 ## Accounts and strategies (on this device)
 
@@ -424,8 +423,8 @@ opened by tapping 1b's chart (`_OpenChart`, nothing drawn at rest, so 1b's golde
 
 ## Practice: backtest, replay, gym (slice 05)
 
-Plan: `design/backtest-gym-plan.md`. No design file (design/SOURCE.md › Missing). The me tab is
-`PracticeScreen` (`/me`, account and settings kept on it); `/me/backtest`, `/me/backtest/compare`,
+Plan: `design/backtest-gym-plan.md`. No design file (design/SOURCE.md › Missing). Practice is
+`PracticeScreen` (`/me/practice`, from the me tab's menu); `/me/backtest`, `/me/backtest/compare`,
 `/me/replays`, `/me/gym` keep the tab bar; `/replay/:symbol?day=&gym=1` and `/drills` are full screen.
 
 - **History** (`features/history/`): `HistoryService.ensure(symbol, tf, from, to)` fetches only the missing
@@ -561,6 +560,38 @@ coach" pushes it too.
 - Not built: streaming the coach (the guard needs the whole reply first), text-to-speech in the
   chosen voice, voice-minute metering, a place to read saved sessions, Windows dictation, and a
   tappable / region-specific helpline (SADAG is South African).
+
+## Panic flow (on this device)
+
+Source: `design/handoff/Doji Panic Phone.dc.html` (synced 2026-11-17). `PanicScreen` at `/panic` (`_cover`),
+opened from Home's tilt banner ("i need a minute"). Six steps: breathe (`BreathingOrb`, 4-7-8, phase and
+countdown as text, still under reduce motion), ground (two tickable lines), pause (`marketPauseProvider`,
+`doji.panic.v1.pausedUntil`: 24 h with no written brief on 1b, optional reminder when it ends), talk (pushes the
+coach), support (SADAG, `tel:` via url_launcher; a device that can't call shows the number), later (schedules a
+09:00 check-in tomorrow). Sign out / delete clear the pause.
+
+- Not built: the coach's calm mode (copy says "at your pace", not "calm mode"), the trusted contact row,
+  Guard (locking trading), the pledge backdrop, the pause on Home's brief card and the rail.
+
+## Me tab (on this device)
+
+Source: `design/handoff/Doji Me Phone.dc.html` (synced 2026-11-17, **abridged**: a summary of every screen;
+fetch the original with DesignSync for pixel work). `MeScreen` at `/me`: name + `RankPill`, doji score
+(812, "sample data") + streak, the year grid (two halves of 27 weeks, "sample pattern", same SAMPLE as Home),
+rank ladder (`kRanks`, current = `ProfileDoji.rank`), what moves the score, menu (badges, practice,
+settings) and "i blew my account" → `/panic`. `BadgesScreen` at `/me/badges`.
+
+- **Kept days** (`features/me/domain/me.dart`): a local date with reviewed trades, all graded A or B.
+  Unreviewed trades don't count; days without trades never break a streak. Streak = kept days in a row from
+  the newest; the 7 / 30-day badges use the best run ever; first clean week = a Monday-start week with
+  reviewed trades and no break. Founding is locked until accounts sync (TODO(backend)).
+- **Share card** (`/share`, `ShareCardScreen`; design `Doji Share Card`, synced 2026-11-17 byte-for-byte): story
+  1080×1920 or post 1080×1080 (`ShareCard`, laid out at full size, `FittedBox` preview, text never scaled), logo,
+  name (no handle yet), grid, rank, streak; never money. `RepaintBoundary.toImage` → PNG → `ImageOut`
+  (`imageOutProvider`: `FilePicker.saveFile` for "save image", share_plus for "share"; tests override it via
+  `AppHarness.pump(overrides:)`).
+- Not built: handle and founding number, mind toolkit, mood,
+  the design's in-tab settings (the existing `/settings` is used), a real score and grid.
 
 ## Journal (on this device)
 

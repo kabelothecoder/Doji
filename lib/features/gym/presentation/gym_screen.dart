@@ -33,7 +33,7 @@ class GymScreen extends ConsumerWidget {
     ].reversed.take(5).toList();
     return PracticeScaffold(
       title: 'gym',
-      onBack: () => context.canPop() ? context.pop() : context.go(Routes.me),
+      onBack: () => context.canPop() ? context.pop() : context.go(Routes.mePractice),
       children: [
         Text(
           'practice following your plan. scored on process, never on the result.',

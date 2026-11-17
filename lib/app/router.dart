@@ -44,6 +44,9 @@ import '../features/plans/presentation/purchase_result_screens.dart';
 import '../features/settings/presentation/delete_account_screens.dart';
 import '../features/settings/presentation/settings_screen.dart';
 import '../features/splash/presentation/intro_screen.dart';
+import '../features/panic/presentation/panic_screen.dart';
+import '../features/me/presentation/me_screen.dart';
+import '../features/me/presentation/share_card_screen.dart';
 import 'routes.dart';
 import 'shell/app_shell.dart';
 import 'shell/main_tab.dart';
@@ -106,7 +109,7 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
                     MainTab.home => const HomeScreen(),
                     MainTab.journal => const JournalScreen(),
                     MainTab.markets => const MarketsScreen(),
-                    MainTab.me => const PracticeScreen(),
+                    MainTab.me => const MeScreen(),
                     _ => TabPlaceholderScreen(tab: tab),
                   },
                 ),
@@ -117,6 +120,8 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
                   if (tab == MainTab.markets)
                     GoRoute(path: 'search', builder: (c, s) => const MarketSearchScreen()),
                   if (tab == MainTab.me) ...[
+                    GoRoute(path: 'practice', builder: (c, s) => const PracticeScreen()),
+                    GoRoute(path: 'badges', builder: (c, s) => const BadgesScreen()),
                     GoRoute(
                       path: 'backtest',
                       builder: (c, s) => const BacktestScreen(),
@@ -135,6 +140,8 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
       path: Routes.coach,
       pageBuilder: (c, s) => _cover(c, s, CoachScreen(listen: s.uri.queryParameters['listen'] == '1')),
     ),
+    GoRoute(path: Routes.shareCard, builder: (c, s) => const ShareCardScreen()),
+    GoRoute(path: Routes.panic, pageBuilder: (c, s) => _cover(c, s, const PanicScreen())),
     GoRoute(path: Routes.addTrade, builder: (c, s) => const ManualTradeScreen()),
     GoRoute(
       path: Routes.tradeDetailPattern,

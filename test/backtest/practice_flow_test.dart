@@ -13,7 +13,7 @@ import '../helpers/clocks.dart';
 void main() {
   testWidgets('me tab: practice, then a backtest on cached history', (tester) async {
     await withClock(summerDay, () async {
-      final h = await AppHarness.pump(tester, at: Routes.me, seed: chartSeed());
+      final h = await AppHarness.pump(tester, at: Routes.mePractice, seed: chartSeed());
       expect(find.text('practice'), findsOneWidget);
       expect(find.text('account and settings'), findsOneWidget);
       await h.tapText('open backtest');

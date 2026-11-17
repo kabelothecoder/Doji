@@ -43,7 +43,7 @@ class _ReplayPickScreenState extends ConsumerState<ReplayPickScreen> {
     final symbol = _symbol ?? instruments.firstOrNull;
     return PracticeScaffold(
       title: 'replay',
-      onBack: () => context.canPop() ? context.pop() : context.go(Routes.me),
+      onBack: () => context.canPop() ? context.pop() : context.go(Routes.mePractice),
       children: [
         Text(
           'a past day bar by bar, from the tokyo open. the bars ahead stay hidden until you reveal them.',

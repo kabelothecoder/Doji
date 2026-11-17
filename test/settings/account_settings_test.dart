@@ -17,7 +17,7 @@ void main() {
   testWidgets('Home → settings shows the account', (tester) async {
     final h = await AppHarness.pump(tester, at: Routes.home, seed: {...seedProfile(), ...seedSession()});
     await h.tap(find.bySemanticsLabel('me'));
-    await h.tapText('account and settings');
+    await h.tap(find.bySemanticsLabel('settings').first);
     expect(h.location, Routes.settings);
     expect(find.text('google.user@example.com'), findsOneWidget);
     expect(find.text('sign out'), findsOneWidget);

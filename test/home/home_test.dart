@@ -176,7 +176,7 @@ void main() {
       expect(find.text('MEASURED AGAINST'), findsOneWidget);
 
       await h.tap(find.bySemanticsLabel('me'));
-      await h.tapText('account and settings');
+      await h.tap(find.bySemanticsLabel('settings').first);
       expect(h.location, Routes.settings);
     });
   }, variant: ios);

@@ -97,7 +97,7 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
   }
 
   void _back() =>
-      context.canPop() ? context.pop() : context.go(_replay ? Routes.me : Routes.pairDetail(_symbol));
+      context.canPop() ? context.pop() : context.go(_replay ? Routes.mePractice : Routes.pairDetail(_symbol));
 
   List<Candle> get _bars =>
       widget.replayBars ??
