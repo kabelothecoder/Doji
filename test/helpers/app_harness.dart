@@ -2,18 +2,23 @@ import 'dart:convert';
 
 import 'package:doji_app/app/app.dart';
 import 'package:doji_app/app/router.dart';
+import 'package:doji_app/features/onboarding/domain/strategy_parser.dart';
 import 'package:doji_app/core/widgets/auth_method_button.dart';
+import 'package:doji_app/features/auth/data/consent_repository.dart';
 import 'package:doji_app/features/auth/data/fake_auth_repository.dart';
 import 'package:doji_app/features/auth/domain/auth_repository.dart';
+import 'package:doji_app/features/markets/domain/market_data.dart';
 import 'package:doji_app/features/onboarding/data/onboarding_repository.dart';
 import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fakes.dart';
+import 'sample_profile.dart';
 
 /// The whole app (router, app-lock gate, text clamp) at [location], with
 /// every platform service faked. Reduce motion is on unless [reduced] is
@@ -22,13 +27,14 @@ import 'fakes.dart';
 /// Pass `variant: ios` (or another [TargetPlatformVariant]) to the test:
 /// PlatformInfo reads the global target platform.
 class AppHarness {
-  AppHarness._(this.tester, this.container, this.prefs, this.haptics, this.biometric);
+  AppHarness._(this.tester, this.container, this.prefs, this.haptics, this.biometric, this.reminders);
 
   final WidgetTester tester;
   final ProviderContainer container;
   final SharedPreferences prefs;
   final RecordingHaptics haptics;
   final FakeBiometricAuth biometric;
+  final FakeReminders reminders;
 
   bool online = true;
 
@@ -46,6 +52,10 @@ class AppHarness {
     double textScale = 1,
     FakeBiometricAuth? biometric,
     FakeVoiceInput? voice,
+    FakeReminders? reminders,
+    MarketData? market,
+    StrategyParser? parser,
+    List<Override> overrides = const [],
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -64,10 +74,21 @@ class AppHarness {
     final prefs = await SharedPreferences.getInstance();
     final haptics = RecordingHaptics();
     final bio = biometric ?? FakeBiometricAuth();
+    final notes = reminders ?? FakeReminders();
     late final AppHarness h;
     final container = ProviderContainer(
       overrides: [
-        ...testOverrides(prefs, haptics: haptics, biometric: bio, isOnline: () => h.online, voice: voice),
+        ...testOverrides(
+          prefs,
+          haptics: haptics,
+          biometric: bio,
+          isOnline: () => h.online,
+          voice: voice,
+          reminders: notes,
+          market: market,
+          parser: parser,
+        ),
+        ...overrides,
         routerProvider.overrideWith((ref) {
           final r = buildRouter(initialLocation: at);
           ref.onDispose(r.dispose);
@@ -76,7 +97,7 @@ class AppHarness {
       ],
     );
     addTearDown(container.dispose);
-    h = AppHarness._(tester, container, prefs, haptics, bio);
+    h = AppHarness._(tester, container, prefs, haptics, bio, notes);
     await tester.pumpWidget(UncontrolledProviderScope(container: container, child: const DojiApp()));
     await h.wait(100);
     return h;
@@ -106,7 +127,7 @@ final ios = TargetPlatformVariant.only(TargetPlatform.iOS);
 Map<String, Object> seedProfile({ProfileDoji? profile, bool pendingSync = true}) => {
   PrefsOnboardingRepository.profileKey: jsonEncode(
     (profile ??
-            ProfileDoji(
+            profileWith(
               name: 'sam',
               style: 'day_trader',
               instruments: const ['XAUUSD', 'NAS100'],
@@ -126,4 +147,23 @@ Map<String, Object> seedSession({String email = 'google.user@example.com'}) => {
   FakeAuthRepository.accountsKey: jsonEncode({
     'google:sample': {'method': 'google', 'email': email, 'profile': null},
   }),
+};
+
+/// A7 already agreed for [userId] on this device.
+Map<String, Object> seedConsent(String userId) => {
+  ConsentRepository.key: jsonEncode({'userId': userId, 'pending': false, 'version': kConsentVersion}),
+};
+
+/// A6: a guest setup paused on "save your setup", and the sample Google
+/// account (signed out) already holding its own setup.
+Map<String, Object> seedSetupConflict(Map<String, Object> resumeAtSave) => {
+  ...resumeAtSave,
+  FakeAuthRepository.accountsKey: jsonEncode({
+    'google:sample': {
+      'method': 'google',
+      'email': 'google.user@example.com',
+      'profile': jsonDecode(seedProfile(pendingSync: false)[PrefsOnboardingRepository.profileKey]! as String),
+    },
+  }),
+  ...seedConsent('google:sample'),
 };

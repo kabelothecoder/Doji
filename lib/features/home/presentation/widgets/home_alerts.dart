@@ -9,11 +9,18 @@ import 'home_card.dart';
 /// Design spec `TiltBanner`: shown after 2 losses in a row. Orange shape +
 /// copy + "talk to coach". Dismissing keeps the state in the rules card.
 class TiltBanner extends StatelessWidget {
-  const TiltBanner({super.key, required this.losses, required this.lossesToCooldown, required this.onCoach});
+  const TiltBanner({
+    super.key,
+    required this.losses,
+    required this.lossesToCooldown,
+    required this.onCoach,
+    required this.onPanic,
+  });
 
   final int losses;
   final int lossesToCooldown;
   final VoidCallback onCoach;
+  final VoidCallback onPanic;
 
   @override
   Widget build(BuildContext context) {
@@ -54,11 +61,76 @@ class TiltBanner extends StatelessWidget {
               size: DojiButtonSize.small,
               onPressed: onCoach,
             ),
+            DojiButton(
+              label: 'i need a minute',
+              variant: DojiButtonVariant.text,
+              size: DojiButtonSize.small,
+              onPressed: onPanic,
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+/// A walk-away rule reached today (`HomeSnapshot.walkAway`). Neutral: stopping keeps a rule.
+class WalkAwayCard extends StatelessWidget {
+  const WalkAwayCard({super.key, required this.line});
+
+  final String line;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    liveRegion: true,
+    child: HomeCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const HomeEyebrow('WALK AWAY'),
+          const SizedBox(height: 6),
+          Text(line, style: DojiType.body.copyWith(fontSize: 16, height: 1.4)),
+          const SizedBox(height: 6),
+          Text('your rule, set in the account editor.', style: DojiType.hint),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Every 90 days: does the strategy still fit the trader's week? (research-intake-plan › 1)
+class FitRecheckCard extends StatelessWidget {
+  const FitRecheckCard({super.key, required this.onStillFits, required this.onReview});
+
+  final VoidCallback onStillFits;
+  final VoidCallback onReview;
+
+  @override
+  Widget build(BuildContext context) => HomeCard(
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const HomeEyebrow('YOUR WEEK'),
+        const SizedBox(height: 6),
+        Text(
+          'three months on. does your strategy still fit how often you can look at the charts?',
+          style: DojiType.body.copyWith(fontSize: 16, height: 1.4),
+        ),
+        const SizedBox(height: 12),
+        DojiButton(label: 'still fits', size: DojiButtonSize.small, onPressed: onStillFits),
+        const SizedBox(height: 8),
+        DojiButton(
+          label: 'review it',
+          variant: DojiButtonVariant.secondary,
+          size: DojiButtonSize.small,
+          onPressed: onReview,
+        ),
+      ],
+    ),
+  );
 }
 
 /// Design spec `CloseDayCard`, the evening form: opens the 2-prompt reflection
@@ -158,9 +230,12 @@ class CloseDayRow extends StatelessWidget {
 
 /// Design spec `RuleMeter` card: "RULES TODAY" with the log-a-trade link.
 class RulesTodayCard extends StatelessWidget {
-  const RulesTodayCard({super.key, required this.usage, required this.onLogTrade});
+  const RulesTodayCard({super.key, required this.usage, required this.onLogTrade, this.note});
 
   final List<RuleUsage> usage;
+
+  /// Where the account figures come from (broker, as of when), if linked.
+  final String? note;
   final VoidCallback onLogTrade;
 
   @override
@@ -187,6 +262,10 @@ class RulesTodayCard extends StatelessWidget {
         for (var i = 0; i < usage.length; i++) ...[
           if (i > 0) const SizedBox(height: 14),
           RuleMeter(label: usage[i].label, used: usage[i].used, limit: usage[i].limit, unit: usage[i].unit),
+        ],
+        if (note != null) ...[
+          const SizedBox(height: 12),
+          Text(note!, style: DojiType.hint.copyWith(fontSize: 11, height: 1.5)),
         ],
       ],
     ),

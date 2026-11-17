@@ -29,11 +29,11 @@ enum TrailingBasis {
 }
 
 /// A prop challenge's own limits, entered by the user (no firm presets yet).
-/// Every limit is optional; percentages are of [accountSize].
+/// Every limit is optional; percentages are of the account's starting size
+/// (`TradingAccount.startingSize`).
 ///
-/// Not modelled yet: minimum trading days, consistency rules, and trailing
-/// drawdowns that lock at the starting balance once reached.
-/// TODO(next-slice): those, once a firm preset needs them.
+/// Not modelled yet: trailing drawdowns that lock at the starting balance once
+/// reached. Minimum days and consistency are only checked by the backtest.
 @freezed
 abstract class PropRules with _$PropRules {
   const PropRules._();
@@ -41,7 +41,6 @@ abstract class PropRules with _$PropRules {
   const factory PropRules({
     /// Free text, shown as a comment in profile.doji.
     String? firm,
-    int? accountSize,
 
     /// Most you may lose in one day, % of the account.
     double? dailyLossLimitPct,
@@ -59,6 +58,12 @@ abstract class PropRules with _$PropRules {
 
     /// Profit that passes the challenge, %. Null on funded accounts.
     double? profitTargetPct,
+
+    /// Days with at least one trade the firm asks for before a payout.
+    int? minTradingDays,
+
+    /// The best day may be at most this % of the total profit (consistency rule).
+    double? consistencyPct,
   }) = _PropRules;
 
   factory PropRules.fromJson(Map<String, dynamic> json) => _$PropRulesFromJson(json);
@@ -67,10 +72,11 @@ abstract class PropRules with _$PropRules {
   /// not count: they only describe a limit.
   bool get isEmpty =>
       firm == null &&
-      accountSize == null &&
       dailyLossLimitPct == null &&
       maxDrawdownPct == null &&
-      profitTargetPct == null;
+      profitTargetPct == null &&
+      minTradingDays == null &&
+      consistencyPct == null;
 
   /// "static", "trailing balance" or "trailing equity": how the drawdown reads in
   /// profile.doji and on the meter.

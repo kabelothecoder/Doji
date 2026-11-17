@@ -1,13 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../domain/rate_source.dart';
 
-/// PLACEHOLDER rates, fixed in the app and only roughly right: good enough to
-/// exercise sizing in other currencies, NOT to size a real trade.
-///
-/// TODO(next-slice): live rates. Fetch from a rates API through a Supabase
-/// edge function (so the key stays off the device), cache with a timestamp,
-/// refuse to size when the quote is stale, and show the rate used.
+/// PLACEHOLDER rates, fixed in the app and only roughly right. Tests use it;
+/// the app sizes with [LiveRateSource] (live_rate_source.dart) only.
 class PlaceholderRateSource implements RateSource {
   const PlaceholderRateSource();
 
@@ -31,6 +25,7 @@ class PlaceholderRateSource implements RateSource {
     if (perFrom == null || perTo == null) return null;
     return perTo / perFrom;
   }
-}
 
-final rateSourceProvider = Provider<RateSource>((ref) => const PlaceholderRateSource());
+  @override
+  Future<void> prepare(String from, String to) async {}
+}

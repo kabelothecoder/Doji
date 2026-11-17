@@ -102,20 +102,25 @@ class JournalStatRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: DojiColors.separator),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(s.label, style: DojiType.hint.copyWith(fontSize: 11), maxLines: 1),
-                  const SizedBox(height: 6),
-                  Text(
-                    s.value,
-                    maxLines: 1,
-                    style: DojiType.data.copyWith(fontSize: 20, color: s.color ?? DojiColors.textPrimary),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(s.sample, maxLines: 1, style: DojiType.hint.copyWith(fontSize: 10)),
-                ],
+              // Shrinks, never overflows, when a value is taller than the row.
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.topLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(s.label, style: DojiType.hint.copyWith(fontSize: 11), maxLines: 1),
+                    const SizedBox(height: 6),
+                    Text(
+                      s.value,
+                      maxLines: 1,
+                      style: DojiType.data.copyWith(fontSize: 20, color: s.color ?? DojiColors.textPrimary),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(s.sample, maxLines: 1, style: DojiType.hint.copyWith(fontSize: 10)),
+                  ],
+                ),
               ),
             ),
           ),

@@ -13,9 +13,19 @@ import '../../../core/platform/platform_info.dart';
 import '../../../core/theme/tokens.dart';
 import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
+import '../../accounts/domain/strategy_checks.dart';
+import '../../accounts/presentation/accounts_controller.dart';
+import '../../accounts/presentation/widgets/payout_card.dart';
+import '../../analyst/presentation/analyst_controller.dart';
+import '../../analyst/presentation/weekly_review_card.dart';
 import '../../app_lock/presentation/app_lock_controller.dart';
 import '../../onboarding/presentation/onboarding_controller.dart';
 import '../../markets/domain/instrument_catalog.dart';
+import '../../markets/domain/market_format.dart';
+import '../../markets/presentation/pair_detail_controller.dart';
+import '../../onboarding/domain/user_zone.dart';
+import '../../me/data/badge_repository.dart';
+import '../../me/domain/me.dart';
 import '../domain/home_models.dart';
 import 'home_controller.dart';
 import 'post_trade_sheet.dart';
@@ -23,6 +33,7 @@ import 'widgets/ai_brief_card.dart';
 import 'widgets/home_alerts.dart';
 import 'widgets/home_card.dart';
 import 'widgets/home_header.dart';
+import '../../gym/data/gym_repository.dart';
 import 'widgets/mini_grid.dart';
 import 'widgets/setup_checklist.dart';
 import 'widgets/open_card.dart';
@@ -80,11 +91,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final state = ref.watch(homeControllerProvider);
     final profile = ref.watch(homeProfileProvider);
     final margin = PlatformInfo.isAndroid ? DojiSpace.screenMarginAndroid : DojiSpace.screenMargin;
+    // The docked rail shows the first instrument's brief (the same one as 1b).
+    final railBrief = wide ? ref.watch(pairBriefProvider(snap.instruments.first)).value : null;
+    final zone = userZoneFromProfile(profile);
+    final focus = ref.watch(focusRuleProvider);
 
     final evening = isEvening();
     final zero = isDayZero(profile);
-    final days = sampleGrid(today: clock.now(), zero: zero, closed: state.dayClosed);
-    final todayIndex = 11 * 7 + (clock.now().weekday - 1);
+    final now = clock.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final todayIndex = 11 * 7 + (now.weekday - 1);
+    // The same days as the me tab's year grid (journal kept days); day zero lights today.
+    final kept = ref.watch(keptDaysProvider);
+    final days = [
+      for (var i = 0; i < 12 * 7; i++)
+        i == todayIndex && (zero || state.dayClosed) && kept[today] == null
+            ? GridCellState.l4
+            : dayCell(today.subtract(Duration(days: todayIndex - i)), kept, now),
+    ];
+    // Drill days, as grid indexes: shown as practice, never as trading days.
+    final practice = {
+      for (final d in ref.watch(practiceDaysProvider))
+        if (todayIndex - today.difference(d).inDays case final i when i >= 0 && i <= todayIndex) i,
+    };
 
     final cards = <Widget>[
       // TODO(next-slice): pass onBell once the notification centre exists.
@@ -94,6 +123,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           losses: snap.losses,
           lossesToCooldown: snap.lossesToCooldown,
           onCoach: () => context.push(Routes.coach),
+          onPanic: () => context.push(Routes.panic),
+        ),
+      if (snap.walkAway case final line?) WalkAwayCard(line: line),
+      if (focus != null) const FocusRuleLine(),
+      if (fitRecheckDue(
+            availability: profile.availability,
+            checkedAt: profile.availabilityCheckedAt ?? profile.completedAt,
+            now: now,
+          ) &&
+          profile.activeAccount != null)
+        FitRecheckCard(
+          onStillFits: () => unawaited(ref.read(accountsControllerProvider.notifier).confirmFit()),
+          onReview: () => unawaited(context.push(Routes.accountEditor(profile.activeAccount!.id))),
         ),
       if (state.dayClosed)
         const DayClosedCard()
@@ -130,10 +172,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           onTap: _startOpen,
         ),
       ] else ...[
-        _ScoreGridCard(snap: snap, days: days, todayIndex: todayIndex),
+        _ScoreGridCard(snap: snap, days: days, todayIndex: todayIndex, practice: practice),
         OpenCard(doneAt: state.openDoneAt, mood: state.mood, onStart: _startOpen),
-        AiBriefCard(instruments: snap.instruments, conditions: snap.conditions),
-        RulesTodayCard(usage: snap.usage, onLogTrade: _logTrade),
+        AiBriefCard(instruments: snap.instruments),
+        RulesTodayCard(usage: snap.usage, note: snap.accountNote, onLogTrade: _logTrade),
+        if (snap.payout.isNotEmpty) PayoutCard(rules: snap.payout),
         InsightCard(onTap: () => context.go(Routes.journal)),
         if (!evening && !state.dayClosed)
           CloseDayRow(onStart: () => unawaited(context.push(Routes.closeDay))),
@@ -177,19 +220,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: _railOpen
                               ? DojiRailPanel(
                                   instrument: instrumentLabel(snap.instruments.first),
-                                  strategyLine:
-                                      '[strategy name] · ${snap.metCount}/${snap.conditions.length} · [2m] ago',
-                                  conditionsMet: snap.metCount == snap.conditions.length,
+                                  strategyLine: railBrief == null
+                                      ? 'measuring…'
+                                      : '${railBrief.strategyName ?? 'your rules'} · '
+                                            '${railBrief.metCount}/${railBrief.conditions.length} · '
+                                            '${clockTime(zone, railBrief.updatedAt)}',
+                                  conditionsMet:
+                                      railBrief != null && railBrief.metCount == railBrief.conditions.length,
+                                  onOpenBrief: () => context.push(Routes.pairDetail(snap.instruments.first)),
                                   meters: [
                                     for (final u in snap.usage)
                                       (label: u.label, used: u.used, limit: u.limit, unit: u.unit),
                                   ],
+                                  walkAway: snap.walkAway,
                                   tiltLevel: snap.tiltLevel,
                                   tiltWord: snap.tiltWord,
                                   // TODO(next-slice): next high-impact event from the calendar feed.
                                   nextNews: '[US CPI]',
                                   newsCountdown: '02:15:00',
                                   logged: state.lastEmotion,
+                                  focusRule: focus,
                                   onLogEmotion: _logEmotion,
                                   onClose: () => setState(() => _railOpen = false),
                                 )
@@ -229,7 +279,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
 /// Doji score, streak and the 12-week grid.
 class _ScoreGridCard extends StatelessWidget {
-  const _ScoreGridCard({required this.snap, required this.days, required this.todayIndex});
+  const _ScoreGridCard({
+    required this.snap,
+    required this.days,
+    required this.todayIndex,
+    this.practice = const {},
+  });
+
+  /// Grid indexes of days with a finished drill set.
+  final Set<int> practice;
 
   final HomeSnapshot snap;
   final List<GridCellState> days;
@@ -286,7 +344,14 @@ class _ScoreGridCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 14),
-        MiniGrid(days: days, todayIndex: todayIndex, label: 'doji grid, last 12 weeks'),
+        MiniGrid(
+          days: days,
+          todayIndex: todayIndex,
+          practice: practice,
+          label: practice.isEmpty
+              ? 'doji grid, last 12 weeks'
+              : 'doji grid, last 12 weeks, ${practice.length} practice ${practice.length == 1 ? 'day' : 'days'} marked with a dot',
+        ),
         const SizedBox(height: 14),
         const GridLegend(),
       ],

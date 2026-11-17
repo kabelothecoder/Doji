@@ -5,6 +5,7 @@ import 'package:doji_app/app/routes.dart';
 import 'package:doji_app/features/app_lock/data/app_lock_repository.dart';
 import 'package:doji_app/features/app_lock/data/biometric_auth.dart';
 import 'package:doji_app/features/onboarding/domain/onboarding_catalog.dart';
+import 'package:doji_app/features/onboarding/domain/profile_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -19,14 +20,58 @@ final _screens = <String, Map<String, Object>>{
   Routes.signIn: const {},
   Routes.save: resumeAt(StepIds.save),
   Routes.email: const {},
+  Routes.consent: _signedIn,
   Routes.settings: _signedIn,
   Routes.appLock: _signedIn,
   Routes.deleteAccount: _signedIn,
+  Routes.accounts: _signedIn,
+  Routes.accountEditor(kFirstAccountId): _signedIn,
   Routes.deleteConfirm: _signedIn,
   Routes.accountDeleted: const {},
 };
 
 void main() {
+  // A5 and A6 need a flow behind them: reached the way a trader reaches them.
+  for (final scale in [1.0, 2.0]) {
+    testWidgets('A5 linked method at ${scale}x: targets, labels, contrast, no overflow', (tester) async {
+      final handle = tester.ensureSemantics();
+      final h = await AppHarness.pump(
+        tester,
+        at: Routes.signIn,
+        textScale: scale,
+        size: const Size(375, 667),
+      );
+      await h.tapText('continue with email');
+      await tester.enterText(find.byType(TextField), 'sam+apple@example.com');
+      await h.wait(50);
+      await h.tapText('send code', settle: 200);
+      expect(h.location, Routes.authExists);
+      expect(tester.takeException(), isNull);
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      handle.dispose();
+    }, variant: ios);
+
+    testWidgets('A6 keep setup at ${scale}x: targets, labels, contrast, no overflow', (tester) async {
+      final handle = tester.ensureSemantics();
+      final h = await AppHarness.pump(
+        tester,
+        at: Routes.save,
+        seed: seedSetupConflict(resumeAt(StepIds.save)),
+        textScale: scale,
+        size: const Size(375, 667),
+      );
+      await h.tapText('Continue with Google', settle: 300);
+      expect(h.location, Routes.merge);
+      expect(tester.takeException(), isNull);
+      await expectLater(tester, meetsGuideline(iOSTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+      await expectLater(tester, meetsGuideline(textContrastGuideline));
+      handle.dispose();
+    }, variant: ios);
+  }
+
   for (final MapEntry(key: route, value: seed) in _screens.entries) {
     testWidgets('$route: tap targets, labels and contrast', (tester) async {
       final handle = tester.ensureSemantics();

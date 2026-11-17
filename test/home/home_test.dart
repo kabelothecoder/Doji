@@ -5,11 +5,12 @@ import 'package:doji_app/app/shell/doji_bottom_bar.dart';
 import 'package:doji_app/app/shell/doji_nav_rail.dart';
 import 'package:doji_app/core/widgets/widgets.dart';
 import 'package:doji_app/features/home/domain/home_models.dart';
-import 'package:doji_app/features/onboarding/domain/profile_doji.dart';
+import 'package:doji_app/features/markets/presentation/pair_detail_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/app_harness.dart';
+import '../helpers/sample_profile.dart';
 import '../journal/journal_fixtures.dart';
 
 /// A fixed morning, so "evening" never depends on when the suite runs.
@@ -17,7 +18,7 @@ final _morning = Clock.fixed(DateTime(2026, 10, 8, 10));
 final _evening = Clock.fixed(DateTime(2026, 10, 8, 19));
 
 Map<String, Object> _dayZeroSeed() => seedProfile(
-  profile: ProfileDoji(
+  profile: profileWith(
     name: 'sam',
     instruments: const ['XAUUSD', 'NAS100'],
     pledgedAt: DateTime(2026, 10, 8, 9),
@@ -75,6 +76,8 @@ void main() {
 
       await h.tapText('calm');
       await h.tapText('continue');
+      expect(find.text('read it once.'), findsOneWidget);
+      await h.tapText("i've read it");
       expect(find.text('your rules for today.'), findsOneWidget);
 
       final hold = await tester.startGesture(tester.getCenter(find.byType(HoldToPledgeButton)));
@@ -170,10 +173,10 @@ void main() {
       final h = await AppHarness.pump(tester, at: Routes.home, seed: seedProfile());
       await h.tap(find.bySemanticsLabel('markets'));
       expect(h.location, Routes.markets);
-      expect(find.textContaining('markets arrives in a later build.'), findsOneWidget);
+      expect(find.text('MEASURED AGAINST'), findsOneWidget);
 
       await h.tap(find.bySemanticsLabel('me'));
-      await h.tapText('account and settings');
+      await h.tap(find.bySemanticsLabel('settings').first);
       expect(h.location, Routes.settings);
     });
   }, variant: ios);
@@ -217,8 +220,14 @@ void main() {
         expect(find.byType(DojiBottomBar), findsNothing);
         expect(find.byType(DojiRailPanel), findsOneWidget);
         expect(find.text('log emotion'), findsOneWidget);
-        expect(find.text('conditions met'), findsNothing, reason: 'sample brief has 2 of 4 conditions');
-        expect(find.text('waiting'), findsWidgets);
+        // The rail reads the same brief as Markets 1b (no strategy: "your rules").
+        final brief = await h.container.read(pairBriefProvider('XAUUSD').future);
+        final all = brief.metCount == brief.conditions.length;
+        expect(find.text('conditions met'), all ? findsOneWidget : findsNothing);
+        expect(
+          find.textContaining('your rules · ${brief.metCount}/${brief.conditions.length}'),
+          findsOneWidget,
+        );
 
         await h.tapText('log emotion');
         expect(find.text('how did that trade feel?'), findsOneWidget);

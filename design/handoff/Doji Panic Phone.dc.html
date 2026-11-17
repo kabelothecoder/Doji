@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0..1,0&display=block">
+<style>
+@keyframes dojiBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes b478{0%{transform:scale(.55)}21%{transform:scale(1)}58%{transform:scale(1)}100%{transform:scale(.55)}}
+@keyframes slowIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+a{color:#2FD67B;}a:hover{color:#F5F5F7;}
+</style>
+</helmet>
+<div data-screen-label="{{ label }}" style="position:relative;width:{{ dim.w }}px;height:{{ dim.h }}px;border-radius:{{ dim.r }}px;overflow:hidden;background:#050607;border:1px solid #26292E;box-shadow:0 40px 80px rgba(0,0,0,0.5);font-family:'Geist',system-ui,sans-serif;color:#F5F5F7;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;flex:none;">
+<div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;z-index:8;height:{{ dim.sb }}px;display:flex;align-items:center;justify-content:space-between;padding:0 {{ dim.sbp }}px;font-size:15px;font-weight:600;pointer-events:none;">
+  <span>9:41</span>
+  <sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:50%;top:11px;width:124px;height:36px;margin-left:-62px;border-radius:18px;background:#000;"></span></sc-if>
+  <span style="display:flex;gap:4px;align-items:center;font-family:'Material Symbols Rounded';font-size:17px;line-height:1;"><span>signal_cellular_alt</span><span>wifi</span><span>battery_full</span></span>
+</div>
+
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:24px;padding:{{ dim.top }}px 24px {{ dim.bot }}px;">
+  <div style="display:flex;align-items:center;gap:12px;height:44px;flex:none;">
+    <button onClick="{{ go.exit }}" aria-label="leave" style="margin-left:-10px;width:44px;height:44px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">close</button>
+    <div aria-label="{{ stepAria }}" style="flex:1;display:flex;justify-content:center;gap:8px;"><sc-for list="{{ dots }}" as="d" hint-placeholder-count="6"><span style="width:6px;height:6px;border-radius:3px;background:{{ d }};"></span></sc-for></div>
+    <button onClick="{{ go.next }}" style="margin-right:-8px;height:44px;min-width:44px;border:none;background:transparent;color:#A1A1A6;font-family:inherit;font-size:15px;cursor:pointer;padding:0 8px;">{{ skipL }}</button>
+  </div>
+
+  <sc-if value="{{ s.breathe }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;animation:slowIn 900ms ease-out;">
+      <p style="margin:0;font-family:'Geist Mono',monospace;font-size:20px;"><span style="color:#2FD67B;">&gt;</span> breathe with me.</p>
+      <div role="img" aria-label="breathing guide, 4 seconds in, 7 hold, 8 out" style="position:relative;width:260px;height:260px;display:flex;align-items:center;justify-content:center;">
+        <span aria-hidden="true" style="position:absolute;inset:0;border-radius:50%;border:1px solid #26292E;"></span>
+        <div style="width:260px;height:260px;border-radius:50%;background:rgba(47,214,123,0.08);border:1px solid rgba(47,214,123,0.3);display:flex;align-items:center;justify-content:center;transform:scale({{ orbStatic }});animation:{{ orbAnim }};">
+          <span style="width:92px;height:92px;border-radius:50%;background:#2FD67B;opacity:0.9;"></span>
+        </div>
+      </div>
+      <div aria-live="polite" style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <span style="font-size:24px;font-weight:300;letter-spacing:-0.01em;">{{ phase }}</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:28px;color:#A1A1A6;">{{ count }}</span>
+      </div>
+    </div>
+    <button onClick="{{ go.next }}" style="height:52px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;flex:none;">i'm a little calmer</button>
+  </sc-if>
+
+  <sc-if value="{{ s.ground }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:32px;">
+      <h1 style="margin:0;font-size:34px;font-weight:500;letter-spacing:-0.03em;line-height:1.15;animation:slowIn 900ms ease-out;">you're more than this account.</h1>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <sc-for list="{{ grounds }}" as="g" hint-placeholder-count="2">
+          <button onClick="{{ g.tap }}" aria-pressed="{{ g.on }}" style="display:flex;align-items:center;gap:14px;min-height:72px;padding:0 18px;border-radius:24px;border:1px solid {{ g.bd }};background:rgba(15,17,19,0.6);color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;animation:{{ g.an }};">
+            <span style="flex:1;font-size:17px;line-height:1.4;">{{ g.t }}</span>
+            <span aria-hidden="true" style="width:24px;height:24px;flex:none;box-sizing:border-box;border-radius:12px;border:2px solid {{ g.bd }};background:{{ g.bg }};color:#050607;display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:16px;font-weight:600;">{{ g.glyph }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+    <button onClick="{{ go.next }}" style="height:52px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;flex:none;">continue</button>
+  </sc-if>
+
+  <sc-if value="{{ s.pause }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:24px;animation:slowIn 900ms ease-out;">
+      <h1 style="margin:0;font-size:34px;font-weight:500;letter-spacing:-0.03em;line-height:1.15;">let's pause.</h1>
+      <div style="display:flex;flex-direction:column;padding:0 18px;border-radius:24px;background:rgba(15,17,19,0.6);border:1px solid #26292E;">
+        <div style="display:flex;align-items:center;gap:14px;min-height:76px;">
+          <span style="flex:1;font-size:16px;line-height:1.4;">pause doji's market views for 24 hours</span>
+          <button role="switch" aria-checked="{{ pauseS }}" aria-label="pause market views for 24 hours" onClick="{{ flipPause }}" style="position:relative;width:51px;height:31px;flex:none;border-radius:16px;border:none;background:{{ pauseBg }};cursor:pointer;padding:0;"><span style="position:absolute;top:2px;left:{{ pauseX }}px;width:27px;height:27px;border-radius:14px;background:#F5F5F7;transition:left 400ms cubic-bezier(.2,.8,.2,1);"></span></button>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;min-height:64px;border-top:1px solid #17191C;opacity:{{ remindOp }};">
+          <span style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="font-size:16px;">remind me when it ends</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">tomorrow · [time]</span></span>
+          <button role="switch" aria-checked="{{ remindS }}" aria-label="remind me when the pause ends" onClick="{{ flipRemind }}" style="position:relative;width:51px;height:31px;flex:none;border-radius:16px;border:none;background:{{ remindBg }};cursor:pointer;padding:0;"><span style="position:absolute;top:2px;left:{{ remindX }}px;width:27px;height:27px;border-radius:14px;background:#F5F5F7;transition:left 400ms cubic-bezier(.2,.8,.2,1);"></span></button>
+        </div>
+      </div>
+      <p style="margin:0;font-family:'Geist Mono',monospace;font-size:12px;line-height:1.5;color:#A1A1A6;">when Guard is connected, doji can lock trading too.</p>
+    </div>
+    <button onClick="{{ go.next }}" style="height:52px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;flex:none;">continue</button>
+  </sc-if>
+
+  <sc-if value="{{ s.talk }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;animation:slowIn 900ms ease-out;text-align:center;">
+      <span aria-hidden="true" style="width:120px;height:120px;border-radius:50%;background:rgba(47,214,123,0.08);border:1px solid rgba(47,214,123,0.3);display:flex;align-items:center;justify-content:center;"><span style="width:44px;height:44px;border-radius:50%;background:#2FD67B;opacity:0.9;"></span></span>
+      <h1 style="margin:0;font-size:34px;font-weight:500;letter-spacing:-0.03em;line-height:1.15;">talk it through?</h1>
+      <p style="margin:0;font-size:16px;line-height:1.5;color:#A1A1A6;max-width:280px;">the coach in calm mode. a slower voice, and no market talk.</p>
+    </div>
+    <a href="Doji Coach Phone.dc.html" style="height:56px;border-radius:999px;background:#2FD67B;color:#050607;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;text-decoration:none;flex:none;">talk to the coach</a>
+    <button onClick="{{ go.next }}" style="height:44px;margin-top:-12px;border:none;background:transparent;color:#A1A1A6;font-family:inherit;font-size:15px;cursor:pointer;flex:none;">not right now</button>
+  </sc-if>
+
+  <sc-if value="{{ s.support }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:20px;animation:slowIn 900ms ease-out;">
+      <p style="margin:0;font-size:24px;font-weight:500;letter-spacing:-0.02em;line-height:1.3;text-wrap:pretty;">if you're not okay, talk to someone now: SADAG <span style="font-family:'Geist Mono',monospace;white-space:nowrap;">0800 567 567</span> (free, 24/7)</p>
+      <a href="tel:0800567567" style="height:56px;border-radius:999px;background:#F5F5F7;color:#050607;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:22px;">call</span>call SADAG</a>
+      <div style="display:flex;align-items:center;gap:12px;min-height:72px;padding:0 14px 0 16px;border-radius:24px;background:rgba(15,17,19,0.6);border:1px solid #26292E;">
+        <span aria-hidden="true" style="width:40px;height:40px;flex:none;border-radius:20px;background:#17191C;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">[C]</span>
+        <span style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;"><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">someone i trust</span><span style="font-size:16px;">[contact name]</span></span>
+        <button aria-label="message [contact name]" style="width:44px;height:44px;border-radius:22px;border:1px solid #26292E;background:transparent;color:#F5F5F7;cursor:pointer;font-family:'Material Symbols Rounded';font-size:20px;">chat_bubble</button>
+        <button aria-label="call [contact name]" style="width:44px;height:44px;border-radius:22px;border:1px solid #26292E;background:transparent;color:#F5F5F7;cursor:pointer;font-family:'Material Symbols Rounded';font-size:20px;">call</button>
+      </div>
+    </div>
+    <button onClick="{{ go.next }}" style="height:52px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;flex:none;">continue</button>
+  </sc-if>
+
+  <sc-if value="{{ s.later }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:28px;animation:slowIn 900ms ease-out;">
+      <p style="margin:0;font-family:'Geist Mono',monospace;font-size:22px;line-height:1.4;"><span style="color:#2FD67B;">&gt;</span> i'll check in tomorrow.<span style="animation:dojiBlink 1.4s steps(1) infinite;">_</span></p>
+      <div style="display:flex;gap:10px;padding:14px;border-radius:20px;background:rgba(23,25,28,0.78);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.06);">
+        <span aria-hidden="true" style="position:relative;width:36px;height:36px;flex:none;border-radius:9px;background:#0F1113;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);"><span style="position:absolute;left:16px;top:7px;width:2px;height:21px;border-radius:1px;background:#F5F5F7;"></span><span style="position:absolute;left:11px;top:17px;width:13px;height:2px;border-radius:1px;background:#F5F5F7;"></span><span style="position:absolute;left:25px;top:23px;width:4px;height:5px;border-radius:1px;background:#2FD67B;"></span></span>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;"><div style="display:flex;font-size:15px;font-weight:600;"><span>doji</span><span style="margin-left:auto;font-size:13px;font-weight:400;color:#A1A1A6;">tomorrow [09:00]</span></div><span style="font-size:15px;line-height:1.35;color:#D6D6DA;">how are you today? one line in your journal is enough.</span></div>
+      </div>
+      <p style="margin:0;font-size:16px;line-height:1.5;color:#A1A1A6;">you did enough for today.</p>
+    </div>
+    <button onClick="{{ go.exit }}" style="height:56px;border-radius:999px;border:none;background:#F5F5F7;color:#050607;font-family:inherit;font-size:17px;font-weight:600;cursor:pointer;flex:none;">done</button>
+  </sc-if>
+</div>
+<span aria-hidden="true" style="position:absolute;left:50%;bottom:8px;z-index:9;width:{{ dim.hi }}px;height:5px;margin-left:{{ dim.him }}px;border-radius:3px;background:#F5F5F7;opacity:0.85;pointer-events:none;"></span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;breathe&quot;,&quot;ground&quot;,&quot;pause&quot;,&quot;talk&quot;,&quot;support&quot;,&quot;later&quot;],&quot;default&quot;:&quot;breathe&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;platform&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ios&quot;,&quot;android&quot;],&quot;default&quot;:&quot;ios&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;motion&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;full&quot;,&quot;reduced&quot;],&quot;default&quot;:&quot;full&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const STEPS=['breathe','ground','pause','talk','support','later'];
+const PH=[['breathe in',4],['hold',7],['breathe out',8]];
+class Component extends DCLogic {
+  state={screen:null,t:0,g:[false,false],pause:false,remind:true};
+  componentDidMount(){this.iv=setInterval(()=>this.setState(s=>({t:(s.t+1)%19})),1000);}
+  componentWillUnmount(){clearInterval(this.iv);}
+  componentDidUpdate(pp){if(pp.screen!==this.props.screen)this.setState({screen:null});}
+  renderVals(){
+    const P=this.props,S=this.state;
+    const android=(P.platform??'ios')==='android';
+    const reduced=(P.motion??'full')==='reduced';
+    const screen=S.screen??P.screen??'breathe';
+    const i=Math.max(0,STEPS.indexOf(screen));
+    const set=o=>()=>this.setState(o);
+    let t=S.t,pi=0;while(t>=PH[pi][1]){t-=PH[pi][1];pi++;}
+    const s={};STEPS.forEach(k=>s[k]=k===screen);
+    const sw=on=>({bg:on?'#2FD67B':'#3A3D42',x:on?22:2,s:String(on)});
+    const p=sw(S.pause),r=sw(S.remind);
+    return {
+      ios:!android,label:`panic · ${i+1} ${screen}${reduced?' · reduced motion':''}`,
+      dim:android?{w:412,h:915,r:36,sb:40,sbp:24,top:52,bot:24,hi:108,him:-54}:{w:390,h:844,r:48,sb:54,sbp:34,top:62,bot:34,hi:134,him:-67},
+      s,dots:STEPS.map((_,k)=>k===i?'#F5F5F7':k<i?'#6E7279':'#26292E'),stepAria:`step ${i+1} of 6`,
+      skipL:i===5?'':(i===0?'skip':'next'),
+      phase:PH[pi][0],count:String(PH[pi][1]-t),
+      orbAnim:reduced?'none':'b478 19s ease-in-out infinite',orbStatic:reduced?(pi===2?0.7:pi===1?1:0.85):1,
+      grounds:["put both feet on the floor. notice them.","name three things you can see."].map((t2,k)=>({t:t2,on:String(S.g[k]),bd:S.g[k]?'#2FD67B':'#26292E',bg:S.g[k]?'#2FD67B':'transparent',glyph:S.g[k]?'check':'',an:`slowIn 900ms ease-out ${400+k*500}ms both`,
+        tap:()=>this.setState(x=>({g:x.g.map((v,j)=>j===k?!v:v)}))})),
+      pauseS:p.s,pauseBg:p.bg,pauseX:p.x,flipPause:()=>this.setState(x=>({pause:!x.pause})),
+      remindS:r.s,remindBg:S.pause?r.bg:'#26292E',remindX:r.x,remindOp:S.pause?1:0.45,flipRemind:()=>{if(S.pause)this.setState(x=>({remind:!x.remind}));},
+      go:{next:set({screen:STEPS[Math.min(5,i+1)]}),exit:set({screen:'breathe',t:0,g:[false,false],pause:false})}
+    };
+  }
+}
+</script>
+</body>
+</html>

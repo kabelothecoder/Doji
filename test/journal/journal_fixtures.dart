@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:doji_app/features/journal/data/journal_repository.dart';
+import 'package:doji_app/features/onboarding/domain/profile_mapper.dart';
 import 'package:doji_app/features/journal/domain/process_grade.dart';
 import 'package:doji_app/features/journal/domain/trade.dart';
 
@@ -10,7 +11,7 @@ final DateTime journalNow = DateTime(2026, 10, 8, 10);
 
 /// A closed XAUUSD trade, [minutesAgo] before [now] (default [journalNow]).
 /// Money and R follow from the arguments: risk [risk], result [pnl] (so
-/// R = pnl / risk).
+/// R = pnl / risk). Taken on the first account unless [accountId] says otherwise.
 Trade sampleTrade({
   required String id,
   required double pnl,
@@ -26,6 +27,7 @@ Trade sampleTrade({
   TradeEmotion? before,
   TradeEmotion? after,
   String note = '',
+  String? accountId = kFirstAccountId,
 }) {
   final closed = (now ?? journalNow).subtract(Duration(days: daysAgo, minutes: minutesAgo));
   return Trade(
@@ -48,6 +50,7 @@ Trade sampleTrade({
     after: after,
     note: note,
     reviewedAt: plan == null ? null : closed.toUtc(),
+    accountId: accountId,
   );
 }
 

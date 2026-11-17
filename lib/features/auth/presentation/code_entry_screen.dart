@@ -63,7 +63,7 @@ class _CodeEntryScreenState extends ConsumerState<CodeEntryScreen> {
     final ok = await _flow.verify(code);
     if (!mounted) return;
     if (ok) {
-      context.go(Routes.authenticated);
+      context.go(ref.read(authFlowProvider).next);
     } else if (ref.read(authFlowProvider).offline) {
       setState(() => _offline = true);
     }

@@ -20,6 +20,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/app_harness.dart';
+import '../helpers/sample_profile.dart';
 import '../helpers/fakes.dart';
 
 const _urge = 'the break is right there. I want in before it runs.';
@@ -27,7 +28,7 @@ const _urge = 'the break is right there. I want in before it runs.';
 /// Sam, with a parsed strategy and rules. [plan]: free (text) unless set.
 Map<String, Object> _seed({String? plan, String? voice}) => {
   ...seedProfile(
-    profile: ProfileDoji(
+    profile: profileWith(
       name: 'sam',
       instruments: const ['XAUUSD'],
       strategy: const StrategyProfile(

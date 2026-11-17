@@ -35,6 +35,8 @@ class DojiRailPanel extends StatefulWidget {
     this.onOpenBrief,
     this.onClose,
     this.logged,
+    this.focusRule,
+    this.walkAway,
     this.initiallyExpanded = true,
   });
 
@@ -56,6 +58,12 @@ class DojiRailPanel extends StatefulWidget {
 
   /// "before the trade · 6/10": shown as a terminal line once something is logged.
   final String? logged;
+
+  /// The rule the trader took from the weekly review, for this week.
+  final String? focusRule;
+
+  /// A walk-away rule reached today (`HomeSnapshot.walkAway`).
+  final String? walkAway;
   final bool initiallyExpanded;
 
   @override
@@ -174,6 +182,18 @@ class _DojiRailPanelState extends State<DojiRailPanel> {
               ),
             ),
           ),
+          if (widget.walkAway != null) ...[
+            const SizedBox(height: 14),
+            TerminalLine(widget.walkAway!, tone: TerminalTone.muted, liveRegion: false),
+          ],
+          if (widget.focusRule != null) ...[
+            const SizedBox(height: 14),
+            TerminalLine(
+              'focus this week: ${widget.focusRule}',
+              tone: TerminalTone.primary,
+              liveRegion: false,
+            ),
+          ],
           const SizedBox(height: 14),
           for (final m in widget.meters) ...[
             RuleMeter(label: m.label, used: m.used, limit: m.limit, unit: m.unit),

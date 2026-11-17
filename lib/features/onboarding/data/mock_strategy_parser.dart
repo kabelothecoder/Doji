@@ -1,14 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ai/ai_functions.dart';
+import '../../accounts/data/strategy_reader.dart';
 import '../domain/profile_doji.dart';
 import '../domain/strategy_parser.dart';
 
 /// Keyword-matching stand-in for the LLM parser. Offline, deterministic,
 /// good enough to demo the flow and to keep onboarding local-first.
 ///
-/// TODO(next-slice): replace with `SupabaseStrategyParser`, which POSTs
-/// `{ description }` to the `parse-strategy` Edge Function and maps the JSON
-/// response onto [ParsedStrategy]. Keep this class as the offline fallback.
+/// With Supabase, `SupabaseStrategyReader` (Gemini via `ai-strategy`) reads
+/// the words instead and falls back to this class on any failure.
 class MockStrategyParser implements StrategyParser {
   const MockStrategyParser({this.latency = const Duration(milliseconds: 900)});
 
@@ -118,5 +119,8 @@ class MockStrategyParser implements StrategyParser {
   static String _trim(String n) => n.endsWith('.0') ? n.substring(0, n.length - 2) : n;
 }
 
-/// Swap for the Supabase implementation in the next slice.
-final strategyParserProvider = Provider<StrategyParser>((ref) => const MockStrategyParser());
+/// Gemini (`ai-strategy`) when Supabase runs, else the keyword parser.
+final strategyParserProvider = Provider<StrategyParser>((ref) {
+  final ai = ref.watch(aiFunctionsProvider);
+  return ai == null ? const MockStrategyParser() : SupabaseStrategyReader(ai);
+});

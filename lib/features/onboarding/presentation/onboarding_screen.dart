@@ -334,8 +334,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
     final Widget input = switch (step.id) {
       StepIds.name => TextAnswerInput(args, helper: 'a nickname is fine. you can change it anytime.'),
-      StepIds.experience || StepIds.style => SingleChoiceInput(args),
-      StepIds.markets || StepIds.struggles => MultiChoiceInput(args),
+      StepIds.experience => SingleChoiceInput(args),
+      StepIds.style || StepIds.markets || StepIds.struggles => MultiChoiceInput(args),
       StepIds.sessions => MultiChoiceInput(args, onChangeTimeZone: _changeTimeZone),
       StepIds.goal => GoalInput(args),
       StepIds.strategy => StrategyInput(args, parsing: s.parsing),

@@ -1,11 +1,14 @@
-import '../../../core/widgets/grid_cell.dart';
+import '../../accounts/domain/walk_away.dart';
+import '../../accounts/domain/payout_readiness.dart';
 import '../../journal/domain/journal_stats.dart';
 import '../../journal/domain/trade.dart';
 import '../../markets/domain/instrument_catalog.dart';
+import '../../markets/domain/news.dart';
 import '../../onboarding/domain/profile_doji.dart';
 import '../../onboarding/domain/prop_drawdown.dart';
 import '../../onboarding/domain/sessions.dart';
 import '../../onboarding/domain/user_zone.dart';
+import 'broker_account.dart';
 
 /// Home's day-zero tasks (Doji Home Phone: ITEMS).
 enum SetupTask {
@@ -46,16 +49,10 @@ class RuleUsage {
   final String unit;
 }
 
-/// A brief condition: shape plus word, never colour alone.
-class BriefCondition {
-  const BriefCondition(this.text, {required this.met});
-  final String text;
-  final bool met;
-}
-
 /// The day, as the screens need it. Trades taken, loss, tilt and the prop
-/// drawdown come from the journal; the score, streak, brief conditions and
-/// news are still PLACEHOLDER until their own slices.
+/// drawdown come from the journal; the brief's conditions come from Markets
+/// (`pairBriefProvider`); the score, streak and the rail's news are still
+/// PLACEHOLDER until their own slices.
 class HomeSnapshot {
   const HomeSnapshot({
     required this.name,
@@ -63,11 +60,13 @@ class HomeSnapshot {
     required this.instruments,
     required this.rules,
     required this.usage,
-    required this.conditions,
     required this.losses,
     required this.lossesToCooldown,
     required this.score,
     required this.streak,
+    this.accountNote,
+    this.payout = const [],
+    this.walkAway,
   });
 
   final String name;
@@ -77,41 +76,69 @@ class HomeSnapshot {
   final List<String> instruments;
   final List<String> rules;
   final List<RuleUsage> usage;
-  final List<BriefCondition> conditions;
   final int losses;
   final int lossesToCooldown;
   final int score;
   final int? streak;
 
+  /// Where the loss % and drawdown come from when the account is linked:
+  /// "broker figures · as of 14:02", or why the journal is used instead.
+  final String? accountNote;
+
+  /// Prop accounts only: distance to each payout rule (empty otherwise).
+  final List<RuleDistance> payout;
+
+  /// A walk-away rule reached today (`WalkAway`), said plainly; null while none is.
+  final String? walkAway;
+
   /// Shown after two losses in a row.
   bool get tilt => losses >= 2;
-  int get metCount => conditions.where((c) => c.met).length;
 
   /// Tilt meter, 1–5. TODO(next-slice): also from emotion logs.
   int get tiltLevel => (1 + losses * 2).clamp(1, 5);
   String get tiltWord => tiltLevel <= 2 ? 'low' : (tiltLevel <= 4 ? 'elevated' : 'high');
 
-  /// [now] decides whether the first instrument's market is open and which
-  /// trades count as today's.
-  factory HomeSnapshot.fromJournal(ProfileDoji p, {required List<Trade> trades, DateTime? now}) {
+  /// [now] decides which trades count as today's.
+  ///
+  /// [broker]: the linked account's balance and equity. Used for loss % and
+  /// the drawdown only while fresh ([kBrokerFreshFor]); an old figure is never
+  /// shown as current, the journal is used and [accountNote] says why.
+  factory HomeSnapshot.fromJournal(
+    ProfileDoji p, {
+    required List<Trade> trades,
+    DateTime? now,
+    BrokerReading? broker,
+  }) {
     final rules = p.rules;
     final prop = p.prop;
-    final day = DaySummary.of(trades, now ?? DateTime.now());
-    // Only a prop challenge states the account size, so only it has a real
-    // drawdown; without a size doji shows no meter instead of inventing one.
-    final accountSize = prop?.accountSize?.toDouble();
-    final lossPct = day.lossPercent(accountSize: accountSize, riskPerTradePct: rules?.riskPerTrade ?? 1.0);
+    final at = now ?? DateTime.now();
+    final day = DaySummary.of(trades, at);
+    // The account's starting size is the one base for loss % and the drawdown;
+    // without a size doji shows no meter instead of inventing one.
+    final accountSize = p.startingSize;
+    final live = broker != null && broker.freshAt(at) && accountSize != null && accountSize > 0
+        ? broker
+        : null;
+    final lossPct = live != null
+        ? live.lossPercent(accountSize!)
+        : day.lossPercent(accountSize: accountSize, riskPerTradePct: rules?.riskPerTrade ?? 1.0);
+    final accountNote = broker == null
+        ? null
+        : live != null
+        ? 'broker figures · as of ${_hm(broker.asOf)}'
+        : 'broker figures are from ${_hm(broker.asOf)}, too old to use. showing the journal.';
     final maxTrades = rules?.maxTradesPerDay ?? 3;
     // The stricter of the user's own daily loss limit and the prop firm's.
     final limits = [rules?.dailyLossLimit, prop?.dailyLossLimitPct].whereType<double>();
     final lossLimit = limits.isEmpty ? 2.0 : limits.reduce((a, b) => a < b ? a : b);
     final instruments = p.instruments.isEmpty ? defaultInstruments : p.instruments;
-    final first = instrumentBySymbol(instruments.first);
-    // Unknown (custom) symbols: assume open rather than say a false "waiting".
-    final marketOpen = first?.hours.isOpenAt(now ?? DateTime.now().toUtc()) ?? true;
     final drawdown = prop == null || accountSize == null
         ? null
-        : PropDrawdown.evaluate(prop, accountSize: accountSize, state: accountStateFrom(trades, accountSize));
+        : PropDrawdown.evaluate(
+            prop,
+            accountSize: accountSize,
+            state: live?.state ?? accountStateFrom(trades, accountSize),
+          );
     return HomeSnapshot(
       name: p.name ?? 'trader',
       rank: p.rank,
@@ -120,7 +147,12 @@ class HomeSnapshot {
         'max ${rules?.maxTradesPerDay ?? '[3]'} trades',
         'stop at ${_n(lossLimit)}% daily loss',
         if (drawdown != null) 'prop max drawdown ${_n(drawdown.limitPct)}% (${prop!.drawdownLabel})',
-        'no entries 15 min around high-impact news',
+        if (rules?.dailyGainCap case final g?) 'stop at +${_n(g)}% today',
+        if (rules?.giveBackPct case final g?) "stop after giving back ${_n(g)}% of today's best",
+        if (rules?.noTradesBefore != null || rules?.noTradesAfter != null)
+          'trade ${rules?.noTradesBefore ?? 'from the open'} to ${rules?.noTradesAfter ?? 'the close'}',
+        if (rules?.oneAndDone ?? false) 'one and done: stop after the first win',
+        'no entries $kNewsBufferMinutes min around high-impact news',
         'only [setup name] setups',
       ],
       usage: [
@@ -135,19 +167,29 @@ class HomeSnapshot {
             unit: '%',
           ),
       ],
-      // TODO(next-slice): conditions measured against the parsed strategy.
-      conditions: [
-        BriefCondition('${instrumentLabel(instruments.first)} market open', met: marketOpen),
-        const BriefCondition('price at your key level', met: false),
-        const BriefCondition('higher-timeframe bias agrees', met: true),
-        const BriefCondition('no high-impact news in 30 min', met: false),
-      ],
       losses: day.lossStreak,
       lossesToCooldown: 3,
       score: 812, // sample data, labelled as such on screen
       streak: null, // TODO(next-slice): "[n] days" from the grid
+      accountNote: accountNote,
+      walkAway: walkAwayNow(trades, at, rules: rules, accountSize: accountSize),
+      payout: prop == null
+          ? const []
+          : PayoutReadiness.of(
+              trades: trades,
+              prop: prop,
+              dailyLossUsedPct: _round2(lossPct),
+              dailyLossLimitPct: lossLimit,
+              drawdown: drawdown,
+            ),
     );
   }
+}
+
+/// "14:02" in local time.
+String _hm(DateTime t) {
+  final l = t.toLocal();
+  return '${l.hour.toString().padLeft(2, '0')}:${l.minute.toString().padLeft(2, '0')}';
 }
 
 /// Two decimals, so floating-point noise never reaches the screen.
@@ -159,28 +201,4 @@ String _n(num v) => v == v.roundToDouble() ? v.toInt().toString() : v.toString()
 String tomorrowOpenTime(ProfileDoji p) {
   if (p.theOpenTime != null) return p.theOpenTime!;
   return hhmm(openReferenceMinutes(p.sessions, userZoneFromProfile(p)));
-}
-
-/// 12 weeks × 7 days, column-major (Mon first), today in the last column.
-/// Levels are a SAMPLE pattern like the design's; TODO(next-slice): real
-/// days from the closed-day log.
-List<GridCellState> sampleGrid({required DateTime today, required bool zero, required bool closed}) {
-  const weeks = 12;
-  final todayIndex = (weeks - 1) * 7 + (today.weekday - 1);
-  return List.generate(weeks * 7, (i) {
-    if (i > todayIndex) return GridCellState.future;
-    if (i == todayIndex) return zero || closed ? GridCellState.l4 : GridCellState.today;
-    if (zero) return GridCellState.l0;
-    final v = (i * 7 + (i % 5) * 3 + (i >> 3)) % 9;
-    final level = v < 1
-        ? 0
-        : v < 3
-        ? 1
-        : v < 5
-        ? 2
-        : v < 7
-        ? 3
-        : 4;
-    return GridCellState.values[level];
-  });
 }

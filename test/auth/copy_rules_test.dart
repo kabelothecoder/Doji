@@ -16,6 +16,11 @@ void main() {
       // The coach's screens; what the fake coach says is checked in coach_domain_test.
       'lib/features/coach/domain',
       'lib/features/coach/presentation',
+      // Markets 1b's screens; what the fake brief and its chat say is checked in brief_test.
+      'lib/features/markets/domain',
+      'lib/features/markets/presentation',
+      // Accounts and the strategy editor, and the conditions doji measures.
+      'lib/features/accounts',
     ];
     final literals = [RegExp(r"'(?:[^'\\\n]|\\.)*'"), RegExp(r'"(?:[^"\\\n]|\\.)*"')];
     final copy = <String>[];
@@ -29,6 +34,7 @@ void main() {
       }
     }
     expect(copy, contains("'welcome back.'"));
+    expect(copy, contains("'before you start.'"), reason: 'A7 is scanned too');
     final text = ' ${copy.join(' ').toLowerCase()} ';
     for (final banned in [' buy ', ' sell ', 'signal', 'guarantee', 'profit', 'win rate']) {
       expect(text, isNot(contains(banned)), reason: banned);

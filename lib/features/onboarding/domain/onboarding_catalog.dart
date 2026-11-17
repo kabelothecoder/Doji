@@ -3,22 +3,27 @@
 // were written for answers the handoff doesn't show (it gives one example
 // reply per step). No buy/sell language, no promises, no invented stats.
 import '../../markets/domain/instrument_catalog.dart';
+import 'availability.dart';
 import 'onboarding_step.dart';
+import 'profile_mapper.dart' show styleFromAnswer;
 import 'risk.dart';
 import 'sessions.dart';
 import 'user_zone.dart';
 
 /// Answer shapes, by step id:
 /// - name: String
-/// - experience, style: String (option value)
+/// - experience: String (option value)
 /// - markets (instrument symbols), sessions, struggles: `List<String>`
 /// - timeZone: {id: String, offsetMinutes: int} (detected, editable)
 /// - goal: {goal: String, propFirm: String?, propSize: int?, propDailyLoss: num?,
 ///   propMaxDrawdown: num?, propDrawdownType: fixed|trailing?, propTrailingBasis: balance|equity?,
 ///   propTarget: num?}  (the prop* keys only for prop_challenge)
-/// - strategy: {raw: String?, template: String?, source: text|voice|template}
+/// - strategy: {raw: String?, template: String?, source: text|voice|template,
+///   files: [{name, kind: pdf|image|video}]?}
 /// - strategyParsed: {setup, timeframe, entry, stop, target}
-/// - risk: {riskPct: num, maxTrades: int, dailyLoss: num, currency: USD|ZAR|EUR|GBP?}
+/// - risk: {riskPct: num, maxTrades: int, dailyLoss: num, currency: USD|ZAR|EUR|GBP?,
+///   appetite: careful|balanced|aggressive?, deposit: lt_500|500_5k|5k_25k|25k_plus?}
+/// - style: `List<String>` (older saves: one String)
 /// - coach: {voice: String, name: String?}
 /// - ritual: {time: 'HH:mm', notifications: granted|denied|deferred}
 /// - rules, compile: true · pledge: {pledgedAt: ISO-8601}
@@ -30,6 +35,7 @@ abstract final class StepIds {
   static const style = 'style';
   static const markets = 'markets';
   static const sessions = 'sessions';
+  static const availability = 'availability';
   static const timeZone = 'timeZone';
   static const goal = 'goal';
   static const struggles = 'struggles';
@@ -95,6 +101,23 @@ const struggleOptions = [
   StepOption('bored', 'trading when bored'),
 ];
 
+/// The risk step's appetite row: each one presets risk per trade and the daily limit.
+const appetiteOptions = [
+  StepOption('careful', 'careful', sub: '0.5% · 1.5% a day'),
+  StepOption('balanced', 'balanced', sub: '1% · 2% a day'),
+  StepOption('aggressive', 'aggressive', sub: '2% · 4% a day'),
+];
+
+const appetitePresets = {'careful': (0.5, 1.5), 'balanced': (1.0, 2.0), 'aggressive': (2.0, 4.0)};
+
+/// How the trader usually funds a personal account (the risk step).
+const depositOptions = [
+  StepOption('lt_500', 'under 500', mono: true),
+  StepOption('500_5k', '500–5k', mono: true),
+  StepOption('5k_25k', '5k–25k', mono: true),
+  StepOption('25k_plus', '25k+', mono: true),
+];
+
 const riskOptions = [
   StepOption('0.5', '0.5%', mono: true),
   StepOption('1', '1%', mono: true),
@@ -139,6 +162,21 @@ String? marketsReply(Object? answer, Answers _) {
     return "$names. $who fast — we'll keep you steady.";
   }
   return '$names. noted.'; // doji voice
+}
+
+String? styleReply(Object? answer, Answers _) {
+  final picked = answer is String
+      ? [answer]
+      : (answer is List ? answer.whereType<String>().toList() : const <String>[]);
+  if (picked.isEmpty) return null;
+  if (picked.length == 1) {
+    return switch (picked.single) {
+      'undecided' => "not sure yet. fair — i'll ask again in two weeks.", // from the handoff note
+      'swing' => 'swing trader. noted.', // doji voice
+      final s => '${labelFor(styleOptions, s)}. noted.',
+    };
+  }
+  return '${_joinAnd([for (final p in picked) labelFor(styleOptions, p)])}. noted.'; // doji voice
 }
 
 String? sessionsReply(Object? answer, Answers answers) {
@@ -231,17 +269,12 @@ List<OnboardingStep> buildOnboardingSteps() => [
   OnboardingStep(
     id: StepIds.style,
     view: StepView.question,
-    input: StepInput.single,
+    input: StepInput.multi,
     prompt: 'how do you trade?',
+    sub: 'pick any.', // doji voice
     options: styleOptions,
-    autoAdvance: true,
-    validate: (v) => _required(v, 'pick one to continue, or skip it for now.'),
-    reply: (v, _) => switch (v) {
-      'undecided' => "not sure yet. fair — i'll ask again in two weeks.", // from the handoff note
-      'swing' => 'swing trader. noted.', // doji voice
-      final String s => '${labelFor(styleOptions, s)}. noted.',
-      _ => null,
-    },
+    validate: (v) => _required(v, 'pick at least one, or skip it for now.'),
+    reply: styleReply,
   ),
   OnboardingStep(
     id: StepIds.markets,
@@ -261,6 +294,18 @@ List<OnboardingStep> buildOnboardingSteps() => [
     options: sessionOptions,
     validate: (v) => _required(v, 'pick at least one, or skip it for now.'),
     reply: sessionsReply,
+  ),
+  OnboardingStep(
+    id: StepIds.availability,
+    view: StepView.question,
+    input: StepInput.single,
+    prompt: 'in those hours, how often can you look at the charts?',
+    sub: 'your strategy has to fit your week.',
+    options: availabilityOptions,
+    columns: 1,
+    autoAdvance: true,
+    validate: (v) => _required(v, 'pick one to continue, or skip it for now.'),
+    reply: (v, a) => availabilityFit(v as String?, styleFromAnswer(a[StepIds.style]))?.line,
   ),
   OnboardingStep(
     id: StepIds.goal,
@@ -290,8 +335,9 @@ List<OnboardingStep> buildOnboardingSteps() => [
     prompt: 'describe your strategy in your own words',
     cta: 'read it',
     configWindow: 1,
-    validate: (v) => A.mapStr(v, 'raw') == null && A.mapStr(v, 'template') == null
-        ? 'describe it in a line or two, or pick a template.' // doji voice
+    validate: (v) =>
+        A.mapStr(v, 'raw') == null && A.mapStr(v, 'template') == null && (v is! Map || v['files'] == null)
+        ? 'describe it in a line or two, attach a file, or pick a template.' // doji voice
         : null,
     reply: (v, a) => hasStrategyToReview({StepIds.strategy: v})
         ? 'got it. check what i understood.'
@@ -312,6 +358,7 @@ List<OnboardingStep> buildOnboardingSteps() => [
     view: StepView.question,
     input: StepInput.stepper,
     prompt: 'how much will you risk per trade?',
+    sub: 'start with how you like to trade. you can fine-tune it below.', // doji voice
     options: riskOptions,
     columns: 4,
     configWindow: 1,

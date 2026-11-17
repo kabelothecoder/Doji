@@ -4,19 +4,31 @@ import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../analyst/data/analyst_repository.dart';
+import '../../analyst/presentation/analyst_controller.dart';
+import '../../backtest/data/backtest_repository.dart';
+import '../../gym/data/gym_repository.dart';
+import '../../me/data/badge_repository.dart';
+import '../../history/history.dart';
 import '../../../app/routes.dart';
+import '../../accounts/data/broker_link_repository.dart';
+import '../../accounts/domain/trading_account.dart';
 import '../../../core/widgets/auth_method_button.dart' show AuthMethod;
 import '../../app_lock/presentation/app_lock_controller.dart';
+import '../../chart/data/chart_note_repository.dart';
 import '../../coach/data/coach_session_repository.dart';
 import '../../journal/data/journal_repository.dart';
 import '../../journal/presentation/journal_controller.dart';
+import '../../markets/data/brief_allowance_repository.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/profile_doji.dart';
 import '../../onboarding/presentation/onboarding_controller.dart';
 import '../../plans/data/billing_repository.dart';
 import '../../plans/presentation/plans_controller.dart';
+import '../data/consent_repository.dart';
 import '../data/fake_auth_repository.dart';
 import '../domain/auth_repository.dart';
+import '../../panic/data/market_pause.dart';
 
 /// Where the flow started: A1 "welcome back" or A2 "save your setup".
 enum AuthIntent { signIn, save }
@@ -52,9 +64,21 @@ class AuthFlowState {
     this.attemptsLeft = FakeAuthRepository.maxAttempts,
     this.lockedUntil,
     this.outcome,
+    this.linked,
+    this.pending,
+    this.next = Routes.authenticated,
   });
 
   final AuthIntent intent;
+
+  /// A5: the email belongs to an Apple / Google account.
+  final LinkedMethod? linked;
+
+  /// A sign-in waiting on A7 (consent) or A6 (which setup to keep).
+  final PendingSignIn? pending;
+
+  /// Where the screen goes after a successful sign-in: A7, A6 or A9.
+  final String next;
 
   /// Apple or Google sheet open (A2b).
   final AuthMethod? waitingFor;
@@ -87,7 +111,13 @@ class AuthFlowState {
     int? attemptsLeft,
     DateTime? Function()? lockedUntil,
     AuthOutcome? Function()? outcome,
+    LinkedMethod? Function()? linked,
+    PendingSignIn? Function()? pending,
+    String? next,
   }) => AuthFlowState(
+    linked: linked == null ? this.linked : linked(),
+    pending: pending == null ? this.pending : pending(),
+    next: next ?? this.next,
     intent: intent ?? this.intent,
     waitingFor: waitingFor == null ? this.waitingFor : waitingFor(),
     offline: offline ?? this.offline,
@@ -100,6 +130,15 @@ class AuthFlowState {
     lockedUntil: lockedUntil == null ? this.lockedUntil : lockedUntil(),
     outcome: outcome == null ? this.outcome : outcome(),
   );
+}
+
+/// A sign-in that is done on the account's side but not yet applied here.
+@immutable
+class PendingSignIn {
+  const PendingSignIn(this.result, this.intent);
+
+  final AuthResult result;
+  final AuthIntent intent;
 }
 
 /// The signed-in user, for settings and launch.
@@ -132,7 +171,7 @@ class AuthFlowController extends Notifier<AuthFlowState> {
           : await _repo.signInWithGoogle();
       // waitingFor stays set: the screen navigates away on true, and clearing
       // it would flash the (now reset) entry screen for a frame.
-      await _complete(result, intent);
+      await _afterSignIn(result, intent);
       return true;
     } on AuthFailure catch (e) {
       _fail(e);
@@ -147,14 +186,26 @@ class AuthFlowController extends Notifier<AuthFlowState> {
 
   // --- Email code (A3 / A4) ------------------------------------------------------
 
-  void setEmail(String v) => state = state.copyWith(email: v, message: () => null);
+  void setEmail(String v) => state = state.copyWith(email: v, message: () => null, linked: () => null);
 
   /// Sends (or resends) a code. A new code invalidates the previous one.
+  /// Returns false with [AuthFlowState.linked] set when the email belongs to
+  /// an Apple / Google account (A5): no code is sent.
   Future<bool> sendCode(AuthIntent intent) async {
     final email = state.email.trim();
     if (!looksLikeEmail(email) || state.sending) return false;
-    state = state.copyWith(intent: intent, sending: true, offline: false, message: () => null);
+    state = state.copyWith(
+      intent: intent,
+      sending: true,
+      offline: false,
+      message: () => null,
+      linked: () => null,
+    );
     try {
+      if (await _repo.lookUpEmail(email) case final linked?) {
+        state = state.copyWith(sending: false, linked: () => linked);
+        return false;
+      }
       final ticket = await _repo.sendEmailCode(email);
       state = state.copyWith(
         sending: false,
@@ -180,7 +231,7 @@ class AuthFlowController extends Notifier<AuthFlowState> {
     state = state.copyWith(codeStatus: CodeStatus.verifying, offline: false, message: () => null);
     try {
       final result = await _repo.verifyEmailCode(email: state.email.trim(), code: code);
-      await _complete(result, intent);
+      await _afterSignIn(result, intent);
       state = state.copyWith(codeStatus: CodeStatus.idle);
       return true;
     } on AuthFailure catch (e) {
@@ -203,6 +254,51 @@ class AuthFlowController extends Notifier<AuthFlowState> {
         AuthIntent.save,
         firstLine: 'signed in… ok',
       );
+      return true;
+    } on AuthFailure catch (e) {
+      _fail(e);
+      return false;
+    }
+  }
+
+  // --- A7 consent, A6 merge -----------------------------------------------------------
+
+  /// A7 "agree and continue". Also works after a relaunch on A7, when only
+  /// the session and the pending mark are left.
+  Future<bool> acceptConsent() async {
+    final user = state.pending?.result.user ?? ref.read(authSessionProvider);
+    if (user == null || state.sending) return false;
+    final consent = ref.read(consentRepositoryProvider);
+    final pending =
+        state.pending ??
+        PendingSignIn(
+          AuthResult(user: user, isNewAccount: true),
+          consent.pendingIntent(user.id) == AuthIntent.save.name ? AuthIntent.save : AuthIntent.signIn,
+        );
+    state = state.copyWith(sending: true, offline: false, message: () => null);
+    try {
+      await consent.accept(user.id);
+      state = state.copyWith(pending: () => null);
+      await _afterSignIn(pending.result, pending.intent);
+      state = state.copyWith(sending: false);
+      return true;
+    } on AuthFailure catch (e) {
+      state = state.copyWith(pending: () => pending);
+      _fail(e);
+      return false;
+    }
+  }
+
+  /// A6: keep this device's setup (the default, it is the most recent) or the
+  /// account's. The other one is removed.
+  Future<bool> resolveMerge({required bool keepDevice}) async {
+    final pending = state.pending;
+    if (pending == null || state.sending) return false;
+    state = state.copyWith(sending: true, offline: false, message: () => null);
+    try {
+      // The account's setup wins exactly as on "welcome back".
+      await _complete(pending.result, keepDevice ? AuthIntent.save : AuthIntent.signIn);
+      state = state.copyWith(sending: false, pending: () => null, next: Routes.authenticated);
       return true;
     } on AuthFailure catch (e) {
       _fail(e);
@@ -254,11 +350,28 @@ class AuthFlowController extends Notifier<AuthFlowState> {
     }
   }
 
+  /// Routes a finished sign-in: A7 for a new account (or one still pending),
+  /// A6 when "save your setup" meets an account with its own setup, else A9.
+  Future<void> _afterSignIn(AuthResult r, AuthIntent intent) async {
+    final consent = ref.read(consentRepositoryProvider);
+    if (r.isNewAccount && !consent.accepted(r.user.id)) await consent.markPending(r.user.id, intent.name);
+    if (consent.needsConsent(r.user.id)) {
+      ref.read(authSessionProvider.notifier).set(r.user);
+      state = state.copyWith(pending: () => PendingSignIn(r, intent), next: Routes.consent);
+      return;
+    }
+    if (intent == AuthIntent.save && (r.remoteProfile?.isComplete ?? false)) {
+      state = state.copyWith(pending: () => PendingSignIn(r, intent), next: Routes.merge);
+      return;
+    }
+    await _complete(r, intent);
+    state = state.copyWith(next: Routes.authenticated);
+  }
+
   /// Decides which setup this device keeps, then writes the outcome.
   ///
   /// - save (A2): this device's setup goes to the account. If the account had
-  ///   its own, this device still wins: A6's default ("it is the most
-  ///   recent"), applied silently until A6 is built.
+  ///   its own, A6 asked first; this branch is "keep this device's".
   /// - sign in (A1): the account's setup wins and replaces this device's.
   ///   An account with none adopts this device's finished setup, if any.
   Future<void> _complete(AuthResult r, AuthIntent intent, {String? firstLine}) async {
@@ -330,6 +443,15 @@ class AccountActions {
   /// Throws [AuthFailure] (usually [AuthOffline]); nothing local is touched
   /// unless the account is really gone.
   Future<void> deleteAccount() async {
+    // Broker links first, while the session still exists: their MT5
+    // passwords leave Supabase Vault with them.
+    final links = _ref.read(brokerLinkRepositoryProvider);
+    if (links.available) {
+      for (final a
+          in _ref.read(onboardingRepositoryProvider).loadProfile()?.accounts ?? const <TradingAccount>[]) {
+        if (a.brokerLink != null) await links.unlink(a.id);
+      }
+    }
     await _ref.read(authRepositoryProvider).deleteAccount();
     await _wipeLocal();
   }
@@ -341,8 +463,26 @@ class AccountActions {
     _ref.invalidate(journalControllerProvider);
     // Saved coach sessions ("coaching history" on the delete screen) too.
     await _ref.read(coachSessionRepositoryProvider).clear();
+    await _ref.read(chartNoteRepositoryProvider).clear();
+    // Weekly reviews and the trader's sources.
+    await _ref.read(analystRepositoryProvider).clear();
+    _ref.invalidate(reviewsProvider);
+    _ref.invalidate(sourcesProvider);
+    _ref.invalidate(chartNotesProvider);
+    await _ref.read(briefAllowanceRepositoryProvider).clear();
+    // Practice: backtest sessions, gym scores and drill answers, cached history.
+    await _ref.read(backtestRepositoryProvider).clear();
+    _ref.invalidate(backtestSessionsProvider);
+    await _ref.read(gymRepositoryProvider).clear();
+    _ref.invalidate(gymProvider);
+    await _ref.read(badgeRepositoryProvider).clear();
+    _ref.invalidate(earnedBadgesProvider);
+    await _ref.read(historyRepositoryProvider).clear();
+    await _ref.read(brokerLinkRepositoryProvider).clear();
+    await _ref.read(consentRepositoryProvider).clear();
     await _ref.read(appLockControllerProvider.notifier).reset();
     await _ref.read(billingRepositoryProvider).clear();
+    await _ref.read(marketPauseProvider.notifier).stop();
     _ref.invalidate(entitlementProvider);
     _ref.read(authSessionProvider.notifier).set(null);
     _ref.invalidate(onboardingControllerProvider);

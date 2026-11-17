@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ai/ai_functions.dart';
 import '../domain/coach.dart';
+import 'supabase_coach.dart';
 
 /// What the trader's message is about, as far as the fake coach can tell.
 /// Checked in declaration order: the first match wins.
@@ -118,6 +120,7 @@ class FakeCoach implements Coach {
     if (max != null && c.tradesToday >= max) {
       return "that's ${c.tradesToday} of $max trades today, so the plan is done for today. what's on your mind?";
     }
+    if (c.walkAway case final w?) return '$w your own rule. what makes you want another one?';
     final who = c.name == null ? '' : '${c.name!.toLowerCase()}, ';
     return "${who}what's on your mind before the next trade?";
   }
@@ -197,4 +200,7 @@ class FakeCoach implements Coach {
 
 /// The coach the session screen talks to. Tests override it with a
 /// zero-latency [FakeCoach].
-final coachProvider = Provider<Coach>((ref) => const FakeCoach());
+final coachProvider = Provider<Coach>((ref) {
+  final ai = ref.watch(aiFunctionsProvider);
+  return ai == null ? const FakeCoach() : SupabaseCoach(ai);
+});

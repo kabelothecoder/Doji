@@ -8,9 +8,9 @@ import '../../core/widgets/widgets.dart';
 import '../routes.dart';
 import 'main_tab.dart';
 
-/// PLACEHOLDER for the tabs that are separate briefs (markets, me). Each has
-/// its design in Claude Design (Doji Core Tabs).
-/// TODO(next-slice): replace one screen per brief.
+/// PLACEHOLDER for the me tab, a separate brief. Its design is in Claude
+/// Design (Doji Core Tabs › 06, not synced yet).
+/// TODO(next-slice): replace it with the me screen.
 class TabPlaceholderScreen extends StatelessWidget {
   const TabPlaceholderScreen({super.key, required this.tab});
 

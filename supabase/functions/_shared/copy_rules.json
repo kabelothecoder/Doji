@@ -1,0 +1,4 @@
+{
+  "_comment": "The copy rules every AI reply must pass. Read by _shared/guard.ts and by test/core/copy_rules_test.dart, which checks lib/core/copy_rules.dart matches. Phrases are matched lowercase against the text padded with spaces.",
+  "banned": [" buy ", " sell ", "signal", "guarantee", "profit", "win rate", "go long", "go short"]
+}

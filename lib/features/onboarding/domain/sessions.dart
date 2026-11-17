@@ -7,16 +7,17 @@ import '../../markets/domain/time_zones.dart';
 /// its city's real time zone, so daylight saving moves them for you
 /// (London 08:00 is 07:00 UTC in summer and 08:00 UTC in winter).
 ///
-/// Nominal opens: Sydney 07:00, Tokyo 09:00, London 08:00, New York 08:00 local.
+/// Nominal hours, local: Sydney 07:00–16:00, Tokyo 09:00–18:00, London
+/// 08:00–17:00, New York 08:00–17:00, Monday to Friday.
 /// What a market is doing right now is `MarketHours`' job, not this enum's.
 enum TradingSession {
-  sydney('sydney', 'Sydney', TimeZones.sydney, 7 * 60),
-  tokyo('tokyo', 'Tokyo', TimeZones.tokyo, 9 * 60),
-  london('london', 'London', TimeZones.london, 8 * 60),
-  newYork('new_york', 'New York', TimeZones.newYork, 8 * 60),
-  aroundJob('around_job', 'around my job', null, null);
+  sydney('sydney', 'Sydney', TimeZones.sydney, 7 * 60, 16 * 60),
+  tokyo('tokyo', 'Tokyo', TimeZones.tokyo, 9 * 60, 18 * 60),
+  london('london', 'London', TimeZones.london, 8 * 60, 17 * 60),
+  newYork('new_york', 'New York', TimeZones.newYork, 8 * 60, 17 * 60),
+  aroundJob('around_job', 'around my job', null, null, null);
 
-  const TradingSession(this.key, this.label, this.zoneId, this.openLocalMinutes);
+  const TradingSession(this.key, this.label, this.zoneId, this.openLocalMinutes, this.closeLocalMinutes);
 
   final String key;
   final String label;
@@ -27,17 +28,56 @@ enum TradingSession {
   /// Open, in minutes after midnight in [zoneId].
   final int? openLocalMinutes;
 
+  /// Close, in minutes after midnight in [zoneId] (same local day as the open).
+  final int? closeLocalMinutes;
+
   static TradingSession? fromKey(String key) => TradingSession.values.where((s) => s.key == key).firstOrNull;
+
+  /// The four sessions with fixed hours, in the order the trading day meets them.
+  static const List<TradingSession> fixed = [sydney, tokyo, london, newYork];
 
   /// The instant this session opens on the calendar day of [now] in its own
   /// city; null for "around my job".
-  DateTime? openInstant([DateTime? now]) {
-    final id = zoneId, minutes = openLocalMinutes;
+  DateTime? openInstant([DateTime? now]) => _at(openLocalMinutes, now);
+
+  /// The instant it closes on the calendar day of [now] in its own city.
+  DateTime? closeInstant([DateTime? now]) => _at(closeLocalMinutes, now);
+
+  DateTime? _at(int? minutes, DateTime? now) {
+    final id = zoneId;
     if (id == null || minutes == null) return null;
     final location = TimeZones.find(id);
     if (location == null) return null;
     final day = TimeZones.inZone(now ?? clock.now(), location);
     return tz.TZDateTime(location, day.year, day.month, day.day, minutes ~/ 60, minutes % 60).toUtc();
+  }
+
+  /// Is the session running at [now]? Weekdays only, in its own city.
+  bool isOpenAt(DateTime now) {
+    final open = openInstant(now), close = closeInstant(now);
+    if (open == null || close == null) return false;
+    final location = TimeZones.find(zoneId!)!;
+    final weekday = TimeZones.inZone(now, location).weekday;
+    if (weekday == DateTime.saturday || weekday == DateTime.sunday) return false;
+    final t = now.toUtc();
+    return !t.isBefore(open) && t.isBefore(close);
+  }
+
+  /// The next open strictly after [now] (today's if it is still ahead, else
+  /// the next weekday's). Null for "around my job".
+  DateTime? nextOpenAfter(DateTime now) {
+    final id = zoneId;
+    if (id == null || openLocalMinutes == null) return null;
+    final location = TimeZones.find(id);
+    if (location == null) return null;
+    for (var d = 0; d < 8; d++) {
+      final probe = now.toUtc().add(Duration(days: d));
+      final open = openInstant(probe)!;
+      final weekday = TimeZones.inZone(open, location).weekday;
+      if (weekday == DateTime.saturday || weekday == DateTime.sunday) continue;
+      if (open.isAfter(now.toUtc())) return open;
+    }
+    return null;
   }
 
   /// When it opens on the clock of [zone]: minutes after local midnight, on

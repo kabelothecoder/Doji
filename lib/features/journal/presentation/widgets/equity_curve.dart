@@ -145,7 +145,7 @@ class _Legend extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 6),
-      Text(label, style: DojiType.hint.copyWith(fontSize: 10)),
+      Flexible(child: Text(label, style: DojiType.hint.copyWith(fontSize: 10))),
     ],
   );
 }

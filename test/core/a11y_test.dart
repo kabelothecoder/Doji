@@ -109,12 +109,14 @@ void main() {
       platform: TargetPlatform.windows,
     );
 
-    await tester.sendKeyEvent(LogicalKeyboardKey.digit2); // "day trader", auto-advances
+    await tester.sendKeyEvent(LogicalKeyboardKey.digit2); // "day trader" (multi-select)
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     for (var i = 0; i < 30; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }
     expect(c.read(onboardingControllerProvider).currentId, StepIds.markets);
-    expect(c.read(onboardingControllerProvider).answers[StepIds.style], 'day_trader');
+    expect(c.read(onboardingControllerProvider).answers[StepIds.style], ['day_trader']);
 
     await tester.sendKeyEvent(
       LogicalKeyboardKey.digit1,

@@ -17,7 +17,7 @@ void main() {
   testWidgets('Home → settings shows the account', (tester) async {
     final h = await AppHarness.pump(tester, at: Routes.home, seed: {...seedProfile(), ...seedSession()});
     await h.tap(find.bySemanticsLabel('me'));
-    await h.tapText('account and settings');
+    await h.tap(find.bySemanticsLabel('settings').first);
     expect(h.location, Routes.settings);
     expect(find.text('google.user@example.com'), findsOneWidget);
     expect(find.text('sign out'), findsOneWidget);
@@ -32,7 +32,11 @@ void main() {
   }, variant: ios);
 
   testWidgets('A11: sign out sheet; cancel keeps everything, sign out forgets this device', (tester) async {
-    final h = await AppHarness.pump(tester, at: Routes.settings, seed: {...seedProfile(), ...seedSession()});
+    final h = await AppHarness.pump(
+      tester,
+      at: Routes.settings,
+      seed: {...seedProfile(), ...seedSession(), 'doji.badges.v1': '{"version":1,"earned":{}}'},
+    );
     await h.tapText('sign out');
     expect(find.text('sign out of doji?'), findsOneWidget);
     await h.tapText('cancel');
@@ -43,6 +47,7 @@ void main() {
     await h.tap(find.widgetWithText(DojiButton, 'sign out'));
     expect(h.container.read(authSessionProvider), isNull);
     expect(h.container.read(onboardingRepositoryProvider).loadProfile(), isNull);
+    expect(h.prefs.getString('doji.badges.v1'), isNull);
     expect(h.prefs.getString(FakeAuthRepository.accountsKey), contains('google:sample'));
   }, variant: ios);
 

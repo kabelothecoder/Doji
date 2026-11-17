@@ -9,7 +9,9 @@ import '../../../core/platform/connectivity.dart';
 import '../../../core/widgets/auth_method_button.dart' show AuthMethod;
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/profile_doji.dart';
+import '../../markets/data/mt5_api.dart' show supabaseClientProvider;
 import '../domain/auth_repository.dart';
+import 'supabase_auth_repository.dart';
 
 /// A working, on-device stand-in for the auth backend. It behaves like the
 /// handoff prototype so every screen can be built and tested before Supabase:
@@ -92,10 +94,13 @@ class FakeAuthRepository implements AuthRepository {
         remote = null;
       }
     }
-    if (isNew) {
-      accounts[user.id] = {'method': user.method.name, 'email': user.email, 'profile': null};
-      await _saveAccounts(accounts);
-    }
+    accounts[user.id] = {
+      if (existing is Map) ...existing.cast<String, Object?>() else 'profile': null,
+      'method': user.method.name,
+      'email': user.email,
+      'lastUsedAt': clock.now().toUtc().toIso8601String(),
+    };
+    await _saveAccounts(accounts);
     await _setSession(user);
     return AuthResult(user: user, isNewAccount: isNew, remoteProfile: remote);
   }
@@ -152,6 +157,29 @@ class FakeAuthRepository implements AuthRepository {
     if (clock.now().isBefore(until)) throw CodeLocked(until);
     _lockedUntil.remove(key);
     _wrong.remove(key);
+  }
+
+  /// An email with `+apple` or `+google` before the `@` (e.g.
+  /// `me+google@example.com`) answers as that method, so A5 can be tried
+  /// without a stored account; otherwise the stored Apple / Google accounts.
+  @override
+  Future<LinkedMethod?> lookUpEmail(String email) async {
+    _requireOnline();
+    final key = _key(email);
+    for (final m in [AuthMethod.apple, AuthMethod.google]) {
+      if (key.contains('+${m.name}@')) return LinkedMethod(method: m, email: email.trim());
+    }
+    for (final a in _accounts().values) {
+      if (a is! Map || (a['email'] as String?)?.toLowerCase() != key) continue;
+      final m = AuthMethod.values.asNameMap()[a['method']];
+      if (m == null || m == AuthMethod.email) continue;
+      return LinkedMethod(
+        method: m,
+        email: email.trim(),
+        lastUsedAt: DateTime.tryParse(a['lastUsedAt'] as String? ?? ''),
+      );
+    }
+    return null;
   }
 
   @override
@@ -225,9 +253,13 @@ class FakeAuthRepository implements AuthRepository {
   }
 }
 
-final authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => FakeAuthRepository(
+/// Supabase email-code sign-in when Supabase is configured; this fake
+/// otherwise (fully local runs, tests).
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  final client = ref.watch(supabaseClientProvider);
+  if (client != null) return SupabaseAuthRepository(client);
+  return FakeAuthRepository(
     ref.watch(sharedPreferencesProvider),
     isOnline: () => ref.read(isOnlineProvider).value ?? true,
-  ),
-);
+  );
+});

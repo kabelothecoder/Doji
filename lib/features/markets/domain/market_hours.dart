@@ -75,6 +75,37 @@ class MarketHours {
     final minute = WeeklyWindow.at(local.weekday, local.hour, local.minute);
     return windows.any((w) => w.contains(minute));
   }
+
+  /// The first minute after [utc] when the market is open (to 15 minutes;
+  /// every window here starts on a quarter hour). Null when always open or
+  /// nothing opens within 8 days.
+  DateTime? nextOpenAfter(DateTime utc) {
+    if (alwaysOpen) return null;
+    var t = _quarter(utc.toUtc()).add(_step);
+    for (var i = 0; i < _scan; i++, t = t.add(_step)) {
+      if (isOpenAt(t)) return t;
+    }
+    return null;
+  }
+
+  /// The last instant at or before [utc] when the market was open: [utc]
+  /// itself while open, else (to 15 minutes) when it closed.
+  DateTime lastOpenAtOrBefore(DateTime utc) {
+    final now = utc.toUtc();
+    if (isOpenAt(now)) return now;
+    var t = _quarter(now);
+    for (var i = 0; i < _scan; i++, t = t.subtract(_step)) {
+      final before = t.subtract(_step);
+      if (isOpenAt(before)) return t;
+    }
+    return now;
+  }
+
+  static const _step = Duration(minutes: 15);
+  static const _scan = 8 * 24 * 4;
+
+  static DateTime _quarter(DateTime t) =>
+      DateTime.utc(t.year, t.month, t.day, t.hour, t.minute - t.minute % 15);
 }
 
 /// A window inside the week, in local wall-clock minutes since Monday 00:00.

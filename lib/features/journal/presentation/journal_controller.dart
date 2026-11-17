@@ -4,6 +4,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../chart/data/chart_note_repository.dart';
 import '../../markets/domain/currency.dart';
 import '../../onboarding/data/onboarding_repository.dart';
 import '../../onboarding/domain/profile_doji.dart';
@@ -33,7 +34,24 @@ class JournalController extends Notifier<List<Trade>> {
 
   static String newId() => const Uuid().v4();
 
-  Future<void> add(Trade trade) => _set([...state, trade]);
+  /// Saves [trade] and links the chart notes that led to it (same account
+  /// and instrument, made in the day before it opened).
+  Future<void> add(Trade trade) async {
+    if (trade.strategyVersion == null) {
+      final p = ref.read(journalProfileProvider);
+      final account = p.accounts.where((a) => a.id == trade.accountId).firstOrNull;
+      if (account != null) trade = trade.withStrategyVersion(account.strategyVersion);
+    }
+    await _set([...state, trade]);
+    await ref
+        .read(chartNotesProvider.notifier)
+        .linkTrade(
+          tradeId: trade.id,
+          accountId: trade.accountId,
+          symbol: trade.symbol,
+          openedAt: trade.openedAt,
+        );
+  }
 
   /// Saves the review on trade [id]; the grade follows from it.
   Future<void> review(String id, TradeReview review) =>
@@ -84,9 +102,26 @@ class JournalViewState {
 
 const Object _keep = Object();
 
+/// The trades taken on the active account (Home, the brief, the coach, the rail).
+final activeAccountTradesProvider = Provider.autoDispose<List<Trade>>((ref) {
+  final id = ref.watch(journalProfileProvider.select((p) => p.activeAccount?.id));
+  return [
+    for (final t in ref.watch(journalControllerProvider))
+      if (t.accountId == id) t,
+  ];
+});
+
 class JournalView extends Notifier<JournalViewState> {
+  /// Opens on the active account; clearing the filters shows all accounts.
   @override
-  JournalViewState build() => const JournalViewState();
+  JournalViewState build() {
+    final id = ref.read(journalProfileProvider).activeAccount?.id;
+    return JournalViewState(
+      filter: TradeFilter({
+        if (id != null) FilterGroup.account: {id},
+      }),
+    );
+  }
 
   void setPeriod(JournalPeriod p) => state = state.copyWith(period: p, selectedDay: null);
   void setUnit(ResultUnit u) => state = state.copyWith(unit: u);
@@ -100,7 +135,8 @@ final journalViewProvider = NotifierProvider<JournalView, JournalViewState>(Jour
 
 /// Trades inside the chosen period, newest first.
 final periodTradesProvider = Provider.autoDispose<List<Trade>>((ref) {
-  final trades = ref.watch(journalControllerProvider);
+  final account = ref.watch(journalViewProvider.select((v) => v.filter.accountOnly));
+  final trades = account.apply(ref.watch(journalControllerProvider));
   final period = ref.watch(journalViewProvider.select((v) => v.period));
   final now = clock.now();
   return [

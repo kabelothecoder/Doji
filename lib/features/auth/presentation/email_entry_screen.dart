@@ -43,6 +43,8 @@ class _EmailEntryScreenState extends ConsumerState<EmailEntryScreen> {
     if (!mounted) return;
     if (ok) {
       unawaited(context.push(Routes.code));
+    } else if (ref.read(authFlowProvider).linked != null) {
+      unawaited(context.push(Routes.authExists));
     } else if (ref.read(authFlowProvider).offline) {
       setState(() => _offline = true);
     }

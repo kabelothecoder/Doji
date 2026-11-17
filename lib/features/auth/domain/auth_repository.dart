@@ -49,6 +49,17 @@ class AuthResult {
   final ProfileDoji? remoteProfile;
 }
 
+/// A5: the account an email already belongs to, when it signs in with Apple
+/// or Google rather than an email code.
+@immutable
+class LinkedMethod {
+  const LinkedMethod({required this.method, required this.email, this.lastUsedAt});
+
+  final AuthMethod method;
+  final String email;
+  final DateTime? lastUsedAt;
+}
+
 /// A sent email code. Handoff A4: "Codes last 10 minutes", resend after 30s.
 @immutable
 class EmailCodeTicket {
@@ -133,6 +144,10 @@ abstract interface class AuthRepository {
 
   /// Stops waiting for a browser sign-in that the user abandoned.
   void cancelSignIn();
+
+  /// A5: non-null when [email] belongs to an Apple or Google account, so the
+  /// email code is not sent and that method is offered instead.
+  Future<LinkedMethod?> lookUpEmail(String email);
 
   Future<EmailCodeTicket> sendEmailCode(String email);
   Future<AuthResult> verifyEmailCode({required String email, required String code});

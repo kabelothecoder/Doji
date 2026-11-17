@@ -25,8 +25,8 @@ import '../helpers/sample_profile.dart';
 Future<void> _match(String name) =>
     expectLater(find.byType(MaterialApp), matchesGoldenFile('auth_$name.png'));
 
-Future<AppHarness> _toCode(WidgetTester tester) async {
-  final h = await AppHarness.pump(tester, at: Routes.signIn);
+Future<AppHarness> _toCode(WidgetTester tester, {Map<String, Object> seed = const {}}) async {
+  final h = await AppHarness.pump(tester, at: Routes.signIn, seed: seed);
   await h.tapText('continue with email');
   await tester.enterText(find.byType(TextField), 'sam@example.com');
   await h.wait(50);
@@ -35,6 +35,36 @@ Future<AppHarness> _toCode(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('A5 signed up with another method', (tester) async {
+    final h = await AppHarness.pump(tester, at: Routes.signIn);
+    await h.tapText('continue with email');
+    await tester.enterText(find.byType(TextField), 'sam+google@example.com');
+    await h.wait(50);
+    await h.tapText('send code', settle: 200);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await h.wait(50);
+    await _match('a5_exists_phone');
+  }, variant: ios);
+
+  testWidgets('A6 keep this device'
+      's setup', (tester) async {
+    final h = await AppHarness.pump(tester, at: Routes.save, seed: seedSetupConflict(resumeAt(StepIds.save)));
+    await h.tapText('Continue with Google', settle: 300);
+    await _match('a6_merge_phone');
+  }, variant: ios);
+
+  testWidgets('A7 before you start', (tester) async {
+    final h = await AppHarness.pump(tester, at: Routes.signIn);
+    await h.tapText('Sign in with Apple', settle: 300);
+    await _match('a7_consent_phone');
+  }, variant: ios);
+
+  testWidgets('A7 before you start · windows', (tester) async {
+    final h = await AppHarness.pump(tester, at: Routes.signIn, size: const Size(1440, 900));
+    await h.tapText('Sign in with Apple', settle: 300);
+    await _match('a7_consent_windows');
+  }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+
   testWidgets('A1 welcome back', (tester) async {
     await AppHarness.pump(tester, at: Routes.signIn);
     await _match('a1_welcome_phone');
@@ -61,7 +91,8 @@ void main() {
   }, variant: ios);
 
   testWidgets('A9 authenticated', (tester) async {
-    final h = await _toCode(tester);
+    // A7 already agreed, so the new account goes straight to A9.
+    final h = await _toCode(tester, seed: seedConsent('email:sam@example.com'));
     final input = find.descendant(of: find.byType(OtpCodeField), matching: find.byType(TextField));
     await tester.enterText(input, '482913');
     await h.wait(200);

@@ -34,7 +34,12 @@ class StepInputArgs {
   Map<String, Object?> get draftMap =>
       draft is Map ? (draft! as Map).map((k, v) => MapEntry(k.toString(), v)) : <String, Object?>{};
 
-  List<String> get draftList => draft is List ? (draft! as List).whereType<String>().toList() : <String>[];
+  // A String is an older single answer (style was single-choice).
+  List<String> get draftList => switch (draft) {
+    final List<Object?> l => l.whereType<String>().toList(),
+    final String s when s.isNotEmpty => [s],
+    _ => <String>[],
+  };
 }
 
 /// Fills the available height and aligns [children] like the handoff's

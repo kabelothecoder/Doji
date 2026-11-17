@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0..1,0&display=block">
+<style>
+@keyframes dojiBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes rise{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important;}}
+a{color:#2FD67B;}a:hover{color:#F5F5F7;}
+input::placeholder,textarea::placeholder{color:#6E7279;}
+</style>
+</helmet>
+<div data-screen-label="{{ label }}" style="position:relative;width:{{ dim.w }}px;height:{{ dim.h }}px;border-radius:{{ dim.r }}px;overflow:hidden;background:#050607;border:1px solid #26292E;box-shadow:0 40px 80px rgba(0,0,0,0.5);font-family:'Geist',system-ui,sans-serif;color:#F5F5F7;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;flex:none;">
+
+<div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;z-index:8;height:{{ dim.sb }}px;display:flex;align-items:center;justify-content:space-between;padding:0 {{ dim.sbp }}px;font-size:15px;font-weight:600;pointer-events:none;background:rgba(5,6,7,0.85);">
+  <span>9:41</span>
+  <sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:50%;top:11px;width:124px;height:36px;margin-left:-62px;border-radius:18px;background:#000;"></span></sc-if>
+  <span style="display:flex;gap:4px;align-items:center;font-family:'Material Symbols Rounded';font-size:17px;line-height:1;"><span>signal_cellular_alt</span><span>wifi</span><span>battery_full</span></span>
+</div>
+
+<sc-if value="{{ is.watch }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:16px;padding:{{ dim.top }}px 20px 24px;">
+  <div style="display:flex;align-items:center;gap:8px;height:44px;flex:none;">
+    <h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;">markets</h1>
+    <button onClick="{{ go.ask }}" aria-label="ask doji" style="margin-left:auto;height:36px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:999px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:'Geist Mono',monospace;font-size:13px;white-space:nowrap;cursor:pointer;"><span style="color:#2FD67B;">&gt;_</span>ask doji</button>
+    <button onClick="{{ go.search }}" aria-label="add a pair" style="margin-right:-10px;width:44px;height:44px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">add</button>
+  </div>
+  <button onClick="{{ go.strategies }}" style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;flex:none;">
+    <span style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">MEASURED AGAINST</span><span style="font-size:16px;font-weight:500;">[strategy name]</span></span>
+    <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">v3</span>
+    <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#6E7279;">chevron_right</span>
+  </button>
+  <div style="display:flex;flex-direction:column;flex:none;">
+    <div style="display:flex;align-items:center;height:32px;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;"><span>WATCHLIST</span><span style="margin-left:auto;">STRATEGY</span></div>
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+      <button onClick="{{ r.open }}" aria-label="{{ r.aria }}" style="display:flex;align-items:center;gap:12px;min-height:72px;padding:0;border:none;border-top:1px solid #17191C;background:transparent;color:#F5F5F7;text-align:left;cursor:pointer;font-family:inherit;">
+        <span style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:0;">
+          <span style="display:flex;align-items:center;gap:8px;"><span style="font-family:'Geist Mono',monospace;font-size:16px;font-weight:500;">{{ r.p }}</span><span style="display:flex;align-items:center;gap:5px;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;border:1px solid #26292E;border-radius:6px;padding:2px 6px;"><span aria-hidden="true" style="width:6px;height:6px;border-radius:3px;box-sizing:border-box;border:1px solid #A1A1A6;background:{{ r.sessBg }};"></span>{{ r.sess }}</span></span>
+          <span style="font-size:13px;color:#A1A1A6;">{{ r.n }}</span>
+        </span>
+        <span style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+          <span style="font-family:'Geist Mono',monospace;font-size:15px;">[price]</span>
+          <span style="display:flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:12px;color:{{ r.s.fg }};"><span aria-hidden="true" style="position:relative;width:10px;height:10px;box-sizing:border-box;border-radius:5px;border:2px solid {{ r.s.bd }};overflow:hidden;"><span style="position:absolute;left:0;top:0;bottom:0;width:{{ r.s.fw }};background:{{ r.s.bd }};"></span></span>{{ r.s.w }}</span>
+        </span>
+      </button>
+    </sc-for>
+  </div>
+  <p style="margin:0;font-family:'Geist Mono',monospace;font-size:11px;line-height:1.5;color:#A1A1A6;">prices are delayed placeholders · states are measured against your strategy. not financial advice.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.search }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;padding:{{ dim.top }}px 20px 24px;">
+  <div style="display:flex;align-items:center;gap:10px;flex:none;">
+    <label style="flex:1;display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border-radius:12px;background:#17191C;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#A1A1A6;">search</span><input aria-label="search pairs" placeholder="search pairs, e.g. gbp" value="{{ q }}" onChange="{{ setQ }}" style="flex:1;min-width:0;border:none;background:transparent;color:#F5F5F7;font-family:'Geist Mono',monospace;font-size:15px;outline:none;"></label>
+    <button onClick="{{ go.watch }}" style="height:44px;border:none;background:transparent;color:#2FD67B;font-family:inherit;font-size:16px;cursor:pointer;padding:0 4px;">done</button>
+  </div>
+  <div role="tablist" aria-label="asset class" style="display:flex;gap:8px;flex:none;">
+    <sc-for list="{{ classes }}" as="c" hint-placeholder-count="4"><button role="tab" aria-selected="{{ c.on }}" onClick="{{ c.pick }}" style="height:36px;padding:0 14px;border-radius:999px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }};font-family:inherit;font-size:14px;cursor:pointer;">{{ c.l }}</button></sc-for>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;">
+    <sc-for list="{{ results }}" as="r" hint-placeholder-count="6">
+      <div style="display:flex;align-items:center;gap:12px;min-height:60px;border-top:1px solid #17191C;">
+        <span style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="font-family:'Geist Mono',monospace;font-size:15px;">{{ r.p }}</span><span style="font-size:13px;color:#A1A1A6;">{{ r.n }}</span></span>
+        <button onClick="{{ r.toggle }}" aria-label="{{ r.aria }}" aria-pressed="{{ r.on }}" style="width:44px;height:44px;border-radius:22px;border:1px solid {{ r.bd }};background:{{ r.bg }};color:{{ r.fg }};cursor:pointer;font-family:'Material Symbols Rounded';font-size:20px;line-height:1;">{{ r.g }}</button>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.pair }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+  <div style="flex:none;display:flex;align-items:center;height:44px;margin-top:{{ dim.top }}px;padding:0 12px 0 8px;">
+    <button onClick="{{ go.watch }}" style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 0;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;">chevron_left</span>markets</button>
+    <span style="margin-left:auto;display:flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;border:1px solid #26292E;border-radius:6px;padding:3px 7px;"><span aria-hidden="true" style="width:6px;height:6px;border-radius:3px;box-sizing:border-box;border:1px solid #A1A1A6;background:{{ pr.sessBg }};"></span>{{ pr.sess }}</span>
+  </div>
+
+  <sc-if value="{{ ps.thread }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;padding:4px 20px 16px;">
+      <button onClick="{{ go.pair }}" style="display:flex;align-items:center;gap:10px;min-height:56px;padding:0 14px;border-radius:16px;background:#0F1113;border:1px solid #26292E;color:#F5F5F7;cursor:pointer;font-family:inherit;text-align:left;flex:none;">
+        <span style="font-family:'Geist Mono',monospace;font-size:15px;">{{ pr.p }}</span>
+        <span style="display:flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:12px;color:{{ pr.s.fg }};"><span aria-hidden="true" style="position:relative;width:10px;height:10px;box-sizing:border-box;border-radius:5px;border:2px solid {{ pr.s.bd }};overflow:hidden;"><span style="position:absolute;left:0;top:0;bottom:0;width:{{ pr.s.fw }};background:{{ pr.s.bd }};"></span></span>{{ pr.s.w }}</span>
+        <span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;white-space:nowrap;">brief · {{ metShort }}</span>
+        <span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#6E7279;">expand_more</span>
+      </button>
+      <div style="align-self:flex-end;max-width:82%;display:flex;flex-direction:column;gap:8px;align-items:flex-end;animation:rise 260ms ease-out;">
+        <sc-if value="{{ sentImg }}" hint-placeholder-val="{{ false }}"><div aria-label="attached chart image" style="width:180px;height:112px;border-radius:12px;border:1px dashed #3A3D42;background:#0F1113;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">chart screenshot</div></sc-if>
+        <div style="padding:10px 14px;border-radius:16px 16px 4px 16px;background:#17191C;font-size:15px;line-height:1.4;">{{ sentText }}</div>
+      </div>
+      <sc-if value="{{ ps.thinking }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',monospace;font-size:15px;color:#2FD67B;">&gt; <span style="animation:dojiBlink 1s steps(1) infinite;">_</span></span></sc-if>
+      <sc-if value="{{ ps.answered }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px;animation:rise 320ms ease-out;">
+          <p style="margin:0;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.6;"><span style="color:#2FD67B;">&gt; </span>price reached [level] at [09:40] but the M15 candle closed below it. your rule asks for a close above [level], so the retest is still waiting.</p>
+          <p style="margin:0;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.6;"><span style="color:#2FD67B;">&gt; </span>next check [10:15], after the next M15 close.</p>
+          <span style="padding-top:10px;border-top:1px solid #26292E;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">measured against your strategy. not financial advice.</span>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ ps.detail }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;padding:4px 20px 16px;">
+      <div style="display:flex;flex-direction:column;gap:6px;flex:none;">
+        <div style="display:flex;align-items:baseline;gap:10px;"><h1 style="margin:0;font-family:'Geist Mono',monospace;font-size:28px;font-weight:500;letter-spacing:-0.02em;">{{ pr.p }}</h1><span style="font-size:14px;color:#A1A1A6;">{{ pr.n }}</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:22px;">[price]</span><span style="margin-left:auto;display:flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:12px;color:{{ pr.s.fg }};border:1px solid #26292E;border-radius:999px;padding:4px 10px;"><span aria-hidden="true" style="position:relative;width:10px;height:10px;box-sizing:border-box;border-radius:5px;border:2px solid {{ pr.s.bd }};overflow:hidden;"><span style="position:absolute;left:0;top:0;bottom:0;width:{{ pr.s.fw }};background:{{ pr.s.bd }};"></span></span>{{ pr.s.w }}</span></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          <div role="radiogroup" aria-label="timeframe" style="display:flex;gap:2px;padding:2px;border-radius:10px;background:#050607;">
+            <sc-for list="{{ tfs }}" as="t" hint-placeholder-count="5"><button role="radio" aria-checked="{{ t.on }}" onClick="{{ t.pick }}" style="min-width:44px;height:32px;border-radius:8px;border:none;background:{{ t.bg }};color:{{ t.fg }};font-family:'Geist Mono',monospace;font-size:12px;cursor:pointer;">{{ t.l }}</button></sc-for>
+          </div>
+          <button onClick="{{ toggleSess }}" aria-pressed="{{ sessOn }}" aria-label="session shading" style="margin-left:auto;height:36px;display:flex;align-items:center;gap:4px;padding:0 8px;border-radius:8px;border:1px solid {{ sessBd }};background:transparent;color:{{ sessFg }};font-family:'Geist Mono',monospace;font-size:11px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:16px;">view_week</span>sessions</button>
+        </div>
+        <div role="img" aria-label="{{ chartAria }}" style="position:relative;height:210px;">
+          <sc-if value="{{ ps.chart }}" hint-placeholder-val="{{ true }}">
+            <div style="position:absolute;left:0;right:48px;top:0;bottom:22px;opacity:{{ chartOp }};">
+              <span style="position:absolute;left:0;right:0;top:12%;border-top:1px dashed #17191C;"></span><span style="position:absolute;left:0;right:0;top:50%;border-top:1px dashed #17191C;"></span><span style="position:absolute;left:0;right:0;top:88%;border-top:1px dashed #17191C;"></span>
+              <sc-if value="{{ sessOnB }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;top:0;bottom:0;left:33%;width:39%;background:rgba(245,245,247,0.05);border-left:1px solid #26292E;"><span style="position:absolute;left:6px;top:4px;font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;">london</span></div></sc-if>
+              <div style="position:absolute;inset:18px 0 8px 0;display:flex;gap:1px;">
+                <sc-for list="{{ candles }}" as="c" hint-placeholder-count="36"><div style="position:relative;flex:1;height:100%;"><span style="position:absolute;left:50%;width:1px;margin-left:-0.5px;top:{{ c.wt }};height:{{ c.wh }};background:{{ c.wc }};"></span><span style="position:absolute;left:15%;right:15%;top:{{ c.bt }};height:{{ c.bh }};min-height:1px;box-sizing:border-box;border:1px solid {{ c.bd }};background:{{ c.bg }};border-radius:1px;"></span></div></sc-for>
+              </div>
+            </div>
+            <div aria-hidden="true" style="position:absolute;right:0;top:0;bottom:22px;width:44px;font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;"><span style="position:absolute;top:12%;margin-top:-7px;right:0;">[price]</span><span style="position:absolute;top:50%;margin-top:-7px;right:0;">[price]</span><span style="position:absolute;top:88%;margin-top:-7px;right:0;">[price]</span></div>
+            <div aria-hidden="true" style="position:absolute;left:0;right:48px;bottom:0;height:16px;display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:10px;color:#A1A1A6;"><span>[time]</span><span>[time]</span><span>[time]</span><span>now</span></div>
+          </sc-if>
+          <sc-if value="{{ ps.loading }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Geist Mono',monospace;font-size:14px;color:#A1A1A6;">&gt; loading {{ pr.p }}<span style="animation:dojiBlink 1s steps(1) infinite;color:#2FD67B;">_</span></div></sc-if>
+          <sc-if value="{{ ps.closed }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 14px;border-radius:10px;background:rgba(23,25,28,0.9);border:1px solid #26292E;font-family:'Geist Mono',monospace;font-size:13px;white-space:nowrap;">market closed · opens [sun 22:00]</div></sc-if>
+          <sc-if value="{{ ps.error }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;"><span style="font-family:'Geist Mono',monospace;font-size:14px;"><span style="color:#FF9F0A;">&gt;</span> price feed not responding.</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">last update [time]</span><button onClick="{{ go.retry }}" style="height:44px;padding:0 20px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:15px;cursor:pointer;">try again</button></div></sc-if>
+        </div>
+      </div>
+
+      <sc-if value="{{ ps.nostrat }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:12px;padding:18px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+          <span style="font-family:'Geist Mono',monospace;font-size:15px;"><span style="color:#2FD67B;">&gt;</span> no strategy yet.<span style="animation:dojiBlink 1s steps(1) infinite;">_</span></span>
+          <p style="margin:0;font-size:15px;line-height:1.45;color:#A1A1A6;text-wrap:pretty;">the brief measures this market against your rules. write them once, in your own words, and it fills in here.</p>
+          <button onClick="{{ go.stratEdit }}" style="height:48px;border-radius:999px;border:none;background:#2FD67B;color:#050607;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;">build my strategy</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ ps.brief }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;font-family:'Geist Mono',monospace;">
+          <div style="display:flex;align-items:center;"><span style="font-size:11px;letter-spacing:0.06em;color:#A1A1A6;">DOJI AI BRIEF</span><span style="margin-left:auto;font-size:11px;color:#A1A1A6;">{{ briefStamp }}</span></div>
+          <sc-if value="{{ ps.loading }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <span style="font-size:14px;"><span style="color:#2FD67B;">&gt;</span> reading the market against [strategy name]<span style="animation:dojiBlink 1s steps(1) infinite;">_</span></span>
+              <span style="height:12px;width:86%;border-radius:4px;background:#17191C;"></span><span style="height:12px;width:64%;border-radius:4px;background:#17191C;"></span><span style="height:12px;width:74%;border-radius:4px;background:#17191C;"></span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ ps.closed }}" hint-placeholder-val="{{ false }}">
+            <p style="margin:0;font-size:14px;line-height:1.6;"><span style="color:#2FD67B;">&gt; </span>market closed. the brief picks up at the open, [sun 22:00].</p>
+            <p style="margin:0;font-size:14px;line-height:1.6;color:#A1A1A6;"><span style="color:#2FD67B;">&gt; </span>last session: your setup didn't form. nothing was missed.</p>
+          </sc-if>
+          <sc-if value="{{ ps.full }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;color:#2FD67B;">&gt; market context</span><p style="margin:0;font-family:'Geist',sans-serif;font-size:15px;line-height:1.45;text-wrap:pretty;">london is open. price has ranged between [level] and [level] since the asian session.</p></div>
+            <div style="display:flex;flex-direction:column;gap:6px;"><span style="font-size:13px;color:#2FD67B;">&gt; what your strategy says</span><p style="margin:0;font-family:'Geist',sans-serif;font-size:15px;line-height:1.45;text-wrap:pretty;">[strategy name] waits for a retest of [level] with the H4 bias agreeing. {{ metLine }}.</p></div>
+            <div role="list" aria-label="conditions" style="display:flex;flex-direction:column;">
+              <sc-for list="{{ conds }}" as="k" hint-placeholder-count="4">
+                <div role="listitem" style="display:flex;align-items:center;gap:10px;min-height:44px;border-top:1px solid #17191C;">
+                  <span aria-hidden="true" style="width:20px;height:20px;flex:none;box-sizing:border-box;border-radius:10px;border:2px {{ k.bs }} {{ k.bd }};background:{{ k.bg }};color:{{ k.gc }};display:flex;align-items:center;justify-content:center;font-family:'Material Symbols Rounded';font-size:14px;font-weight:600;line-height:1;">{{ k.g }}</span>
+                  <span style="flex:1;font-family:'Geist',sans-serif;font-size:14px;color:{{ k.fg }};">{{ k.t }}</span>
+                  <span style="font-size:12px;color:{{ k.fg }};">{{ k.w }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;"><span style="font-size:13px;color:#2FD67B;">&gt; risk note</span><p style="margin:0;font-family:'Geist',sans-serif;font-size:15px;line-height:1.45;">[1]% risk per trade. daily loss used: [0.4]% of [2]%.</p><div role="meter" aria-label="daily loss used" style="height:6px;border-radius:3px;background:#17191C;overflow:hidden;"><div style="height:100%;width:20%;border-radius:3px;background:#2FD67B;"></div></div></div>
+            <span style="font-size:13px;"><span style="color:#2FD67B;">&gt; next check</span> [10:15] · after the M15 close</span>
+          </sc-if>
+          <span style="padding-top:10px;border-top:1px solid #26292E;font-size:11px;color:#A1A1A6;">measured against your strategy. not financial advice.</span>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <div style="flex:none;display:flex;flex-direction:column;gap:8px;padding:10px 12px {{ dim.bot }}px;border-top:1px solid #26292E;background:rgba(5,6,7,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);">
+    <sc-if value="{{ ps.chips }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;">
+        <sc-for list="{{ sugg }}" as="g" hint-placeholder-count="3"><button onClick="{{ g.send }}" style="flex:none;white-space:nowrap;height:36px;padding:0 12px;border-radius:999px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:inherit;font-size:13px;cursor:pointer;">{{ g.t }}</button></sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ attach }}" hint-placeholder-val="{{ false }}"><div style="align-self:flex-start;display:flex;align-items:center;gap:6px;height:32px;padding:0 4px 0 10px;border-radius:8px;border:1px dashed #3A3D42;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">chart image attached<button onClick="{{ toggleAttach }}" aria-label="remove image" style="width:32px;height:32px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:16px;">close</button></div></sc-if>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onClick="{{ toggleAttach }}" aria-label="attach a chart image" style="width:44px;height:44px;flex:none;border-radius:22px;border:1px solid #26292E;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:20px;line-height:1;">add_photo_alternate</button>
+      <input aria-label="{{ askLabel }}" placeholder="{{ askLabel }}" value="{{ draft }}" onChange="{{ setDraft }}" onKeyDown="{{ enterSend }}" style="flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 16px;border-radius:22px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:inherit;font-size:15px;outline-color:#2FD67B;">
+      <button onClick="{{ sendDraft }}" aria-label="send" style="width:44px;height:44px;flex:none;border-radius:22px;border:none;background:#2FD67B;color:#050607;cursor:pointer;font-family:'Material Symbols Rounded';font-size:22px;line-height:1;">arrow_upward</button>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.strategies }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;padding:{{ dim.top }}px 20px 24px;">
+  <div style="display:flex;align-items:center;height:44px;flex:none;margin-left:-12px;">
+    <button onClick="{{ go.watch }}" style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 4px;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;">chevron_left</span>markets</button>
+    <button onClick="{{ go.stratEdit }}" aria-label="new strategy" style="margin-left:auto;margin-right:-10px;width:44px;height:44px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">add</button>
+  </div>
+  <h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;flex:none;">strategies</h1>
+  <p style="margin:0;font-size:15px;line-height:1.45;color:#A1A1A6;flex:none;">one is active. the brief, the watchlist and the coach all measure against it.</p>
+  <sc-for list="{{ strats }}" as="s" hint-placeholder-count="2">
+    <div style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;background:#0F1113;border:1px solid {{ s.bd }};flex:none;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;font-weight:600;">{{ s.name }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ s.v }}</span>
+        <sc-if value="{{ s.active }}" hint-placeholder-val="{{ true }}"><span style="margin-left:auto;display:flex;align-items:center;gap:6px;font-family:'Geist Mono',monospace;font-size:12px;"><span aria-hidden="true" style="width:8px;height:8px;border-radius:4px;background:#2FD67B;"></span>active</span></sc-if>
+      </div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">setups</span><span>{{ s.setups }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">timeframe</span><span style="font-family:'Geist Mono',monospace;font-size:13px;">{{ s.tf }}</span><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">rules</span><span>{{ s.rules }}</span></div>
+      <div style="display:flex;gap:8px;">
+        <button onClick="{{ go.stratEdit }}" style="flex:1;height:44px;border-radius:999px;border:1px solid #26292E;background:transparent;color:#F5F5F7;font-family:inherit;font-size:15px;cursor:pointer;">edit</button>
+        <sc-if value="{{ s.inactive }}" hint-placeholder-val="{{ false }}"><button onClick="{{ s.activate }}" style="flex:1;height:44px;border-radius:999px;border:none;background:#F5F5F7;color:#050607;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;">set active</button></sc-if>
+      </div>
+    </div>
+  </sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.stratEdit }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+  <div style="flex:none;display:flex;align-items:center;height:44px;margin-top:{{ dim.top }}px;padding:0 16px 0 8px;">
+    <button onClick="{{ go.strategies }}" style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 0;border:none;background:transparent;color:#F5F5F7;font-family:inherit;font-size:16px;cursor:pointer;"><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;">chevron_left</span>strategies</button>
+    <button onClick="{{ go.strategies }}" style="margin-left:auto;height:44px;border:none;background:transparent;color:#2FD67B;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;">save as v4</button>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:16px;padding:8px 20px 24px;">
+    <h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;flex:none;">[strategy name]</h1>
+    <div role="radiogroup" aria-label="edit mode" style="display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:12px;background:#0F1113;border:1px solid #26292E;flex:none;">
+      <button role="radio" aria-checked="{{ em.p.on }}" onClick="{{ em.p.set }}" style="height:38px;border-radius:9px;border:none;background:{{ em.p.bg }};color:{{ em.p.fg }};font-family:inherit;font-size:14px;cursor:pointer;">plain language</button>
+      <button role="radio" aria-checked="{{ em.f.on }}" onClick="{{ em.f.set }}" style="height:38px;border-radius:9px;border:none;background:{{ em.f.bg }};color:{{ em.f.fg }};font-family:inherit;font-size:14px;cursor:pointer;">fields</button>
+    </div>
+    <sc-if value="{{ plain }}" hint-placeholder-val="{{ true }}">
+      <label style="display:flex;flex-direction:column;gap:8px;flex:none;"><span style="font-size:15px;">describe it like you'd tell a friend</span><textarea rows="6" style="resize:none;padding:14px;border-radius:12px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:inherit;font-size:15px;line-height:1.5;outline-color:#2FD67B;">i trade the london open on gold and euro. i wait for price to retest [level] and close above it on M15, only if the H4 trend agrees. no entries 30 minutes around big news. [1]% risk per trade.</textarea></label>
+      <div style="display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;font-family:'Geist Mono',monospace;flex:none;">
+        <span style="font-size:13px;color:#2FD67B;padding-bottom:6px;">&gt; doji reads this as 4 rules</span>
+        <sc-for list="{{ ruleList }}" as="r" hint-placeholder-count="4"><div style="display:flex;gap:12px;padding:10px 0;border-top:1px solid #17191C;font-size:13px;line-height:1.4;"><span style="color:#A1A1A6;">{{ r.n }}</span><span>{{ r.t }}</span></div></sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ fields }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;padding:4px 16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+        <div style="display:flex;align-items:center;min-height:52px;"><span style="font-size:15px;">setup</span><span style="margin-left:auto;font-size:15px;color:#A1A1A6;">[setup name]</span></div>
+        <div style="display:flex;align-items:center;min-height:52px;border-top:1px solid #17191C;"><span style="font-size:15px;">pairs</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">XAUUSD · EURUSD</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px 0;border-top:1px solid #17191C;"><span style="font-size:15px;">entry timeframe</span><div style="display:flex;gap:6px;"><sc-for list="{{ tfsE }}" as="t" hint-placeholder-count="5"><span style="min-width:44px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid {{ t.bd }};background:{{ t.bg }};color:{{ t.fg }};font-family:'Geist Mono',monospace;font-size:12px;">{{ t.l }}</span></sc-for></div></div>
+        <div style="display:flex;align-items:center;min-height:52px;border-top:1px solid #17191C;"><span style="font-size:15px;">bias timeframe</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">H4</span></div>
+        <div style="display:flex;align-items:center;min-height:52px;border-top:1px solid #17191C;"><span style="font-size:15px;">risk per trade</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">[1]%</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;padding:4px 16px;border-radius:16px;background:#0F1113;border:1px solid #26292E;flex:none;">
+        <sc-for list="{{ ruleList }}" as="r" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:12px;min-height:52px;border-top:1px solid #17191C;font-size:14px;"><span style="font-family:'Geist Mono',monospace;color:#A1A1A6;">{{ r.n }}</span><span style="flex:1;">{{ r.t }}</span><span aria-hidden="true" style="font-family:'Material Symbols Rounded';font-size:20px;color:#6E7279;">drag_indicator</span></div></sc-for>
+        <button style="height:48px;border:none;border-top:1px solid #17191C;background:transparent;color:#2FD67B;font-family:inherit;font-size:15px;text-align:left;cursor:pointer;padding:0;">+ add rule</button>
+      </div>
+    </sc-if>
+    <div style="display:flex;flex-direction:column;flex:none;">
+      <span style="font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.06em;color:#A1A1A6;padding-bottom:6px;">VERSION HISTORY</span>
+      <sc-for list="{{ versions }}" as="v" hint-placeholder-count="3">
+        <div style="display:flex;align-items:center;gap:12px;min-height:56px;border-top:1px solid #17191C;">
+          <span style="font-family:'Geist Mono',monospace;font-size:14px;width:28px;">{{ v.v }}</span>
+          <span style="display:flex;flex-direction:column;gap:3px;flex:1;"><span style="font-size:14px;">{{ v.d }}</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">[date]</span></span>
+          <sc-if value="{{ v.cur }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">current</span></sc-if>
+          <sc-if value="{{ v.old }}" hint-placeholder-val="{{ true }}"><button style="height:44px;padding:0 4px;border:none;background:transparent;color:#2FD67B;font-family:inherit;font-size:14px;cursor:pointer;">restore</button></sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ is.ask }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;">
+  <div style="flex:none;display:flex;align-items:center;gap:8px;height:44px;margin-top:{{ dim.top }}px;padding:0 16px 0 10px;">
+    <button onClick="{{ go.watch }}" aria-label="close" style="width:44px;height:44px;border:none;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">close</button>
+    <span style="display:flex;flex-direction:column;"><span style="font-size:16px;font-weight:600;">ask doji</span><span style="font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">general trading questions</span></span>
+  </div>
+  <sc-if value="{{ askEmpty }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;padding:0 20px 16px;">
+      <p style="margin:0 0 12px;font-family:'Geist Mono',monospace;font-size:20px;line-height:1.4;"><span style="color:#2FD67B;">&gt;</span> ask anything about trading.<span style="animation:dojiBlink 1s steps(1) infinite;">_</span></p>
+      <sc-for list="{{ askPrompts }}" as="g" hint-placeholder-count="3"><button onClick="{{ g.send }}" style="display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border-radius:16px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:inherit;font-size:15px;text-align:left;cursor:pointer;"><span style="flex:1;">{{ g.t }}</span><span aria-hidden="true" style="margin-left:auto;font-family:'Material Symbols Rounded';font-size:18px;color:#6E7279;">north_east</span></button></sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ askThread }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;padding:12px 20px 16px;">
+      <div style="align-self:flex-end;max-width:82%;padding:10px 14px;border-radius:16px 16px 4px 16px;background:#17191C;font-size:15px;line-height:1.4;">{{ askQ }}</div>
+      <sc-if value="{{ askThinking }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Geist Mono',monospace;font-size:15px;color:#2FD67B;">&gt; <span style="animation:dojiBlink 1s steps(1) infinite;">_</span></span></sc-if>
+      <sc-if value="{{ askDone }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px;animation:rise 320ms ease-out;">
+          <p style="margin:0;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.6;"><span style="color:#2FD67B;">&gt; </span>a liquidity sweep is when price pushes past an obvious high or low, triggers the orders resting there, then returns inside the range.</p>
+          <p style="margin:0;font-family:'Geist Mono',monospace;font-size:14px;line-height:1.6;"><span style="color:#2FD67B;">&gt; </span>many strategies wait for the return, not the push. if yours uses it, add it as a rule so the brief can check it.</p>
+          <span style="padding-top:10px;border-top:1px solid #26292E;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">measured against your strategy. not financial advice.</span>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+  <div style="flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px {{ dim.bot }}px;border-top:1px solid #26292E;">
+    <button aria-label="attach an image" style="width:44px;height:44px;flex:none;border-radius:22px;border:1px solid #26292E;background:transparent;color:#A1A1A6;cursor:pointer;font-family:'Material Symbols Rounded';font-size:20px;line-height:1;">add_photo_alternate</button>
+    <input aria-label="ask doji" placeholder="ask doji" style="flex:1;min-width:0;height:44px;box-sizing:border-box;padding:0 16px;border-radius:22px;border:1px solid #26292E;background:#0F1113;color:#F5F5F7;font-family:inherit;font-size:15px;outline-color:#2FD67B;">
+    <button aria-label="send" style="width:44px;height:44px;flex:none;border-radius:22px;border:none;background:#2FD67B;color:#050607;cursor:pointer;font-family:'Material Symbols Rounded';font-size:22px;line-height:1;">arrow_upward</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ tabs }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:none;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:6px 8px {{ dim.bot }}px;border-top:1px solid #26292E;background:rgba(5,6,7,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-size:10px;color:#A1A1A6;text-align:center;">
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">home</span>home</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#F5F5F7;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">candlestick_chart</span>markets</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;"><span aria-label="coach" style="width:56px;height:56px;margin-top:-22px;border-radius:28px;background:#0F1113;border:1px solid #26292E;display:flex;align-items:center;justify-content:center;"><span style="width:24px;height:24px;border-radius:12px;background:#2FD67B;box-shadow:0 0 18px rgba(47,214,123,0.45);"></span></span>coach</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">menu_book</span>journal</span>
+    <span style="display:flex;flex-direction:column;align-items:center;gap:3px;min-height:44px;justify-content:center;"><span style="font-family:'Material Symbols Rounded';font-size:24px;line-height:1;">person</span>me</span>
+  </div>
+</sc-if>
+<span aria-hidden="true" style="position:absolute;left:50%;bottom:8px;z-index:9;width:{{ dim.hi }}px;height:5px;margin-left:{{ dim.him }}px;border-radius:3px;background:#F5F5F7;opacity:0.85;pointer-events:none;"></span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;watchlist&quot;,&quot;search&quot;,&quot;pair&quot;,&quot;pairChat&quot;,&quot;pairLoading&quot;,&quot;pairClosed&quot;,&quot;pairError&quot;,&quot;pairNoStrategy&quot;,&quot;strategies&quot;,&quot;strategyEdit&quot;,&quot;strategyFields&quot;,&quot;askDoji&quot;,&quot;askChat&quot;],&quot;default&quot;:&quot;watchlist&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;platform&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ios&quot;,&quot;android&quot;],&quot;default&quot;:&quot;ios&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;pair&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:4,&quot;tsType&quot;:&quot;number&quot;}}">
+const PAIRS=[['XAUUSD','gold · spot','london',1,'forming'],['EURUSD','euro · us dollar','london',1,'met'],['GBPUSD','pound · us dollar','london',1,'waiting'],['NAS100','nasdaq 100','new york [14:30]',0,'waiting'],['USDJPY','us dollar · yen','tokyo',0,'waiting']];
+const ALL=[['XAUUSD','gold · spot','metals'],['XAGUSD','silver · spot','metals'],['EURUSD','euro · us dollar','forex'],['GBPUSD','pound · us dollar','forex'],['GBPJPY','pound · yen','forex'],['USDJPY','us dollar · yen','forex'],['NAS100','nasdaq 100','indices'],['US30','dow jones 30','indices'],['BTCUSD','bitcoin · us dollar','crypto']];
+const ST={met:{w:'conditions met',bd:'#2FD67B',fw:'100%',fg:'#F5F5F7'},forming:{w:'forming',bd:'#2FD67B',fw:'50%',fg:'#F5F5F7'},waiting:{w:'waiting',bd:'#A1A1A6',fw:'0%',fg:'#A1A1A6'}};
+const CT=['london session open','retest of [level] closes above on M15','H4 bias agrees','no high-impact news within 30 min'];
+const CS={forming:['met','waiting','met','not'],met:['met','met','met','met'],waiting:['met','waiting','waiting','not']};
+const CK={met:{w:'met',bg:'#2FD67B',bd:'#2FD67B',bs:'solid',g:'check',gc:'#050607',fg:'#F5F5F7'},not:{w:'not met',bg:'transparent',bd:'#A1A1A6',bs:'solid',g:'remove',gc:'#A1A1A6',fg:'#A1A1A6'},waiting:{w:'waiting',bg:'transparent',bd:'#A1A1A6',bs:'dashed',g:'',gc:'#A1A1A6',fg:'#A1A1A6'}};
+const NUM=['none','one','two','three','four'];
+const TF=['M5','M15','H1','H4','D1'];
+const RULES=['london or new york session only','retest of [level] with an M15 close above','H4 trend agrees with the entry','no entries 30 min around high-impact news'];
+const PAIR_STATES=['pair','pairLoading','pairClosed','pairError','pairNoStrategy','pairChat'];
+function candles(seed){let s=seed*7919+13;const r=()=>(s=(s*9301+49297)%233280)/233280;let p=100;const out=[];for(let i=0;i<36;i++){const o=p;const c=o+(r()-0.47)*3.2;const h=Math.max(o,c)+r()*1.5;const l=Math.min(o,c)-r()*1.5;out.push({o,c,h,l});p=c;}
+  const mx=Math.max(...out.map(k=>k.h)),mn=Math.min(...out.map(k=>k.l));const y=v=>(mx-v)/(mx-mn)*100;
+  return out.map(k=>{const up=k.c>=k.o;const bt=y(Math.max(k.o,k.c)),bb=y(Math.min(k.o,k.c));return {wt:y(k.h).toFixed(1)+'%',wh:(y(k.l)-y(k.h)).toFixed(1)+'%',bt:bt.toFixed(1)+'%',bh:Math.max(0.6,bb-bt).toFixed(1)+'%',bg:up?'#2FD67B':'#050607',bd:up?'#2FD67B':'#A1A1A6',wc:up?'#2FD67B':'#A1A1A6'};});}
+class Component extends DCLogic {
+  state={screen:null,pair:0,tf:1,sess:true,attach:false,draft:'',sent:'',sentImg:false,phase:'',cls:'all',added:['XAUUSD','EURUSD','GBPUSD','NAS100','USDJPY'],mode:'plain',activeIdx:0,askQ:'',askPhase:''};
+  componentDidUpdate(pp){if(pp.screen!==this.props.screen)this.setState({screen:null});}
+  componentWillUnmount(){clearTimeout(this.t1);clearTimeout(this.t2);}
+  send=(text)=>{const t=(text||this.state.draft||'').trim()||'why is the retest still waiting?';clearTimeout(this.t1);
+    this.setState(s=>({screen:'pairChat',sent:t,sentImg:s.attach,attach:false,draft:'',phase:'thinking'}));
+    this.t1=setTimeout(()=>this.setState({phase:'done'}),1100);};
+  ask=(q)=>{clearTimeout(this.t2);this.setState({screen:'askChat',askQ:q,askPhase:'thinking'});this.t2=setTimeout(()=>this.setState({askPhase:'done'}),1000);};
+  renderVals(){
+    const P=this.props,S=this.state;
+    const android=(P.platform??'ios')==='android';
+    const screen=S.screen??P.screen??'watchlist';
+    const set=o=>()=>this.setState(o);
+    const pi=S.screen?S.pair:(P.pair??S.pair);
+    const pr0=PAIRS[pi]||PAIRS[0];
+    const isPair=PAIR_STATES.includes(screen);
+    const loading=screen==='pairLoading',closed=screen==='pairClosed',error=screen==='pairError',nostrat=screen==='pairNoStrategy',thread=screen==='pairChat';
+    const stKey=closed?'waiting':pr0[4];
+    const cs=CS[stKey];const met=cs.filter(x=>x==='met').length;
+    const seg=on=>({on:String(on),bg:on?'#26292E':'transparent',fg:on?'#F5F5F7':'#A1A1A6'});
+    const openPair=i=>()=>{clearTimeout(this.t1);this.setState({screen:'pairLoading',pair:i,phase:''});this.t1=setTimeout(()=>this.setState({screen:'pair'}),1200);};
+    const chat=screen==='askChat';
+    return {
+      ios:!android,label:`markets · ${android?'android':'ios'} · ${screen}`,
+      dim:android?{w:412,h:915,r:36,sb:40,sbp:24,top:52,bot:24,hi:108,him:-54}:{w:390,h:844,r:48,sb:54,sbp:34,top:62,bot:34,hi:134,him:-67},
+      is:{watch:screen==='watchlist',search:screen==='search',pair:isPair,strategies:screen==='strategies',stratEdit:screen==='strategyEdit'||screen==='strategyFields',ask:screen==='askDoji'||chat},
+      tabs:screen==='watchlist'||screen==='strategies'||screen==='search',
+      rows:PAIRS.filter(p=>S.added.includes(p[0])).map(p=>{const i=PAIRS.indexOf(p);const s=ST[p[4]];return {p:p[0],n:p[1],sess:p[3]?p[2]:(p[2].includes('[')?p[2]:p[2]+' · closed'),sessBg:p[3]?'#A1A1A6':'transparent',s,aria:`${p[0]}, ${p[2]} session, strategy ${s.w}`,open:openPair(i)};}),
+      q:S.q||'',setQ:e=>this.setState({q:e.target.value}),
+      classes:['all','forex','metals','indices','crypto'].map(l=>({l,on:String(S.cls===l),bd:S.cls===l?'#F5F5F7':'#26292E',bg:S.cls===l?'#F5F5F7':'transparent',fg:S.cls===l?'#050607':'#F5F5F7',pick:set({cls:l})})),
+      results:ALL.filter(a=>(S.cls==='all'||a[2]===S.cls)&&(!S.q||a[0].toLowerCase().includes(S.q.toLowerCase()))).map(a=>{const on=S.added.includes(a[0]);return {p:a[0],n:a[1],on:String(on),g:on?'check':'add',bd:on?'#2FD67B':'#26292E',bg:on?'#2FD67B':'transparent',fg:on?'#050607':'#F5F5F7',aria:on?`remove ${a[0]}`:`add ${a[0]}`,
+        toggle:()=>this.setState(x=>({added:x.added.includes(a[0])?x.added.filter(k=>k!==a[0]):[...x.added,a[0]]}))};}),
+      pr:{p:pr0[0],n:pr0[1],sess:pr0[3]&&!closed?pr0[2]+' open':'closed',sessBg:pr0[3]&&!closed?'#A1A1A6':'transparent',s:ST[stKey]},
+      ps:{thread,detail:!thread,loading,closed,error,nostrat,chart:!loading&&!error,brief:!nostrat,full:!loading&&!closed&&!nostrat,chips:!thread&&!nostrat,thinking:thread&&S.phase==='thinking',answered:thread&&S.phase!=='thinking'},
+      chartOp:closed?0.4:1,chartAria:`${pr0[0]} ${TF[S.tf]} candlestick chart. filled candles close higher, hollow candles close lower.`,
+      metLine:`${NUM[met]} of four conditions met`,metShort:`${met}/4 met`,briefStamp:error?'stale · [time]':'updated [time]',
+      tfs:TF.map((l,i)=>({l,...seg(i===S.tf),pick:set({tf:i})})),
+      tfsE:TF.map((l,i)=>({l,bd:i===1?'#2FD67B':'#26292E',bg:i===1?'rgba(47,214,123,0.10)':'transparent',fg:i===1?'#F5F5F7':'#A1A1A6'})),
+      candles:candles(pi*5+S.tf+1),
+      sessOn:String(S.sess),sessOnB:S.sess,sessBd:S.sess?'#F5F5F7':'#26292E',sessFg:S.sess?'#F5F5F7':'#A1A1A6',toggleSess:()=>this.setState(s=>({sess:!s.sess})),
+      conds:CT.map((t,i)=>({t,...CK[cs[i]]})),
+      sugg:['why is the retest still waiting?','what would invalidate this?','explain the H4 bias'].map(t=>({t,send:()=>this.send(t)})),
+      attach:S.attach,toggleAttach:()=>this.setState(s=>({attach:!s.attach})),
+      draft:S.draft,setDraft:e=>this.setState({draft:e.target.value}),enterSend:e=>{if(e.key==='Enter')this.send();},sendDraft:()=>this.send(),
+      askLabel:`ask about ${pr0[0]}`,
+      sent:S.sent,sentText:S.sent||'why is the retest still waiting?',sentImg:S.screen?S.sentImg:true,
+      strats:[{name:'[strategy name]',v:'v3',setups:'[setup name] · retest',tf:'entry M15 · bias H4',rules:'4 rules · [1]% risk'},{name:'[strategy 2]',v:'v1',setups:'[setup name]',tf:'entry H1 · bias D1',rules:'3 rules · [0.5]% risk'}]
+        .map((s,i)=>({...s,active:i===S.activeIdx,inactive:i!==S.activeIdx,bd:i===S.activeIdx?'rgba(47,214,123,0.45)':'#26292E',activate:set({activeIdx:i})})),
+      em:{p:{...seg(S.mode==='plain'&&screen!=='strategyFields'),set:set({mode:'plain',screen:'strategyEdit'})},f:{...seg(S.mode==='fields'||screen==='strategyFields'),set:set({mode:'fields',screen:'strategyEdit'})}},
+      plain:S.mode==='plain'&&screen!=='strategyFields',fields:S.mode==='fields'||screen==='strategyFields',
+      ruleList:RULES.map((t,i)=>({n:i+1,t})),
+      versions:[['v3','added the news rule',1],['v2','bias moved from H1 to H4',0],['v1','first version, from onboarding',0]].map(([v,d,c])=>({v,d,cur:!!c,old:!c})),
+      askEmpty:screen==='askDoji',askThread:chat,askQ:S.askQ||'what is a liquidity sweep?',askThinking:chat&&S.askPhase==='thinking',askDone:chat&&S.askPhase!=='thinking',
+      askPrompts:['what is a liquidity sweep?','how do i size a trade for 1% risk?','why do sessions matter for gold?'].map(t=>({t,send:()=>this.ask(t)})),
+      go:{watch:set({screen:'watchlist'}),search:set({screen:'search'}),ask:set({screen:'askDoji'}),strategies:set({screen:'strategies'}),stratEdit:set({screen:'strategyEdit'}),
+        pair:set({screen:'pair'}),retry:openPair(pi)}
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -11,6 +11,7 @@ import '../../../core/theme/typography.dart';
 import '../../../core/widgets/widgets.dart';
 import '../../home/presentation/widgets/home_card.dart';
 import '../domain/journal_stats.dart';
+import '../../analyst/presentation/weekly_review_card.dart';
 import 'journal_controller.dart';
 import 'widgets/dashed_border.dart';
 import 'widgets/equity_curve.dart';
@@ -37,6 +38,7 @@ class JournalScreen extends ConsumerWidget {
     final currency = ref.watch(accountCurrencyProvider);
     final notifier = ref.read(journalViewProvider.notifier);
     final now = clock.now();
+    final accountTrades = ref.watch(activeAccountTradesProvider).length;
 
     final header = Row(
       children: [
@@ -116,7 +118,16 @@ class JournalScreen extends ConsumerWidget {
         if (all.length < kInsightsFromTrades) _TooFewBanner(count: all.length),
         JournalStatRow(stats: JournalStatRow.from(stats, currency.symbol)),
         EquityCurve(stats: stats, currencySymbol: currency.symbol),
-        if (all.length < kInsightsFromTrades) const _InsightsLocked(),
+        if (accountTrades < kInsightsFromTrades)
+          _InsightsLocked(count: accountTrades)
+        else ...[
+          const WeeklyReviewCard(),
+          DojiButton(
+            label: 'ask the analyst',
+            variant: DojiButtonVariant.outline,
+            onPressed: () => unawaited(showAnalystChatSheet(context)),
+          ),
+        ],
         ResultHeatmap(
           month: now,
           today: now,
@@ -234,7 +245,10 @@ class _TooFewBanner extends StatelessWidget {
 }
 
 class _InsightsLocked extends StatelessWidget {
-  const _InsightsLocked();
+  const _InsightsLocked({required this.count});
+
+  /// Trades on the active account.
+  final int count;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -258,7 +272,8 @@ class _InsightsLocked extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'patterns from a handful of trades are mostly noise. your process grades already count.',
+              'the analyst, the weekly review and its questions read $kInsightsFromTrades trades before they say '
+              'anything; this account has $count. patterns from a handful of trades are mostly noise.',
               style: DojiType.callout.copyWith(fontSize: 14, height: 1.5),
             ),
           ],

@@ -25,6 +25,7 @@ class TradesScreen extends ConsumerWidget {
     final symbol = ref.watch(accountCurrencyProvider).symbol;
     final shown = view.filter.apply(all);
     final active = view.filter.activeGroups;
+    final names = {for (final a in ref.watch(journalProfileProvider).accounts) a.id: a.name};
 
     return JournalPage(
       children: [
@@ -57,7 +58,7 @@ class TradesScreen extends ConsumerWidget {
               for (final g in FilterGroup.values) ...[
                 const SizedBox(width: 6),
                 _FilterChip(
-                  label: view.filter.chipLabel(g),
+                  label: view.filter.chipLabel(g, name: (id) => names[id] ?? id),
                   selected: false,
                   outlined: view.filter.of(g).isNotEmpty,
                   onTap: () => unawaited(showFiltersSheet(context)),

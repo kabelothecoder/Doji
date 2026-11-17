@@ -10,18 +10,23 @@ _ProfileDoji _$ProfileDojiFromJson(Map<String, dynamic> json) => _ProfileDoji(
   name: json['name'] as String?,
   experience: json['experience'] as String?,
   style: json['style'] as String?,
-  instruments: (json['instruments'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
   sessions: (json['sessions'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
+  availability: json['availability'] as String?,
+  availabilityCheckedAt: json['availabilityCheckedAt'] == null
+      ? null
+      : DateTime.parse(json['availabilityCheckedAt'] as String),
   timeZone: json['timeZone'] as String?,
   utcOffsetMinutes: (json['utcOffsetMinutes'] as num?)?.toInt(),
   goal: json['goal'] as String?,
-  prop: json['prop'] == null ? null : PropRules.fromJson(json['prop'] as Map<String, dynamic>),
-  accountCurrency: json['accountCurrency'] as String? ?? 'USD',
   struggles: (json['struggles'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
-  strategy: json['strategy'] == null
-      ? null
-      : StrategyProfile.fromJson(json['strategy'] as Map<String, dynamic>),
-  rules: json['rules'] == null ? null : TradingRules.fromJson(json['rules'] as Map<String, dynamic>),
+  riskAppetite: json['riskAppetite'] as String?,
+  usualDeposit: json['usualDeposit'] as String?,
+  accounts:
+      (json['accounts'] as List<dynamic>?)
+          ?.map((e) => TradingAccount.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <TradingAccount>[],
+  activeAccountId: json['activeAccountId'] as String?,
   coach: json['coach'] == null ? null : CoachProfile.fromJson(json['coach'] as Map<String, dynamic>),
   theOpenTime: json['theOpenTime'] as String?,
   notificationsAllowed: json['notificationsAllowed'] as bool?,
@@ -36,16 +41,17 @@ Map<String, dynamic> _$ProfileDojiToJson(_ProfileDoji instance) => <String, dyna
   'name': ?instance.name,
   'experience': ?instance.experience,
   'style': ?instance.style,
-  'instruments': instance.instruments,
   'sessions': instance.sessions,
+  'availability': ?instance.availability,
+  'availabilityCheckedAt': ?instance.availabilityCheckedAt?.toIso8601String(),
   'timeZone': ?instance.timeZone,
   'utcOffsetMinutes': ?instance.utcOffsetMinutes,
   'goal': ?instance.goal,
-  'prop': ?instance.prop?.toJson(),
-  'accountCurrency': instance.accountCurrency,
   'struggles': instance.struggles,
-  'strategy': ?instance.strategy?.toJson(),
-  'rules': ?instance.rules?.toJson(),
+  'riskAppetite': ?instance.riskAppetite,
+  'usualDeposit': ?instance.usualDeposit,
+  'accounts': instance.accounts.map((e) => e.toJson()).toList(),
+  'activeAccountId': ?instance.activeAccountId,
   'coach': ?instance.coach?.toJson(),
   'theOpenTime': ?instance.theOpenTime,
   'notificationsAllowed': ?instance.notificationsAllowed,
@@ -61,6 +67,15 @@ _StrategyProfile _$StrategyProfileFromJson(Map<String, dynamic> json) => _Strate
   template: json['template'] as String?,
   source: json['source'] as String?,
   parsed: json['parsed'] == null ? null : ParsedStrategy.fromJson(json['parsed'] as Map<String, dynamic>),
+  conditions:
+      (json['conditions'] as List<dynamic>?)
+          ?.map((e) => StrategyCondition.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const <StrategyCondition>[],
+  exits: json['exits'] == null ? null : ExitRules.fromJson(json['exits'] as Map<String, dynamic>),
+  wrongWhen: json['wrongWhen'] as String?,
+  rightWhen: json['rightWhen'] as String?,
+  stayOutWhen: json['stayOutWhen'] as String?,
 );
 
 Map<String, dynamic> _$StrategyProfileToJson(_StrategyProfile instance) => <String, dynamic>{
@@ -68,7 +83,28 @@ Map<String, dynamic> _$StrategyProfileToJson(_StrategyProfile instance) => <Stri
   'template': ?instance.template,
   'source': ?instance.source,
   'parsed': ?instance.parsed?.toJson(),
+  'conditions': instance.conditions.map((e) => e.toJson()).toList(),
+  'exits': ?instance.exits?.toJson(),
+  'wrongWhen': ?instance.wrongWhen,
+  'rightWhen': ?instance.rightWhen,
+  'stayOutWhen': ?instance.stayOutWhen,
 };
+
+_ExitRules _$ExitRulesFromJson(Map<String, dynamic> json) => _ExitRules(
+  stop: $enumDecodeNullable(_$StopRuleEnumMap, json['stop']) ?? StopRule.brokenLevel,
+  bufferOfRange: (json['bufferOfRange'] as num?)?.toDouble() ?? 0.1,
+  targetR: (json['targetR'] as num?)?.toDouble() ?? 2.0,
+  maxBarsOpen: (json['maxBarsOpen'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$ExitRulesToJson(_ExitRules instance) => <String, dynamic>{
+  'stop': _$StopRuleEnumMap[instance.stop]!,
+  'bufferOfRange': instance.bufferOfRange,
+  'targetR': instance.targetR,
+  'maxBarsOpen': ?instance.maxBarsOpen,
+};
+
+const _$StopRuleEnumMap = {StopRule.brokenLevel: 'broken_level', StopRule.rangeOpposite: 'range_opposite'};
 
 _ParsedStrategy _$ParsedStrategyFromJson(Map<String, dynamic> json) => _ParsedStrategy(
   setup: json['setup'] as String?,
@@ -90,12 +126,22 @@ _TradingRules _$TradingRulesFromJson(Map<String, dynamic> json) => _TradingRules
   riskPerTrade: (json['riskPerTrade'] as num?)?.toDouble(),
   maxTradesPerDay: (json['maxTradesPerDay'] as num?)?.toInt(),
   dailyLossLimit: (json['dailyLossLimit'] as num?)?.toDouble(),
+  dailyGainCap: (json['dailyGainCap'] as num?)?.toDouble(),
+  giveBackPct: (json['giveBackPct'] as num?)?.toDouble(),
+  oneAndDone: json['oneAndDone'] as bool?,
+  noTradesBefore: json['noTradesBefore'] as String?,
+  noTradesAfter: json['noTradesAfter'] as String?,
 );
 
 Map<String, dynamic> _$TradingRulesToJson(_TradingRules instance) => <String, dynamic>{
   'riskPerTrade': ?instance.riskPerTrade,
   'maxTradesPerDay': ?instance.maxTradesPerDay,
   'dailyLossLimit': ?instance.dailyLossLimit,
+  'dailyGainCap': ?instance.dailyGainCap,
+  'giveBackPct': ?instance.giveBackPct,
+  'oneAndDone': ?instance.oneAndDone,
+  'noTradesBefore': ?instance.noTradesBefore,
+  'noTradesAfter': ?instance.noTradesAfter,
 };
 
 _CoachProfile _$CoachProfileFromJson(Map<String, dynamic> json) =>

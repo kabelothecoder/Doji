@@ -58,6 +58,9 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
   final _search = TextEditingController();
   final _searchFocus = FocusNode();
 
+  /// Markets only: one group at a time, or null for all of them.
+  InstrumentGroup? _group;
+
   bool get _isMarkets => widget.args.step.id == StepIds.markets;
   bool get _isSessions => widget.args.step.id == StepIds.sessions;
 
@@ -93,7 +96,7 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
     mono: options[i].mono,
     selected: selected.contains(options[i].value),
     // Number keys map to the unfiltered list, so hide hints while searching.
-    keyHint: q.isEmpty && i < 9 ? '${i + 1}' : null,
+    keyHint: q.isEmpty && _group == null && i < 9 ? '${i + 1}' : null,
     onTap: () => _toggle(options[i].value),
   );
 
@@ -167,7 +170,15 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
       for (final s in selected)
         if (!base.any((o) => o.value == s)) StepOption(s, s, mono: true),
     ];
-    final options = [...base.where((o) => _matches(o, q)), ...custom];
+    final groups = _isMarkets
+        ? {for (final o in base) ?instrumentBySymbol(o.value)?.group}.toList()
+        : const <InstrumentGroup>[];
+    bool inGroup(StepOption o) =>
+        _group == null || q.isNotEmpty || instrumentBySymbol(o.value)?.group == _group;
+    final options = [
+      ...base.where((o) => _matches(o, q) && inGroup(o)),
+      if (_group == null || q.isNotEmpty) ...custom,
+    ];
     final exact = base.any((o) => instrumentIsExact(o.value, q));
     final canAdd = _isMarkets && q.isNotEmpty && !exact && _symbolPattern.hasMatch(q);
     final r = BorderRadius.circular(DojiChoiceChip.radiusFor(Theme.of(context).platform));
@@ -214,6 +225,33 @@ class _MultiChoiceInputState extends State<MultiChoiceInput> {
             ),
           ),
           const SizedBox(height: 12),
+          if (q.isEmpty) ...[
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final g in <InstrumentGroup?>[null, ...groups]) ...[
+                    DojiChoiceChip(
+                      style: DojiChoiceStyle.chip,
+                      label: g?.label ?? 'all',
+                      exclusive: true,
+                      selected: _group == g,
+                      onTap: () => setState(() => _group = g),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (selected.isNotEmpty) ...[
+            Text(
+              '${selected.length} picked: ${selected.map((v) => instrumentBySymbol(v)?.displayLabel ?? v).join(', ')}',
+              style: DojiType.hint,
+            ),
+            const SizedBox(height: 12),
+          ],
         ],
         if (_isMarkets && q.isEmpty)
           ..._groupedMarkets(options, selected, canAdd: canAdd, q: q)

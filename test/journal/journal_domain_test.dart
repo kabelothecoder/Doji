@@ -18,6 +18,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'journal_fixtures.dart';
+import '../helpers/sample_profile.dart';
 
 void main() {
   const rates = PlaceholderRateSource();
@@ -471,10 +472,10 @@ void main() {
   });
 
   group('Home reads the journal', () {
-    const profile = ProfileDoji(
+    final profile = profileWith(
       name: 'sam',
       instruments: ['XAUUSD'],
-      rules: TradingRules(riskPerTrade: 1, maxTradesPerDay: 3, dailyLossLimit: 2),
+      rules: const TradingRules(riskPerTrade: 1, maxTradesPerDay: 3, dailyLossLimit: 2),
     );
 
     test('no trades: nothing taken, nothing lost, no tilt', () {
@@ -505,10 +506,10 @@ void main() {
     });
 
     test('a prop challenge gets a real drawdown from the trades, in the type the user chose', () {
-      const prop = ProfileDoji(
+      final prop = profileWith(
         instruments: ['XAUUSD'],
-        prop: PropRules(
-          accountSize: 10000,
+        startingSize: 10000,
+        prop: const PropRules(
           maxDrawdownPct: 10,
           dailyLossLimitPct: 5,
           drawdownType: DrawdownType.trailing,
@@ -531,7 +532,7 @@ void main() {
     });
 
     test('a prop firm without an account size gets no drawdown meter, not an invented one', () {
-      const prop = ProfileDoji(instruments: ['XAUUSD'], prop: PropRules(maxDrawdownPct: 10));
+      final prop = profileWith(instruments: ['XAUUSD'], prop: const PropRules(maxDrawdownPct: 10));
       final snap = HomeSnapshot.fromJournal(prop, trades: const [], now: journalNow);
       expect(snap.usage.where((u) => u.label.startsWith('prop')), isEmpty);
     });

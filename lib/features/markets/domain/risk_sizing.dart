@@ -13,7 +13,8 @@ abstract final class RiskSizing {
   /// [accountBalance] (held in [accountCurrency]) if price moves
   /// [stopDistance] (in price units) against you.
   ///
-  /// Null when the instrument's sizing data is unknown, the rate is unknown,
+  /// Null when the instrument's sizing data is unknown, the rate is unknown or
+  /// stale ([RateSource.rate] answers null for a rate older than its max age),
   /// or any input is not positive: doji does not guess a size.
   static double? contractsForRisk({
     required Instrument instrument,

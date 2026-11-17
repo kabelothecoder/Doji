@@ -5,8 +5,8 @@ import 'profile_doji.dart';
 ///
 /// Implementations:
 /// - `MockStrategyParser` (data/): keyword matching, offline, ships now.
-/// - TODO(next-slice): `SupabaseStrategyParser` calling the `parse-strategy`
-///   Edge Function, which calls the LLM. Fall back to the mock when offline.
+/// - `SupabaseStrategyReader` (accounts/data/): Gemini through the
+///   `ai-strategy` edge function, the mock as its fallback.
 abstract interface class StrategyParser {
   Future<ParsedStrategy> parse(String description);
 }

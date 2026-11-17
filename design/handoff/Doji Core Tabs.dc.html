@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,200..500,0..1,0&display=block">
+<style>
+body{margin:0;background:#0B0C0E;}
+a{color:#2FD67B;}a:hover{color:#F5F5F7;}
+</style>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:88px;padding:80px;font-family:'Geist',system-ui,sans-serif;color:#F5F5F7;-webkit-font-smoothing:antialiased;width:2200px;">
+
+<div style="display:flex;flex-direction:column;gap:14px;max-width:860px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#2FD67B;">&gt; doji / core tabs + daily use</span>
+  <h1 style="margin:0;font-size:48px;font-weight:600;letter-spacing:-0.03em;">markets, coach, journal, me</h1>
+  <p style="margin:0;font-size:17px;line-height:1.5;color:#A1A1A6;text-wrap:pretty;">every phone frame is live. frames marked "prototype start" run a flow end to end; the others open on a fixed state and still respond to taps. 812 is sample data; bracketed values are placeholders. iPhone 390×844, Android 412×915.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;padding-top:6px;">
+    <sc-for list="{{ nav }}" as="n" hint-placeholder-count="12"><a href="{{ n.h }}" style="height:32px;display:flex;align-items:center;padding:0 12px;border-radius:999px;border:1px solid #26292E;font-family:'Geist Mono',monospace;font-size:12px;color:#F5F5F7;text-decoration:none;">{{ n.l }}</a></sc-for>
+  </div>
+</div>
+
+<section id="prototypes" data-screen-label="Prototypes" style="display:flex;flex-direction:column;gap:20px;max-width:1400px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">00 · clickable prototypes</span>
+  <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;">
+    <sc-for list="{{ protos }}" as="p" hint-placeholder-count="5">
+      <a href="{{ p.h }}" style="display:flex;flex-direction:column;gap:10px;padding:18px;border-radius:16px;background:#0F1113;border:1px solid #26292E;text-decoration:none;color:#F5F5F7;">
+        <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#2FD67B;">{{ p.n }}</span>
+        <span style="font-size:17px;font-weight:600;">{{ p.t }}</span>
+        <span style="font-size:14px;line-height:1.5;color:#A1A1A6;text-wrap:pretty;">{{ p.d }}</span>
+      </a>
+    </sc-for>
+  </div>
+</section>
+
+<section id="markets" data-screen-label="Markets" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">01 · markets · the built-in AI · iOS</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <sc-for list="{{ markets }}" as="f" hint-placeholder-count="9"><div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:{{ f.c }};">{{ f.l }}</span><dc-import name="Doji Markets Phone" screen="{{ f.s }}" hint-size="390px,844px"></dc-import></div></sc-for>
+  </div>
+</section>
+
+<section id="pair-states" data-screen-label="Pair states" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">01b · pair detail · states</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <sc-for list="{{ pairStates }}" as="f" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ f.l }}</span><dc-import name="Doji Markets Phone" screen="{{ f.s }}" hint-size="390px,844px"></dc-import></div></sc-for>
+  </div>
+</section>
+
+<section id="coach" data-screen-label="Coach" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">02 · coach · iOS</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <sc-for list="{{ coach }}" as="f" hint-placeholder-count="11"><div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:{{ f.c }};">{{ f.l }}</span><dc-import name="Doji Coach Phone" screen="{{ f.s }}" hint-size="390px,844px"></dc-import></div></sc-for>
+  </div>
+</section>
+
+<section id="journal" data-screen-label="Journal" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">03 · journal · now a trading journal · iOS · full set: <a href="Doji Trade Journal.dc.html">doji trade journal</a></span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <sc-for list="{{ journal }}" as="f" hint-placeholder-count="5"><div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:{{ f.c }};">{{ f.l }}</span><dc-import name="Doji Trade Journal Phone" screen="{{ f.s }}" hint-size="390px,844px"></dc-import></div></sc-for>
+  </div>
+</section>
+
+<section id="mood" data-screen-label="Mood and emotion" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">04 · mood and emotion · from journal and me</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <sc-for list="{{ mood }}" as="f" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ f.l }}</span><dc-import name="Doji Trade Journal Phone" screen="{{ f.s }}" hint-size="390px,844px"></dc-import></div></sc-for>
+  </div>
+</section>
+
+<section id="toolkit" data-screen-label="Mind toolkit" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">05 · mind toolkit · from me</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <sc-for list="{{ toolkit }}" as="f" hint-placeholder-count="5"><div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">{{ f.l }}</span><dc-import name="Doji Me Phone" screen="{{ f.s }}" hint-size="390px,844px"></dc-import></div></sc-for>
+  </div>
+</section>
+
+<section id="me" data-screen-label="Me and the Grid" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">06 · me · profile, the grid, share, badges</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <sc-for list="{{ me }}" as="f" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:{{ f.c }};">{{ f.l }}</span><dc-import name="Doji Me Phone" screen="{{ f.s }}" hint-size="390px,844px"></dc-import></div></sc-for>
+  </div>
+</section>
+
+<section id="share-cards" data-screen-label="Share cards" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">06b · share cards · export size 1080×1920 and 1080×1080, shown at 40%</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">story · 1080×1920</span><div style="border:1px solid #26292E;"><dc-import name="Doji Share Card" variant="story" scale="0.4" hint-size="432px,768px"></dc-import></div></div>
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">post · 1080×1080</span><div style="border:1px solid #26292E;"><dc-import name="Doji Share Card" variant="square" scale="0.4" hint-size="432px,432px"></dc-import></div></div>
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:360px;padding:20px;border-radius:16px;border:1px dashed #26292E;">
+      <span style="font-family:'Geist Mono',monospace;font-size:13px;">contents</span>
+      <p style="margin:0;font-size:14px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;">logo, @handle, the year's grid as two half-year blocks, rank and streak. profit, balance and lot sizes are never on the card, and the share sheet says so. rendered in Flutter with RepaintBoundary.toImage at pixelRatio so the PNG is exactly 1080 wide.</p>
+    </div>
+  </div>
+</section>
+
+<section id="settings" data-screen-label="Settings" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">07 · settings</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">top</span><dc-import name="Doji Me Phone" screen="settings" hint-size="390px,844px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">scrolled to the end</span><dc-import name="Doji Me Phone" screen="settingsBottom" hint-size="390px,844px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:360px;padding:20px;border-radius:16px;border:1px dashed #26292E;">
+      <span style="font-family:'Geist Mono',monospace;font-size:13px;">notes</span>
+      <p style="margin:0;font-size:14px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;">delete account and sign out reuse the flow already designed in <a href="Doji Sign-in iOS.dc.html">Doji Sign-in iOS</a>. "my rules" and "my strategy" open the same editors as onboarding and Markets. Guard is listed but disabled until it ships. text size and reduce motion follow the system and are shown here so people know where they come from.</p>
+    </div>
+  </div>
+</section>
+
+<section id="panic" data-screen-label="Panic flow" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">08 · "i blew my account" · calm takeover · from me, the coach, or a long-press on home's tilt banner</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <sc-for list="{{ panic }}" as="f" hint-placeholder-count="6"><div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:{{ f.c }};">{{ f.l }}</span><dc-import name="Doji Panic Phone" screen="{{ f.s }}" hint-size="390px,844px"></dc-import></div></sc-for>
+  </div>
+</section>
+
+<section id="android" data-screen-label="Android" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">09 · android · 412×915</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">markets · watchlist</span><dc-import name="Doji Markets Phone" platform="android" screen="watchlist" hint-size="412px,915px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">markets · pair detail</span><dc-import name="Doji Markets Phone" platform="android" screen="pair" hint-size="412px,915px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">coach · orb</span><dc-import name="Doji Coach Phone" platform="android" screen="idle" hint-size="412px,915px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">journal · home</span><dc-import name="Doji Trade Journal Phone" platform="android" screen="home" hint-size="412px,915px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">me · profile and grid</span><dc-import name="Doji Me Phone" platform="android" screen="profile" hint-size="412px,915px"></dc-import></div>
+  </div>
+</section>
+
+<section id="a11y" data-screen-label="Accessibility" style="display:flex;flex-direction:column;gap:24px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">10 · accessibility · reduce motion and large text</span>
+  <div style="display:flex;gap:48px;flex-wrap:wrap;align-items:flex-start;">
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">coach orb · reduce motion (speaking)</span><dc-import name="Doji Coach Phone" screen="speaking" motion="reduced" hint-size="390px,844px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">breathing · reduce motion</span><dc-import name="Doji Panic Phone" screen="breathe" motion="reduced" hint-size="390px,844px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">grid · reduce motion (no stagger)</span><dc-import name="Doji Me Phone" screen="profile" motion="reduced" hint-size="390px,844px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:12px;"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#A1A1A6;">journal · text at 130%</span><dc-import name="Doji Trade Journal Phone" screen="home" text-scale="1.3" hint-size="390px,844px"></dc-import></div>
+    <div style="display:flex;flex-direction:column;gap:14px;max-width:380px;padding:20px;border-radius:16px;border:1px dashed #26292E;">
+      <span style="font-family:'Geist Mono',monospace;font-size:13px;">rules applied on every screen</span>
+      <sc-for list="{{ a11y }}" as="a" hint-placeholder-count="6"><p style="margin:0;font-size:14px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;"><span style="color:#F5F5F7;">{{ a.h }}</span> {{ a.b }}</p></sc-for>
+    </div>
+  </div>
+</section>
+
+<section id="spec" data-screen-label="Component spec" style="display:flex;flex-direction:column;gap:24px;width:1600px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">11 · component spec · flutter widgets</span>
+  <p style="margin:0;max-width:900px;font-size:15px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;">reused as-is from Home and the design system: AiBriefCard (brief header + footer), MiniGrid (FullGrid is its 53-week form), RankPill, TerminalLine (every "&gt;" line), CoachOrbTab (tab bar), RuleMeter (risk note). new widgets below.</p>
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;">
+    <sc-for list="{{ spec }}" as="c" hint-placeholder-count="24">
+      <div style="display:flex;flex-direction:column;gap:10px;padding:20px;border-radius:16px;background:#0F1113;border:1px solid #26292E;">
+        <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:'Geist Mono',monospace;font-size:15px;color:#2FD67B;">{{ c.n }}</span><span style="margin-left:auto;font-family:'Geist Mono',monospace;font-size:11px;color:#A1A1A6;">{{ c.a }}</span></div>
+        <p style="margin:0;font-size:14px;line-height:1.5;color:#A1A1A6;text-wrap:pretty;">{{ c.d }}</p>
+        <pre style="margin:0;white-space:pre-wrap;font-family:'Geist Mono',monospace;font-size:12px;line-height:1.6;color:#F5F5F7;">{{ c.p }}</pre>
+        <span style="padding-top:8px;border-top:1px solid #26292E;font-family:'Geist Mono',monospace;font-size:11px;line-height:1.5;color:#A1A1A6;">{{ c.f }}</span>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section id="research" data-screen-label="Research notes" style="display:flex;flex-direction:column;gap:24px;width:1400px;">
+  <span style="font-family:'Geist Mono',monospace;font-size:13px;color:#A1A1A6;">12 · research notes · mobbin patterns, not pixels</span>
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;">
+    <sc-for list="{{ research }}" as="r" hint-placeholder-count="10">
+      <div style="display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:16px;background:#0F1113;border:1px solid #26292E;">
+        <span style="font-size:15px;font-weight:600;">{{ r.s }}</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:12px;color:#2FD67B;">{{ r.a }}</span>
+        <p style="margin:0;font-size:14px;line-height:1.5;color:#A1A1A6;text-wrap:pretty;">{{ r.p }}</p>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px;padding:20px;border-radius:16px;border:1px dashed #26292E;max-width:900px;">
+    <span style="font-family:'Geist Mono',monospace;font-size:13px;">open items</span>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#A1A1A6;text-wrap:pretty;">the "Doji brand assets" project wasn't reachable from here, so the pledge backdrop isn't on the panic flow's calm screens yet; it would sit behind step 1 at 30% or less. no Higgsfield credits were used. instrument symbols (XAUUSD, EURUSD…) match Home; every price, level, time and count is a placeholder. mood and grid patterns are marked sample data.</p>
+  </div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const F=(s,l,start)=>({s,l:start?l+' · prototype start':l,c:start?'#2FD67B':'#A1A1A6'});
+class Component extends DCLogic {
+  renderVals(){
+    return {
+      nav:[['prototypes','#prototypes'],['markets','#markets'],['pair states','#pair-states'],['coach','#coach'],['journal','#journal'],['mood','#mood'],['toolkit','#toolkit'],['me + grid','#me'],['share cards','#share-cards'],['settings','#settings'],['panic flow','#panic'],['android','#android'],['accessibility','#a11y'],['spec','#spec'],['research','#research']].map(([l,h])=>({l,h})),
+      protos:[
+        {n:'01',t:'markets → pair → brief → follow-up',d:'tap XAUUSD on the watchlist. the brief loads, then tap a suggestion or type below the chart. the answer arrives in the pair thread.',h:'#markets'},
+        {n:'02',t:'hold to talk → summary → history',d:'press and hold "hold to talk", let go. the coach thinks, then speaks. end session, then save to coach history.',h:'#coach'},
+        {n:'03',t:'trade imported → review → leak → rule',d:'review the imported trade, open the leak insight, see the trades, then add it as a rule.',h:'Doji Trade Journal.dc.html#proto'},
+        {n:'04',t:'me → share the grid',d:'tap share on the grid card, switch story and post, then share or save.',h:'#me'},
+        {n:'05',t:'panic flow, end to end',d:'breathe, ground, pause, talk, support, a gentle check-in tomorrow. close or done returns to the start.',h:'#panic'}
+      ],
+      markets:[F('watchlist','watchlist',1),F('search','search to add pairs'),F('pair','pair detail · chart + brief'),F('pairChat','scoped follow-up'),F('strategies','strategy manager'),F('strategyEdit','edit · plain language'),F('strategyFields','edit · structured fields'),F('askDoji','ask doji · empty'),F('askChat','ask doji · answer')],
+      pairStates:[['pairLoading','loading · cursor'],['pairClosed','market closed'],['pairError','feed error'],['pairNoStrategy','no strategy yet']].map(([s,l])=>({s,l})),
+      coach:[F('idle','idle · breathing',1),F('listening','listening · held'),F('thinking','thinking'),F('speaking','speaking · ripples'),F('transcript','live transcript'),F('voices','voice picker'),F('textMode','text mode'),F('summary','session summary'),F('saved','saved to journal'),F('noMinutes','voice minutes used'),F('distress','distress detected')],
+      journal:[F('imported','trade imported',1),F('home','journal home'),F('trade','trade detail'),F('insights','insights feed'),F('empty','empty')],
+      mood:[['checkin','daily check-in'],['checkinDone','checked in'],['emotion','emotion tracker'],['charts','trend + before vs after']].map(([s,l])=>({s,l})),
+      toolkit:[['toolkit','toolkit'],['scorecard','weekly scorecard'],['prompts','reflection prompts'],['affirmations','affirmation vault'],['reading','reading list']].map(([s,l])=>({s,l})),
+      me:[F('profile','profile + full grid',1),F('share','share · story'),F('shareSquare','share · post'),F('badges','badges')],
+      panic:[F('breathe','1 · breathe with me',1),F('ground','2 · grounding'),F('pause','3 · pause'),F('talk','4 · talk it through'),F('support','5 · support'),F('later','6 · later')],
+      a11y:[
+        {h:'text.',b:'all copy uses TextTheme styles, so Dynamic Type and Android font scale apply. rows have min heights, never fixed ones, and wrap at 130%.'},
+        {h:'motion.',b:'MediaQuery.disableAnimations swaps the orb, breathing and grid for static states. the breathing count stays in text.'},
+        {h:'labels.',b:'every icon button has a Semantics label (e.g. "attach a chart image", "preview calm male").'},
+        {h:'targets.',b:'44pt minimum; timeframe chips are 44×32 inside a 44pt row.'},
+        {h:'contrast.',b:'body text is #F5F5F7 or #A1A1A6 on #050607–#17191C. #6E6E73 only on large or decorative marks.'},
+        {h:'charts.',b:'labelled axes, tap any column for its value, announced through a live region.'},
+        {h:'state.',b:'never colour alone: met/forming/waiting, candles, mood dots and badges all pair a shape with a word.'}
+      ],
+      spec:[
+        ['WatchlistRow','markets','symbol, name, session badge, placeholder price, strategy state. one 72pt target → pair detail.','String symbol, name\nSession session\nStrategyState state\nVoidCallback onTap','InkWell › Row › [Column, StrategyStateBadge]'],
+        ['StrategyStateBadge','markets','waiting = ring, forming = half fill, conditions met = full fill. always with the word. grey vs green.','StrategyState state\nbool compact = true','CustomPaint(circle) + Text'],
+        ['PairChart','markets','Lightweight Charts style. filled candle closes higher, hollow closes lower. timeframe chips, session shading toggle, loading/closed/error overlays.','List<Candle> candles\nTimeframe tf\nbool showSessions\nChartState state\nValueChanged<Timeframe> onTf','CustomPainter · SegmentedButton'],
+        ['ConditionChecklist','markets','rules from the active strategy. met = filled + tick, not met = solid ring + dash, waiting = dashed ring.','List<Condition> items','Column › ConditionRow · Semantics(value)'],
+        ['ScopedChat','markets','follow-up chat pinned to one pair. text + one chart image. suggestions until the first send. answers render as TerminalLine.','String pair\nList<Message> messages\nList<String> suggestions\nValueChanged<Draft> onSend','ListView.reverse · image_picker'],
+        ['StrategyCard','markets','name, setups, timeframes, rules, version. active: filled dot + "active". others: set active. editor has plain language / fields and version history.','Strategy s\nbool active\nVoidCallback onEdit, onActivate','Card › Column'],
+        ['CoachOrb','coach','glass disc + green core. idle breathes (5s), listening swells with a ring, thinking dims, speaking ripples. static per state with reduce motion.','OrbState state\nbool reduceMotion\ndouble size = 172','AnimationController · BackdropFilter'],
+        ['TranscriptDrawer','coach','draggable sheet, mono speaker labels and timestamps, live dot while recording.','List<TranscriptLine> lines\nbool live','DraggableScrollableSheet'],
+        ['VoicePickerSheet','coach','calm male · calm female · coach tone. radio row + 44pt preview button each.','Voice selected\nValueChanged<Voice> onPick, onPreview','showModalBottomSheet · RadioListTile'],
+        ['ContextChips','coach','what the coach knows about today, from trades and check-ins. read-only.','List<String> chips','Wrap › Chip'],
+        ['SessionSummaryCard','coach','topics and one focus. save writes a voice entry with the transcript to the journal.','List<String> topics\nString focus\nVoidCallback onSave','Column · FilledButton'],
+        ['JournalFeedItem','coach history','type icon + label, date, mood dot + word, first line. dot: filled green pleasant, filled grey neutral, orange ring difficult.','EntryType type\nDateTime date\nMood mood\nint intensity\nString firstLine','InkWell › Row'],
+        ['EntryEditor','mind toolkit','title, body, prompt chips, 8 moods, intensity, context tag, optional trade link.','Entry? draft\nList<String> prompts\nValueChanged<Entry> onSave','Form · TextField · ChoiceChip'],
+        ['MoodTrendChart','mind toolkit','30 daily points, axis 1–10, tap a column for its value. collapsible on the list, pinned on every journal page.','List<DayMood> days\nbool collapsed\nint? selected','CustomPainter · GestureDetector'],
+        ['EmotionSlider','mind toolkit','1–10 in whole steps, large mono readout, labelled ends.','int value\nValueChanged<int> onChanged','Slider(divisions: 9)'],
+        ['BeforeAfterChart','mind toolkit','last 8 trades: before (ring) and after (filled) intensity, joined. insight: "your trades usually [calm / agitate] you".','List<TradeMood> trades\nString insight','CustomPainter'],
+        ['ScorecardCard','toolkit','mindset score, rule breaks (auto when connected), AI recap, next week\'s focus.','int mindset\nint ruleBreaks\nbool autoFilled\nList<String> recap\nString focus','Column · Slider · Stepper'],
+        ['PromptDeck','toolkit','three stacked cards, next card / answer. answers saved with date.','List<String> prompts\nList<Answer> saved','Stack · AnimatedSwitcher'],
+        ['AffirmationVault','toolkit','today\'s AI line, add field, list with favourite and delete.','String today\nList<Affirmation> items','ListView · Dismissible'],
+        ['FullGrid','me','a year as two 27×7 half-year blocks, five-step green scale, future days outlined. staggered fill on first view.','List<DayLevel> days\nint year\nbool animate','GridView · staggered AnimationController'],
+        ['RankLadder','me','M1 → MN. passed ranks filled, current and next labelled. lists what raises and lowers the score, without points.','Rank current\nList<ScoreFactor> factors','Column › RankRow'],
+        ['BadgeTile','me','earned: solid green outline. locked: dashed outline, dash glyph, progress text.','Badge badge\nbool earned\nString? progress','Container(DottedBorder)'],
+        ['ShareCard','me','1080×1920 story or 1080×1080 post: logo, @handle, grid, rank, streak. never profit, balance or lot sizes.','ShareFormat format\nString handle\nList<DayLevel> days\nRank rank\nint streak','RepaintBoundary.toImage · share_plus'],
+        ['BreathingOrb','panic','4-7-8, 19s cycle. phase and countdown in text, so it works with motion off.','bool reduceMotion\nVoidCallback onCycle','AnimationController(19s) · TweenSequence']
+      ].map(([n,a,d,p,f])=>({n,a,d,p,f})),
+      research:[
+        {s:'watchlist',a:'TradingView · Yahoo Finance · Stocks',p:'symbol over name on the left, value column right-aligned. doji swaps the % change for a strategy state.'},
+        {s:'pair detail',a:'TradingView · Revolut · Public',p:'timeframe control sits directly on the chart card; the AI summary goes right under the chart, not in a tab.'},
+        {s:'ai chat',a:'Perplexity · Pi · ChatGPT',p:'suggestion chips until the first message, attach on the left of the field, send on the right.'},
+        {s:'voice orb',a:'ChatGPT voice · Tolan · ElevenLabs',p:'one central form carries all state; chrome stays at the edges. the hold button is the only large control.'},
+        {s:'journal list',a:'5 Minute Journal · stoic. · How We Feel',p:'one feed for every entry type with a small type glyph; stats kept to a single row.'},
+        {s:'mood trend',a:'How We Feel · Finch · Bevel',p:'mood as a line over weeks, plus a split view by context; How We Feel\'s time-of-day split shaped before vs after.'},
+        {s:'streak calendar',a:'Duolingo · Strava · Finch',p:'streak number next to the calendar, locked milestones visible so the next one is clear.'},
+        {s:'share card',a:'Strava · Spotify · Polarsteps',p:'preview the exact image before sharing; format toggle above the preview; save and share as equal buttons.'},
+        {s:'settings',a:'Wysa · Flo · Medium',p:'grouped inset lists with mono section headers; destructive row separated inside privacy.'},
+        {s:'crisis support',a:'Wysa · How We Feel · Bloom',p:'one clear helpline action, very little text, no red, and an easy way back.'}
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

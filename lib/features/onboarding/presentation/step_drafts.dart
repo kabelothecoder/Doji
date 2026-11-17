@@ -11,7 +11,7 @@ Object? initialDraft(OnboardingStep step, Answers answers) {
   switch (step.id) {
     case StepIds.name:
       return saved is String ? saved : '';
-    case StepIds.markets || StepIds.sessions || StepIds.struggles:
+    case StepIds.style || StepIds.markets || StepIds.sessions || StepIds.struggles:
       return saved is List ? saved.whereType<String>().toList() : <String>[];
     case StepIds.risk:
       return {'maxTrades': 3, 'dailyLoss': 2.0, ...savedMap()};
@@ -33,7 +33,7 @@ Object? pickOption(OnboardingStep step, Answers answers, Object? draft, int inde
   final value = options[index].value;
   Map<String, Object?> asMap() => draft is Map ? Map<String, Object?>.from(draft) : {};
   switch (step.id) {
-    case StepIds.markets || StepIds.sessions || StepIds.struggles:
+    case StepIds.style || StepIds.markets || StepIds.sessions || StepIds.struggles:
       final list = draft is List ? List<String>.from(draft) : <String>[];
       return list.contains(value) ? (list..remove(value)) : (list..add(value));
     case StepIds.goal:

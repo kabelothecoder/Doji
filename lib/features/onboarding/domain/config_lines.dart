@@ -54,7 +54,10 @@ final List<_Spec> _specs = [
     StepIds.experience,
     (a, p) => p.experience == null ? null : _sym(_experienceShort[p.experience] ?? p.experience!),
   ),
-  _Spec('style', StepIds.style, (a, p) => p.style == null ? null : _sym(p.style!)),
+  _Spec('style', StepIds.style, (a, p) {
+    final s = p.style?.split(',');
+    return s == null ? null : _sym(s.length == 1 ? s.single : _list(s));
+  }),
   _Spec('markets', StepIds.markets, (a, p) => p.instruments.isEmpty ? null : _sym(_list(p.instruments))),
   _Spec('sessions', StepIds.sessions, (a, p) {
     if (p.sessions.isEmpty) return null;
@@ -64,10 +67,15 @@ final List<_Spec> _specs = [
         : '  # ${utcLabel(userZoneFromProfile(p).offsetMinutesAt(clock.now()))}';
     return _sym(_list(p.sessions), tz);
   }),
+  _Spec(
+    'availability',
+    StepIds.availability,
+    (a, p) => p.availability == null ? null : _sym(p.availability!),
+  ),
   _Spec('goal', StepIds.goal, (a, p) => p.goal == null ? null : _sym(p.goal!)),
   _Spec('prop.size', StepIds.goal, (a, p) {
     final firm = p.prop?.firm == null ? '' : '  # ${p.prop!.firm!.toLowerCase()}';
-    final size = p.prop?.accountSize;
+    final size = p.startingSize?.round();
     if (size == null) {
       return (value: 'null', tone: ConfigValueTone.muted, comment: firm.isEmpty ? '  # optional' : firm);
     }
@@ -109,6 +117,18 @@ final List<_Spec> _specs = [
     final r = p.rules?.riskPerTrade;
     return r == null ? null : _lit(_pct1(r), riskNote(r) != null ? '  # above 2%' : '');
   }),
+  _Spec(
+    'appetite',
+    StepIds.risk,
+    (a, p) => p.riskAppetite == null ? null : _sym(p.riskAppetite!),
+    applies: (a) => _riskKey(a, 'appetite'),
+  ),
+  _Spec(
+    'deposit',
+    StepIds.risk,
+    (a, p) => p.usualDeposit == null ? null : _sym(p.usualDeposit!),
+    applies: (a) => _riskKey(a, 'deposit'),
+  ),
   _Spec('max_trades', StepIds.risk, (a, p) {
     final n = p.rules?.maxTradesPerDay;
     return n == null ? null : _lit('$n');
@@ -143,6 +163,9 @@ final List<_Spec> _specs = [
 
 /// Lines expected once onboarding is done, given the answers so far
 /// (prop.size only counts when the goal is a prop challenge).
+// Optional risk lines count only once answered, so progress can still reach the end.
+bool _riskKey(Answers a, String k) => (a[StepIds.risk] as Map?)?[k] != null;
+
 int totalConfigLines(Answers a) => _specs.where((s) => s.applies?.call(a) ?? true).length;
 
 /// Renders profile.doji. Skipped steps print `null  # skipped`; unanswered
