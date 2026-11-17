@@ -23,6 +23,11 @@ abstract final class Routes {
 
   /// Mood: check-in, tracker, trends (journal tab, bar stays).
   static const mood = '/journal/mood';
+
+  /// Insights feed and one insight (Doji Trade Journal Phone › insights, insight), bar stays.
+  static const insights = '/journal/insights';
+  static String insight(String id, {bool trades = false}) =>
+      '$insights/${Uri.encodeComponent(id)}${trades ? '?trades=1' : ''}';
   static const addTrade = '/journal/add';
   static const tradeDetailPattern = '/journal/trade/:id';
 

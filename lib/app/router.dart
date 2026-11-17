@@ -50,6 +50,7 @@ import '../features/panic/presentation/panic_screen.dart';
 import '../features/me/presentation/me_screen.dart';
 import '../features/me/presentation/share_card_screen.dart';
 import 'routes.dart';
+import '../features/journal/presentation/insights_screen.dart';
 import '../features/mind/presentation/mind_screens.dart';
 import 'shell/app_shell.dart';
 import 'shell/main_tab.dart';
@@ -121,6 +122,19 @@ GoRouter buildRouter({String initialLocation = Routes.intro}) => GoRouter(
                   if (tab == MainTab.journal) ...[
                     GoRoute(path: 'trades', builder: (c, s) => const TradesScreen()),
                     GoRoute(path: 'mood', builder: (c, s) => const MoodScreen()),
+                    GoRoute(
+                      path: 'insights',
+                      builder: (c, s) => const InsightsScreen(),
+                      routes: [
+                        GoRoute(
+                          path: ':id',
+                          builder: (c, s) => InsightDetailScreen(
+                            id: s.pathParameters['id'] ?? '',
+                            toTrades: s.uri.queryParameters['trades'] == '1',
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                   if (tab == MainTab.markets)
                     GoRoute(path: 'search', builder: (c, s) => const MarketSearchScreen()),

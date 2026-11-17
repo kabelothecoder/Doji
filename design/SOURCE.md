@@ -111,8 +111,9 @@ Sync each one into `design/handoff/` when its slice starts (CLAUDE.md › Phase:
 | `Doji Me Phone` | Me: profile + full grid, badges, share; mind toolkit; settings | synced 2026-11-17 (abridged; toolkit read in full with DesignSync 2026-11-17); profile, badges, share, mind toolkit built (scorecard is measured: the mindset slider, hand-counted breaks, AI recap and next week's focus are not built; books have no store link); in-tab settings not |
 | `Doji Share Card` | share card, story 1080×1920 and post 1080×1080 | synced 2026-11-17, built (`/share`) |
 | `Doji Coach Phone` | coach states: thinking, transcript, voices, text mode, summary, saved, voice minutes used, distress | synced 2026-11-17 into `handoff/` byte-for-byte (not abridged), built (see Missing › Coach states) |
-| `Doji Trade Journal Phone` | journal states + mood (check-in, emotion tracker, trends) | synced 2026-11-17 into `handoff/` byte-for-byte (not abridged). It holds **no mood screens** (its screens: imported, review, home, trades, insights, weekly, prop, add / connect / csv / manual, empty, syncing, tooFew); mood built from design-system parts (see Missing › Mood) |
-| `Doji Journal Phone`, `Doji Journal Engine`, `Doji Insight Card`, `Doji Engine`, `Doji Engine Window` | insights / analyst | not built |
+| `Doji Trade Journal Phone` | journal states + mood (check-in, emotion tracker, trends) | synced 2026-11-17 into `handoff/` byte-for-byte (not abridged). It holds **no mood screens** (its screens: imported, review, home, trades, insights, weekly, prop, add / connect / csv / manual, empty, syncing, tooFew); mood built from design-system parts (see Missing › Mood). Insights feed, insight detail and the imported banner built 2026-11-18 (R only; "early signal" → "small sample"; see CLAUDE.md › Journal) |
+| `Doji Insight Card` | insight card (full, hidden, compact) | synced 2026-11-18 into `handoff/` byte-for-byte; full + hidden built (journal insights); compact not built |
+| `Doji Journal Phone`, `Doji Journal Engine`, `Doji Engine`, `Doji Engine Window` | insights / analyst | not built |
 | `Doji Replay & Edge Gym`, `Doji Replay Engine`, `Doji Replay Phone` | practice (slice 05) | built without them |
 | `Doji Home`, `Doji Home Phone`, `Doji Plans`, `Doji Plans Phone`, `Doji Rail`, `Doji Trade Journal` | built from (read live, never copied) | built |
 
