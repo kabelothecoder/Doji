@@ -1,4 +1,5 @@
 import '../../journal/domain/journal_stats.dart';
+import '../../accounts/domain/walk_away.dart';
 import '../../journal/domain/trade.dart';
 import '../../onboarding/domain/profile_doji.dart';
 
@@ -63,6 +64,7 @@ class CoachContext {
     this.tradesToday = 0,
     this.lossStreak = 0,
     this.lossTodayPct = 0,
+    this.walkAway,
   });
 
   final String? name;
@@ -88,6 +90,9 @@ class CoachContext {
   /// Today's loss as a percent of the account (0 when flat or up).
   final double lossTodayPct;
 
+  /// A walk-away rule reached today, or being outside the trading window (`walkAwayNow`).
+  final String? walkAway;
+
   factory CoachContext.from(ProfileDoji p, {required List<Trade> trades, required DateTime now}) {
     final day = DaySummary.of(trades, now);
     final rules = p.rules;
@@ -105,6 +110,7 @@ class CoachContext {
       tradesToday: day.count,
       lossStreak: day.lossStreak,
       lossTodayPct: day.lossPercent(accountSize: p.startingSize, riskPerTradePct: rules?.riskPerTrade ?? 1.0),
+      walkAway: walkAwayNow(trades, now, rules: rules, accountSize: p.startingSize),
     );
   }
 }

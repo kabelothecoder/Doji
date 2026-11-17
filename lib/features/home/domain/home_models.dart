@@ -1,7 +1,6 @@
 import '../../../core/widgets/grid_cell.dart';
 import '../../accounts/domain/walk_away.dart';
 import '../../accounts/domain/payout_readiness.dart';
-import '../../journal/domain/guardrails.dart';
 import '../../journal/domain/journal_stats.dart';
 import '../../journal/domain/trade.dart';
 import '../../markets/domain/instrument_catalog.dart';
@@ -174,18 +173,7 @@ class HomeSnapshot {
       score: 812, // sample data, labelled as such on screen
       streak: null, // TODO(next-slice): "[n] days" from the grid
       accountNote: accountNote,
-      walkAway:
-          WalkAway.of(
-            trades,
-            at,
-            rules: rules,
-            accountSize: accountSize,
-            riskPerTradePct: rules?.riskPerTrade ?? 1.0,
-          ).hit ??
-          switch (outsideWindow(rules, at)) {
-            final why? => 'outside your trading window: $why.',
-            null => null,
-          },
+      walkAway: walkAwayNow(trades, at, rules: rules, accountSize: accountSize),
       payout: prop == null
           ? const []
           : PayoutReadiness.of(

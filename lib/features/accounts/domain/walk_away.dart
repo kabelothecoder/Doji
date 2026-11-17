@@ -1,5 +1,6 @@
 import '../../journal/domain/journal_stats.dart';
 import '../../journal/domain/trade.dart';
+import '../../journal/domain/guardrails.dart';
 import '../../onboarding/domain/profile_doji.dart';
 
 /// The walk-away rules (design/research-intake-plan.md › 2): stop for the day after a good day
@@ -62,3 +63,23 @@ String _n(double v) {
   final r = (v * 10).roundToDouble() / 10;
   return r == r.roundToDouble() ? r.toInt().toString() : r.toStringAsFixed(1);
 }
+
+/// The one walk-away line for right now: a rule reached today, else being outside the trading
+/// window. Home, the rail, the coach and the pre-trade check all read this.
+String? walkAwayNow(
+  Iterable<Trade> trades,
+  DateTime now, {
+  required TradingRules? rules,
+  double? accountSize,
+}) =>
+    WalkAway.of(
+      trades,
+      now,
+      rules: rules,
+      accountSize: accountSize,
+      riskPerTradePct: rules?.riskPerTrade ?? 1.0,
+    ).hit ??
+    switch (outsideWindow(rules, now)) {
+      final why? => 'outside your trading window: $why.',
+      null => null,
+    };

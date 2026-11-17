@@ -26,6 +26,7 @@ List<ChecklistAnswer> preTradeRows(List<EntryCondition> conditions, CoachContext
       label: 'loss today ${_pct(c.lossTodayPct)} of ${_pct(c.dailyLossLimitPct!)}',
       status: c.lossTodayPct >= c.dailyLossLimitPct! ? 'limitHit' : 'ok',
     ),
+  if (c.walkAway != null) const ChecklistAnswer(label: 'walk-away rules', status: 'limitHit'),
   ChecklistAnswer(
     label: 'losses in a row today ${c.lossStreak}',
     status: c.lossStreak >= 2 ? 'limitHit' : 'ok',
@@ -38,6 +39,7 @@ List<String> limitLines(CoachContext c) => [
     "you've taken ${c.tradesToday} of ${c.maxTradesPerDay} trades today. your rules say the day is done.",
   if (c.dailyLossLimitPct != null && c.lossTodayPct >= c.dailyLossLimitPct!)
     "you've hit your daily loss limit (${_pct(c.dailyLossLimitPct!)}).",
+  ?c.walkAway,
   if (c.lossStreak >= 2) "that's ${c.lossStreak} losses in a row today: the tilt line in your plan.",
 ];
 

@@ -20,6 +20,8 @@ class SupabaseCoach implements Coach {
     'riskPerTradePct': c.riskPerTradePct,
     'maxTradesPerDay': c.maxTradesPerDay,
     'dailyLossLimitPct': c.dailyLossLimitPct,
+    // TODO(backend): ai-coach reads walkAway as a fact.
+    'walkAway': c.walkAway,
     'struggles': c.struggles,
     'tradesToday': c.tradesToday,
     'lossStreak': c.lossStreak,

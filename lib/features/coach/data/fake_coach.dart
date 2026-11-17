@@ -120,6 +120,7 @@ class FakeCoach implements Coach {
     if (max != null && c.tradesToday >= max) {
       return "that's ${c.tradesToday} of $max trades today, so the plan is done for today. what's on your mind?";
     }
+    if (c.walkAway case final w?) return '$w your own rule. what makes you want another one?';
     final who = c.name == null ? '' : '${c.name!.toLowerCase()}, ';
     return "${who}what's on your mind before the next trade?";
   }
